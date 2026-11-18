@@ -1,0 +1,30 @@
+name: Documentation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-11-12
+        with:
+          persist-credentials: false
+      - name: Test documentation policy
+        run: python3 -m unittest discover -s tests -v
+      - name: Check project documents
+        run: python3 scripts/check_docs.py
+      - name: Check roadmap ownership and dependencies
+        run: python3 scripts/check_roadmap.py
+      - name: Check design agent contracts
+        run: python3 scripts/check_agents.py

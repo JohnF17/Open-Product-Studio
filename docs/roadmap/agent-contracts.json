@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "status": "design-only",
+  "authority": {
+    "definitionIsGrant": false,
+    "callerAuthority": "server-derived",
+    "nativeRoutesRequireQualification": true,
+    "modelPolicy": "exact-owner-selection",
+    "resultApplication": "one-logical-application-at-least-once-transport"
+  },
+  "tools": [
+    {
+      "id": "studio.evidence.read",
+      "capability": "cap.evidence.import",
+      "risk": "read"
+    },
+    {
+      "id": "studio.evidence.search",
+      "capability": "cap.evidence.research",
+      "risk": "read"
+    },
+    {
+      "id": "studio.artifact.read",
+      "capability": "cap.harness.artifacts",
+      "risk": "read"
+    },
+    {
+      "id": "studio.artifact.propose",
+      "capability": "cap.content.versions",
+      "risk": "private-edit"
+    },
+    {
+      "id": "studio.context.read",
+      "capability": "cap.harness.memorypolicy",
+      "risk": "read"
+    },
+    {
+      "id": "studio.task.delegate",
+      "capability": "cap.harness.delegate",
+      "risk": "delegate"
+    },
+    {
+      "id": "studio.question.request",
+      "capability": "cap.harness.inspect",
+      "risk": "request"
+    },
+    {
+      "id": "studio.council.request",
+      "capability": "cap.council.protocol",
+      "risk": "delegate"
+    },
+    {
+      "id": "studio.action.propose",
+      "capability": "cap.harness.outcomes",
+      "risk": "private-edit"
+    }
+  ],
+  "replyContracts": [
+    {
+      "id": "reply.researcher",
+      "version": 1,
+      "requiredFields": [
+        "question",
+        "claims",
+        "evidence",
+        "contradictions",
+        "gaps",
+        "freshness"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.planner",
+      "version": 1,
+      "requiredFields": [
+        "options",
+        "criteria",
+        "assumptions",
+        "dependencies",
+        "evidence",
+        "limits"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.creator-analyst",
+      "version": 1,
+      "requiredFields": [
+        "sources",
+        "inspectedCounts",
+        "observedFields",
+        "inferences",
+        "rights",
+        "gaps"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.maker-editor",
+      "version": 1,
+      "requiredFields": [
+        "baseRevision",
+        "proposedEdits",
+        "artifactRefs",
+        "checks",
+        "unresolved"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.reviewer",
+      "version": 1,
+      "requiredFields": [
+        "checkedScope",
+        "findings",
+        "evidence",
+        "notReviewed",
+        "disposition"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.council-synthesizer",
+      "version": 1,
+      "requiredFields": [
+        "positions",
+        "evidence",
+        "dissent",
+        "missingMembers",
+        "recommendation",
+        "limitations"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    },
+    {
+      "id": "reply.dot",
+      "version": 1,
+      "requiredFields": [
+        "triggerReason",
+        "memoryRefs",
+        "privateWork",
+        "proposals",
+        "receipts",
+        "stopReason"
+      ],
+      "allowedKinds": [
+        "answer",
+        "partial",
+        "abstain",
+        "failed"
+      ],
+      "defaultRepairAttempts": 1,
+      "maxRepairAttempts": 2,
+      "metadataIssuer": "trusted-server",
+      "schemaStatus": "planned-contract"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "agent.researcher",
+      "version": 1,
+      "replyContract": "reply.researcher",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.evidence.search",
+        "studio.artifact.read",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.planner",
+      "version": 1,
+      "replyContract": "reply.planner",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.artifact.read",
+        "studio.task.delegate",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.creator-analyst",
+      "version": 1,
+      "replyContract": "reply.creator-analyst",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.evidence.search",
+        "studio.artifact.read",
+        "studio.artifact.propose",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.maker-editor",
+      "version": 1,
+      "replyContract": "reply.maker-editor",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.artifact.read",
+        "studio.artifact.propose",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.reviewer",
+      "version": 1,
+      "replyContract": "reply.reviewer",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.artifact.read",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.council-synthesizer",
+      "version": 1,
+      "replyContract": "reply.council-synthesizer",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.artifact.read",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    },
+    {
+      "id": "agent.dot",
+      "version": 1,
+      "replyContract": "reply.dot",
+      "allowedTools": [
+        "studio.evidence.read",
+        "studio.evidence.search",
+        "studio.artifact.read",
+        "studio.artifact.propose",
+        "studio.context.read",
+        "studio.task.delegate",
+        "studio.council.request",
+        "studio.action.propose",
+        "studio.question.request"
+      ],
+      "modelPolicy": "exact-owner-selection",
+      "instructionsDocument": "docs/AGENT-HARNESS.md",
+      "definitionIsGrant": false
+    }
+  ],
+  "council": {
+    "milestone": "M3C",
+    "advisoryOnly": true,
+    "independentInitialBarrier": true,
+    "defaultPositions": 3,
+    "minimumSubstantivePositions": 2,
+    "requiredIndependentReviewer": true,
+    "maxChallengeRounds": 1,
+    "requiresSynthesisReservation": true,
+    "silentMemberReplacement": false
+  },
+  "dot": {
+    "enabled": false,
+    "instancesPerOwner": 1,
+    "initialExternalActions": [],
+    "channels": [
+      {
+        "id": "agentmail",
+        "milestone": "M9B",
+        "enabled": false
+      },
+      {
+        "id": "browser",
+        "milestone": "M9B",
+        "enabled": false
+      },
+      {
+        "id": "agent-reach",
+        "milestone": "M9B",
+        "enabled": false
+      },
+      {
+        "id": "agentphone",
+        "milestone": "M9C",
+        "enabled": false,
+        "providerIdentity": "agentphone.ai",
+        "providerUrl": "https://agentphone.ai",
+        "selectionStatus": "owner-selected",
+        "accountValidation": "pending"
+      }
+    ]
+  }
+}
