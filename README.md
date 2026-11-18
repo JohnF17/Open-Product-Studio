@@ -1,153 +1,80 @@
-# T3 Code
+# Open Product Studio
 
-T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
+Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, Google Antigravity, and fx. If they're set up on your computer, T3 Code can control them.
+**Status: research and design complete enough for implementation planning; application not implemented.** This repository currently contains the proposed design, build plan, contribution rules, and a documentation check. It is not an installable product yet.
 
-## "Wait, what are you selling me?"
+Open Product Studio is a planned downloadable Electron application, built as a substantially adapted downstream fork of T3 Code. It is an open-source workspace for researching a buyer's problem, creating a digital product, and preparing its launch. The complete workspace includes research, strategy, product creation, creator partnerships, contacts, launch campaigns, media, publishing, feedback, exports and guidance. All modules appear in the first dashboard; explicit engineering milestones govern which actions are available.
 
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
+The intended experience is simple: let AI investigate the web and recommend choices at every stage, accept or change those choices, review the result, and export or deliberately publish your work. "Recommend and do safe work" handles bounded research and reversible drafting under your chosen budget. A guided first project teaches the interface while you use it. You can always skip the tour.
 
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork and build the editor that you want.
+## Your tools, your choice
 
-## Installation
+- **Use your CLI:** connect a supported AI CLI under your own account and its provider's terms. Provider usage limits still apply.
+- **Bring an API key:** use an official provider connection with an explicit model and budget.
+- **Use a local model:** suitable hardware and separately licensed model weights are required.
+- **Optional hosted service:** planned for a later release, with clear prices and usage receipts. No paid plan is required for the intended local workflow.
 
-> [!WARNING]
-> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, Antigravity, and fx. Install and authenticate at least one provider before use:
->
-> - Codex: install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`
-> - Claude: install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`
-> - Cursor: install [Cursor CLI](https://cursor.com/cli) and run `agent login`
-> - Grok Build: install [Grok Build CLI](https://x.ai/cli) and run `grok login`
-> - OpenCode: install [OpenCode](https://opencode.ai) and run `opencode auth login`
-> - Antigravity: enable it in Settings, then use **Install Antigravity** and **Sign in with Google**. No CLI is required.
-> - fx: install [fx](https://fx.sh) and run `fx login` on the machine running the T3 Code server ([setup guide](./docs/user/providers-fx.md))
+Select the provider, account, model, and available reasoning setting. If your selected model cannot run, the job pauses. It does not quietly become a different model wearing the same name tag.
 
-### Command line
+The planned agent harness gives specialists versioned roles, scoped tools, bounded delegated work, structured results and inspectable receipts. Councils add independent positions, evidence review and visible disagreement. A later single personal assistant adds memory, private proactive work and deliberately connected inbox/browser/phone capabilities through separate release gates.
 
-```bash
-curl -fsSL https://t3.codes/install.sh | sh
-```
+Free provider allowances are useful for experiments. They are finite, change over time, and do not promise free access to every premium model.
 
-On Windows, in PowerShell:
+## What we are building
 
-```powershell
-irm https://t3.codes/install.ps1 | iex
-```
+The first complete production milestone proves this workflow inside the full registered dashboard:
 
-Then run `t3` to start the server and open the local web app. `t3 service install` keeps it running in the background, `t3 update` moves to a newer release, and `t3 --help` has the full reference.
+1. Describe a specific buyer and problem.
+2. Collect sources and separate evidence from assumptions.
+3. Choose a product outline and create an editable draft.
+4. Check claims, add exercises, and improve the product.
+5. Export the reviewed product and permitted source notes, then reopen/edit it outside the app.
+6. When launch capabilities are accepted, prepare a sales-page draft and launch kit; the first M2 export needs no CRM, creator or mailbox setup.
 
-To try it once without installing, run `npx t3@latest`. It offers to install the `t3` command for you.
+Creator partnerships, CRM, campaigns, media, publishing and feedback are part of one shared product design from the start. Unshipped actions show their implementation milestone; project prerequisites and missing connections are separate states. Publishing and sending messages always require a deliberate user action.
 
-### Desktop app
+## A few unusually ordinary promises
 
-Install the latest version of the desktop app from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), or from your favorite package registry:
+The free edition should remain useful after the welcome screen. Export should not be a retention strategy. A progress bar should measure work, not manufacture urgency.
 
-#### Windows (`winget`)
+Our stack is selected for engineering reasons. Equity stakes are not a dependency-resolution algorithm. Any future sponsorships, affiliations, or referral payments will be disclosed beside the relevant recommendation.
 
-```bash
-winget install T3Tools.T3Code
-```
+We sell no income guarantee. AI can help make a product; usefulness, distribution, customer trust, and maintenance still require work.
 
-#### Windows (`scoop`)
+## Proposed stack
 
-```bash
-scoop install extras/t3code
-```
+Preserve T3 Code's Electron, React, TypeScript, Vite, TanStack Router, Tailwind, existing UI primitives, Node/Effect services, authenticated RPC, provider contracts and SQLite execution platform. Add RHF/Zod business forms and restrained animations through compatible components. Optional cloud business accounts prefer Clerk with the official Convex integration; Convex remains the hosted authority and first private storage/coordination service. Local use needs no Studio sign-in. The first milestone verifies the pinned fork, isolated application identity and packaged desktop build; no fork code has been imported yet.
 
-#### macOS (Homebrew)
+## Start here
 
-```bash
-brew install --cask t3-code
-```
+- [Product and experience design](docs/PRODUCT.md)
+- [Multi-project navigation, accessible motion and recovery](docs/PROJECT-EXPERIENCE.md)
+- [Service needs, stages, authority, costs and exit](docs/SERVICES.md)
+- [Payments and separate creator commerce](docs/PAYMENTS.md)
+- [First useful result and bounded service flows](docs/plans/2026-11-13-first-result-and-service-flows.md)
+- [Architecture and provider contract](docs/ARCHITECTURE.md)
+- [Downstream fork strategy](docs/research/fork-strategy.md)
+- [Complete module and milestone catalog](docs/MILESTONES.md)
+- [Recommendations at every step](docs/RECOMMENDATIONS.md)
+- [Local, cloud, commerce and customer-access boundaries](docs/PLATFORM-BOUNDARIES.md)
+- [Research skills and tool adoption policy](docs/TOOLING.md)
+- [Canonical engineering roadmap](docs/ROADMAP.md)
+- [66 dependency-ordered implementation contracts](docs/WORK-PACKAGES.md)
+- [Agent harness, roles and councils](docs/AGENT-HARNESS.md)
+- [Later single proactive personal agent](docs/PROACTIVE-DOT.md)
+- [Feature coverage, evidence and explicit limits](docs/FEATURE-COVERAGE.md)
+- [Platform choices and operating modes](docs/PLATFORMS.md)
+- [Interactive roadmap explorer](docs/roadmap/explorer.html)
+- [Security model](docs/SECURITY-MODEL.md)
+- [Business and launch plan](docs/LAUNCH.md)
+- [CI and review design](docs/CI.md)
+- [Contributing](CONTRIBUTING.md) and [agent instructions](AGENTS.md)
 
-#### Debian, Ubuntu (`.deb`)
+## Support the project
 
-Download the `.deb` from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), then:
+Useful bug reports, accessibility feedback, documentation, and reviewed contributions are welcome. Donation links and GitHub Sponsors can be added once the maintainer supplies verified account URLs. Funding will not buy merge approval or alter the public roadmap in secret.
 
-```bash
-sudo apt install ./T3-Code-*.deb
-```
+## License
 
-#### Arch Linux (AUR)
-
-Stable:
-
-```bash
-yay -S t3code-bin
-```
-
-Nightly:
-
-```bash
-yay -S t3code-nightly-bin
-```
-
-The AUR packaging is maintained in this repository under [`packaging/aur`](./packaging/aur).
-
-#### Nix (nixpkgs)
-
-```bash
-nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code
-```
-
-The package is maintained in [nixpkgs](https://github.com/NixOS/nixpkgs/tree/nixos-unstable/pkgs/by-name/t3/t3code)
-and includes the desktop app (`t3code-desktop`) and the `t3` command.
-See [Nix installation](./docs/user/install.md#nix-nixpkgs) for NixOS configuration and updates.
-
-## Some notes
-
-We are very very early in this project. Expect bugs.
-
-We are (mostly) not accepting contributions yet. Small fixes may be considered. Big features will not be.
-
-## Documentation
-
-Full docs live in [docs/](./docs). There's no docs site yet.
-
-- [FAQ](./docs/user/faq.md)
-- [Install and first run](./docs/user/install.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Keyboard shortcuts](./docs/user/keybindings.md)
-- [Project settings](./docs/user/project-settings.md)
-- [Appearance preferences](./docs/user/appearance.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Connect Claude Code, Codex, ChatGPT and other agents over MCP](./docs/user/outside-agents.md)
-- [Keeping app and server in sync](./docs/user/updating.md)
-- [Source control integrations](./docs/user/source-control.md)
-- Multiple accounts: [Codex](./docs/user/providers-codex.md) · [Claude](./docs/user/providers-claude.md)
-- [Run T3 Code as a background service](./docs/user/background-service.md)
-
-Building from source? Start at [docs/internals/overview.md](./docs/internals/overview.md).
-
-## If you REALLY want to contribute still.... read this first
-
-### Install `vp`
-
-T3 Code uses Vite+ so you'll need to install the global `vp` command-line tool.
-
-#### macOS / Linux
-
-```bash
-curl -fsSL https://vite.plus | bash
-```
-
-#### Windows
-
-```bash
-irm https://vite.plus/ps1 | iex
-```
-
-Checkout their getting started guide for more information: https://viteplus.dev/guide/
-
-### Install dependencies
-
-```bash
-vp i
-```
-
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before reporting a bug or opening a PR.
-
-Have a feature request? Start an [Ideas discussion](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
-
-Need support? Join the [Discord](https://discord.gg/jn4EGJjrvv).
+The original material currently in this repository is licensed under [Apache-2.0](LICENSE). The planned fork retains T3 Code's MIT copyright and permission notice for upstream code; see [the license plan](docs/UPSTREAM.md). Third-party tools, services, model weights, and future dependencies have their own licenses and terms. The working project name is descriptive; domain and trademark clearance have not been completed.

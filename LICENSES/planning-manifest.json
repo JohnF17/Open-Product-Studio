@@ -1,0 +1,247 @@
+[
+  {
+    "path": ".github/pull_request_template.md",
+    "sha256": "ea86d5f8399cacd44896617350417c948552dcb1d612d97544b434cd403fa7cd",
+    "bytes": 1325
+  },
+  {
+    "path": ".github/workflows/docs.yml",
+    "sha256": "c24491a99d61415faedaa336a9406efcae26508825d0b888fc58567fce031006",
+    "bytes": 763
+  },
+  {
+    "path": ".gitignore",
+    "sha256": "c68a6157ca149c8d583fe63b4e0528b55cdde6c966c674b9501e152050ea6740",
+    "bytes": 222
+  },
+  {
+    "path": "AGENTS.md",
+    "sha256": "de9575eb8e862de9967986b0422b904484a3a16570d68d78cdc1d139cf90ba8d",
+    "bytes": 4305
+  },
+  {
+    "path": "CONTRIBUTING.md",
+    "sha256": "1ca7fd0535428f17c5aaa4e15888cc3751c1bb3c383bdf36a6c18d7c2b31f981",
+    "bytes": 4693
+  },
+  {
+    "path": "LICENSE",
+    "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5",
+    "bytes": 11560
+  },
+  {
+    "path": "README.md",
+    "sha256": "816bc1f998d5b94673415a89dc7446e5637094695585bf35b7a68c73c9a6d51a",
+    "bytes": 6892
+  },
+  {
+    "path": "SECURITY.md",
+    "sha256": "13a15cab09f70f97c4820c690cf992dd90f15d4d83bde6e24421378987c0ba3f",
+    "bytes": 790
+  },
+  {
+    "path": "docs/AGENT-HARNESS.md",
+    "sha256": "8f6986b3ab0a6ac9703f5d349daf6aa9060e7c05e72a2b70441b6b579a3456e0",
+    "bytes": 15434
+  },
+  {
+    "path": "docs/ARCHITECTURE.md",
+    "sha256": "5e258d28eac0702abbae3c900ab528141d726a8e00126375b80b6ad623273d4a",
+    "bytes": 19253
+  },
+  {
+    "path": "docs/CI.md",
+    "sha256": "7652af6b48df6b4f2d877733f1afd3925a59eb65e1995a857fab0d55854540d9",
+    "bytes": 11727
+  },
+  {
+    "path": "docs/FEATURE-COVERAGE.md",
+    "sha256": "0d5b26d0a7f3b804e36a75ac5e9e863c41a18264f2961fbb126e21124bd8cca1",
+    "bytes": 62328
+  },
+  {
+    "path": "docs/LAUNCH.md",
+    "sha256": "2de7d140600694b3a4cf91683a0db19aa54222a80ec6d4e1bdbfa908c610aad9",
+    "bytes": 11673
+  },
+  {
+    "path": "docs/MILESTONES.md",
+    "sha256": "eb24f3154292377530d44fc1e8a698b84da1679fe9d90e0697722008e53291e2",
+    "bytes": 14593
+  },
+  {
+    "path": "docs/PAYMENTS.md",
+    "sha256": "d6275f23ddaee9bc94ed857ad3cc4c77b3c01e7b2aa5f7abb2b81a8121d651e5",
+    "bytes": 27082
+  },
+  {
+    "path": "docs/PLATFORM-BOUNDARIES.md",
+    "sha256": "f8e04781210fbe1f1ff2ce3613f0ecc60d4d4bb99066c14305c9f12da5b47dc4",
+    "bytes": 10450
+  },
+  {
+    "path": "docs/PLATFORMS.md",
+    "sha256": "da1142c3240ea06caa99afa04289731c459ea52427ab8a724b7b573edc2bed41",
+    "bytes": 10650
+  },
+  {
+    "path": "docs/PROACTIVE-DOT.md",
+    "sha256": "9e0d7984db3f074c071ca029c00d6772a32f5002f1b4159927c606ce3be05596",
+    "bytes": 14309
+  },
+  {
+    "path": "docs/PRODUCT.md",
+    "sha256": "7751395ae6c322f0d06595b7530b4fe2415c16ac070ffc3d24f7d8c564f69a43",
+    "bytes": 18261
+  },
+  {
+    "path": "docs/PROJECT-EXPERIENCE.md",
+    "sha256": "ad60b9eb41ae5a8b95abb25c34ae0a5fe1c2a44847e2410fbfafa5f067632864",
+    "bytes": 16814
+  },
+  {
+    "path": "docs/RECOMMENDATIONS.md",
+    "sha256": "0a8b011710db5db0816d59ec883ac3df0a08b618fe064847e6b5807b101f663c",
+    "bytes": 11079
+  },
+  {
+    "path": "docs/ROADMAP.md",
+    "sha256": "96e6325d61cb3e0fd3c357678e40e62e701a48cd355b035293d24308c443ba6f",
+    "bytes": 40164
+  },
+  {
+    "path": "docs/SECURITY-MODEL.md",
+    "sha256": "c82b8ca26dcad21ab50a23b87dab9e4415e947d0318bb6cfc16d901a5949e373",
+    "bytes": 16641
+  },
+  {
+    "path": "docs/SERVICES.md",
+    "sha256": "e5a77b16a8f5ef6b72999dd01aef55185133c2bd79cdc9105c04e6201f2b965d",
+    "bytes": 24828
+  },
+  {
+    "path": "docs/TOOLING.md",
+    "sha256": "9af7423e5ca949010c7f5393e29c80283dce87b10a8c50501365e7a29394b892",
+    "bytes": 7146
+  },
+  {
+    "path": "docs/UPSTREAM.md",
+    "sha256": "21ab2c6ce6f6e7de8b53bbb3d0f68e46023146cb0399ea23a41f2b9202dc1801",
+    "bytes": 13268
+  },
+  {
+    "path": "docs/WORK-PACKAGES.md",
+    "sha256": "c7d98ef33ac598349a1ce60f22df83f9a23939122c9ac752cc75be8f6851f3cf",
+    "bytes": 211167
+  },
+  {
+    "path": "docs/plans/2026-11-12-open-product-studio.md",
+    "sha256": "8b9825f16d01e9b31c70c2ff6c179b46cc62b315b2b12d6f77fb9317b866f87d",
+    "bytes": 32601
+  },
+  {
+    "path": "docs/plans/2026-11-13-first-result-and-service-flows.md",
+    "sha256": "1ea106ea8f0ef603be0ac0dbc2c13585abf31803ea35e922630c08192f517707",
+    "bytes": 11616
+  },
+  {
+    "path": "docs/plans/2026-11-13-payment-provider-decisions.md",
+    "sha256": "07dff00ccd821cd75dcbe178ab3c57b523d11d9af4d6e391a34206755447529b",
+    "bytes": 12912
+  },
+  {
+    "path": "docs/research/README.md",
+    "sha256": "7be39c8c67a545367d5fa57c1fbd076591749ad0865df92d7fd90eab77a9d0a8",
+    "bytes": 6101
+  },
+  {
+    "path": "docs/research/current-demos.md",
+    "sha256": "31fa9d0d529a1961a9fc8c36769d2f3d10d7631cf65515ef3c8324f6e6d8287a",
+    "bytes": 6092
+  },
+  {
+    "path": "docs/research/demo-observations.md",
+    "sha256": "c0053eabd0735aa72affbab89e93e8f0daba37e367e1850de123ba7faafa0e7f",
+    "bytes": 4331
+  },
+  {
+    "path": "docs/research/engineering-review-resolution.md",
+    "sha256": "458a08dad658ac5cdc74b63795800f67f5a2e4b0f097627f6796d67d2191c11f",
+    "bytes": 3816
+  },
+  {
+    "path": "docs/research/episodes.md",
+    "sha256": "302ff889426984a7c749536c85c142c6e1128b68e4ed936c31da3671d0d5f3be",
+    "bytes": 7039
+  },
+  {
+    "path": "docs/research/fork-strategy.md",
+    "sha256": "9f63a587c1178ffa37582f8599d840becb4bbfba3c7afa96441536f2d091aa3b",
+    "bytes": 17920
+  },
+  {
+    "path": "docs/research/free-model-access.md",
+    "sha256": "2e1421c1288445367a5a9be267b0c4fd853cda0c8418ec1225a5a27d5f0485eb",
+    "bytes": 19601
+  },
+  {
+    "path": "docs/research/operations-observations.md",
+    "sha256": "a7d292c207031939c3640de93757f5d0ade7c57f1920a58639fdcf422d473346",
+    "bytes": 4379
+  },
+  {
+    "path": "docs/research/t3-code.md",
+    "sha256": "b0b0c68d38aca30726a62c0849a339645437e36f931612d3e63d8ce76e099cfb",
+    "bytes": 69792
+  },
+  {
+    "path": "docs/roadmap/agent-contracts.json",
+    "sha256": "0d277ff0bb8a7c6095ae4b04e29c3c7864a9c334e1c9f4a597f3c75399b22639",
+    "bytes": 9136
+  },
+  {
+    "path": "docs/roadmap/explorer.html",
+    "sha256": "07a465dcabc0ceb7210e1239ea8ef672079e6125955b9c4431ef3715984d2fa6",
+    "bytes": 650192
+  },
+  {
+    "path": "docs/roadmap/feature-coverage.json",
+    "sha256": "96acc26b34d1de50eb90eccaddf1517a4040d6fa4323b1a4dbbcaf40ccef90b5",
+    "bytes": 557206
+  },
+  {
+    "path": "docs/roadmap/work-packages.json",
+    "sha256": "776c76f60694709618b6394a779ddc38380cb0eb5883ac107d0cdd57bbb082cb",
+    "bytes": 289746
+  },
+  {
+    "path": "scripts/check_agents.py",
+    "sha256": "5c347bc694d55fe6faec84c22075b0bdaccdafbea41b33df5a083431bc21c846",
+    "bytes": 5010
+  },
+  {
+    "path": "scripts/check_docs.py",
+    "sha256": "270712078822468bde7a7992e252adaad30ed066170f0616855bed8b860951fc",
+    "bytes": 3282
+  },
+  {
+    "path": "scripts/check_roadmap.py",
+    "sha256": "02dc5323ddb9087a8179c0249456ee47729683ebac3c868e0a851640260e749c",
+    "bytes": 9952
+  },
+  {
+    "path": "tests/test_agent_contracts.py",
+    "sha256": "b7a776beb3afd61e0ab4aee0aa52cb6c7e0acbbcf33f8f3c0262e440f37cfd9d",
+    "bytes": 2649
+  },
+  {
+    "path": "tests/test_docs_policy.py",
+    "sha256": "37a49e3454fd6c0f20a8954759ef02ad1c135bd1d03a8246b700693e9d209f41",
+    "bytes": 2711
+  },
+  {
+    "path": "tests/test_roadmap_policy.py",
+    "sha256": "aba521dcb5b13458cca90a5d45a5f30e3e5cd844ef55ce036f68b6540e723957",
+    "bytes": 8043
+  }
+]

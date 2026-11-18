@@ -1,39 +1,32 @@
-<!--
-Read CONTRIBUTING.md before opening a PR. Review capacity is limited, and meeting
-the requirements does not guarantee review or merging. Solve one underlying problem.
-The same requirements apply to drafts. Draft status does not defer triage or closure.
-Use a conventional commit title in plain language, such as "fix(web): new threads no longer spike CPU".
--->
+## Problem and resulting behavior
 
-## Problem
+Explain the trigger and what a user can do after this change.
 
-<!-- Explain the problem in a sentence or two. Include expected behavior and
-reproduction steps or environment where relevant. -->
+## Scope and design
 
-## Change
+Link the issue/plan task. Name the affected boundaries. Explain any departure from the approved design.
 
-<!-- Explain how this fixes the problem. If it spans components or clients,
-explain why those changes are needed for the same fix. Split independent fixes. -->
+## Validation
 
-## Scope and approval
+List exact commands and observed results. State what was not run and why. For UI changes include mobile/desktop evidence, keyboard navigation and reduced motion. Use synthetic data.
 
-<!-- Link the triaged bug issue or the discussion with explicit maintainer approval
-of direction and scope, including the approval comment. For a very small, focused
-fix of an obvious bug, explain why it qualifies without a prior issue or discussion.
-For focused configuration of an established capability, explain what already exists,
-what the option controls, and why its effects stay within that capability. Adding a
-setting alone is not a new feature or an approval exemption; broader workflow or
-behavior changes still need approval. Scope and verification requirements still apply.
-There is no line-count or file-count cutoff. -->
+## Security, cost and data
 
-## Verification
+List new network destinations, permissions, credentials, dependencies/licenses, data retention, model-selection changes and spend effects. Write “none” when there are none.
 
-<!-- Describe the focused tests or manual checks you ran and the observed results
-for the changed behavior. State anything you could not check. "Tests pass" alone
-is insufficient; broad repo-wide checks are not required.
+## Migration and rollback
 
-For UI changes, include clear before/after screenshots. Include a short recording
-when motion, timing, transitions, or interaction details are needed to demonstrate
-the change. Upload evidence to GitHub and embed or link it here. Never commit PR-only assets. -->
+Describe compatibility and recovery, or explain why no migration is required.
 
-<!-- If you used an agent, end with the model and harness that did the work. -->
+## AI assistance and provenance
+
+State material AI assistance and human review. Confirm rights to included material and retained third-party notices.
+
+## Submitter checks
+
+- [ ] This PR has one reviewable purpose and satisfies its acceptance criteria.
+- [ ] Evidence above is observed; missing checks and risks are stated.
+- [ ] No secrets, private research assets or copied proprietary materials are included.
+- [ ] Model selections, authorization, budgets and review controls remain explicit.
+- [ ] Relevant documentation and tests are updated.
+- [ ] Commits are signed off under DCO 1.1.
