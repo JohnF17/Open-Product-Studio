@@ -1,4 +1,5 @@
-export type Category = "blank" | "digital-product" | "video";
+export type WorkingCategory = "clipper" | "replica" | "day-trader";
+export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
 export type VideoStyle = "kinetic-type" | "product-demo" | "3d-showcase";
 
 export interface StudioDraft {
@@ -31,9 +32,24 @@ export const categories: ReadonlyArray<{ id: Category; label: string; descriptio
     label: "Video",
     description: "Choose a style and plan a production, scene by scene.",
   },
+  {
+    id: "clipper",
+    label: "Clipper",
+    description: "Mark a moment from a recording and write an edit plan.",
+  },
+  {
+    id: "replica",
+    label: "Replica",
+    description: "Turn a workflow you observed into an original design brief.",
+  },
+  {
+    id: "day-trader",
+    label: "Day Trader",
+    description: "Plan an offline practice session and keep a decision journal.",
+  },
 ];
 
-export const stages: Record<Category, ReadonlyArray<string>> = {
+export const stages = {
   blank: ["notes"],
   "digital-product": ["format", "brief", "outline", "draft", "export"],
   video: [
@@ -47,7 +63,14 @@ export const stages: Record<Category, ReadonlyArray<string>> = {
     "export",
     "publish",
   ],
-};
+  clipper: ["source", "moments", "edit", "review", "export", "publish"],
+  replica: ["reference", "brief", "design", "export", "prototype"],
+  "day-trader": ["practice-data", "rules", "replay", "journal", "export"],
+} as const satisfies Record<Category, readonly string[]>;
+
+export function draftStages(category: Category): readonly string[] {
+  return stages[category];
+}
 
 export function createDraft(workspaceId: string, category: Category): StudioDraft {
   return {
@@ -72,6 +95,9 @@ export function projectName(draft: StudioDraft): string {
       blank: "Untitled project",
       video: "Untitled video",
       "digital-product": "Untitled digital product",
+      clipper: "Untitled clip",
+      replica: "Untitled design",
+      "day-trader": "Untitled practice study",
     }[draft.category]
   );
 }
@@ -86,7 +112,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     typeof d.category === "string" &&
     Object.hasOwn(stages, d.category) &&
     typeof d.stage === "string" &&
-    stages[d.category].includes(d.stage) &&
+    draftStages(d.category).includes(d.stage) &&
     ["kinetic-type", "product-demo", "3d-showcase"].includes(String(d.style)) &&
     typeof d.title === "string" &&
     typeof d.revision === "number" &&

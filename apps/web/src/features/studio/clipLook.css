@@ -1,0 +1,50 @@
+.ops-look {
+  min-inline-size: 0;
+  padding: 16px;
+  border: 1px solid var(--ops-line);
+  border-radius: 12px;
+}
+.ops-look legend { padding-inline: 4px; font-weight: 650; }
+.ops-look > p, .ops-look-import { color: var(--ops-muted); font-size: 0.85rem; }
+.ops-look-layout {
+  display: grid;
+  grid-template-columns: minmax(104px, 150px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+.ops-look-frame {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(140deg, #c5dab9 0 44%, #739285 44% 68%, #294d48 68%);
+  color: white;
+  container-type: inline-size;
+}
+.ops-look-frame img { width: 100%; height: 100%; object-fit: contain; background: #17221f; }
+.ops-look-frame figcaption {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 14%;
+  padding: 0.15em 0.35em;
+  max-height: 66%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 9cqi;
+  line-height: 1.28;
+  text-align: center;
+  background: #112320eb;
+}
+.ops-look-headline figcaption { top: 9%; bottom: auto; font-size: 14cqi; font-weight: 800; text-align: left; }
+.ops-look-label figcaption { right: auto; max-width: 86%; bottom: 25%; background: #e2f4bc; color: #153d34; font-weight: 650; }
+.ops-look-controls, .ops-look-import { display: grid; gap: 10px; min-width: 0; }
+.ops-look-import input { max-width: 100%; }
+.ops-look-presets { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.ops-look-presets [aria-pressed="true"] { border-color: var(--ops-action); box-shadow: inset 0 0 0 1px var(--ops-action); }
+@container studio (max-width: 520px) {
+  .ops-look-layout { grid-template-columns: 1fr; }
+  .ops-look-frame { width: 104px; }
+}

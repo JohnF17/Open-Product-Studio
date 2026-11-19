@@ -45,6 +45,9 @@
   opacity: 0.5;
   cursor: default;
 }
+.ops-agent-context { flex-basis: 100%; min-width: 0; font-size: 0.85rem; }
+.ops-agent-context label { display: flex; align-items: baseline; gap: 6px; margin-block: 8px; }
+.ops-agent-context p { overflow-wrap: anywhere; }
 .ops-wrap {
   width: min(100%, 1100px);
   margin: 0 auto;
@@ -252,6 +255,73 @@
   aspect-ratio: 1;
   background: #225c50;
   clip-path: polygon(13% 0, 100% 50%, 13% 100%);
+}
+.ops-art-clipper,
+.ops-icon-clipper {
+  background: #3c526d;
+  color: #ecdfaf;
+}
+.ops-art-replica,
+.ops-icon-replica {
+  background: #68536e;
+  color: #f4e4f3;
+}
+.ops-art-day-trader,
+.ops-icon-day-trader {
+  background: #71624c;
+  color: #f5e7bb;
+}
+.ops-art-clipper .ops-print,
+.ops-art-replica .ops-print,
+.ops-art-day-trader .ops-print {
+  position: relative;
+  width: 58%;
+  height: 55%;
+  border: 1px solid currentColor;
+}
+.ops-art-clipper .ops-print {
+  transform: rotate(-8deg);
+  background: repeating-linear-gradient(90deg, #657a96 0 16%, #3c526d 16% 19%);
+}
+.ops-art-clipper .ops-print i {
+  position: absolute;
+  inset: -13% 28%;
+  border: 2px solid currentColor;
+  background: #ecdfaf38;
+}
+.ops-art-replica .ops-print {
+  transform: rotate(-7deg);
+  background:
+    linear-gradient(#f4e4f3 0 17%, transparent 17%),
+    linear-gradient(90deg, #b199b8 0 25%, #8f7596 25%);
+  box-shadow: 6px 6px 0 #45394d;
+}
+.ops-art-replica .ops-print i,
+.ops-art-replica .ops-print b {
+  position: absolute;
+  inset: 34% 12% 43% 38%;
+  border: 1px dashed currentColor;
+}
+.ops-art-replica .ops-print b {
+  inset: 66% 24% 15% 38%;
+}
+.ops-art-day-trader .ops-print {
+  width: 42%;
+  height: 69%;
+  transform: rotate(-10deg);
+  background: repeating-linear-gradient(#f5e7bb 0 14%, #d4bc87 14% 15%);
+  box-shadow: 5px 5px 0 #544634;
+}
+.ops-art-day-trader .ops-print i {
+  position: absolute;
+  inset: -8% 27% 87%;
+  border-radius: 3px;
+  background: #483f34;
+}
+.ops-art-day-trader .ops-print b {
+  position: absolute;
+  inset: 28% 55% 20% 18%;
+  background: repeating-linear-gradient(#71624c 0 2px, transparent 2px 34%);
 }
 .ops-button,
 .ops-link {
@@ -552,6 +622,7 @@
 }
 .ops-footer {
   justify-content: space-between;
+  flex-wrap: wrap;
   border-top: 1px solid var(--ops-line);
   padding: 14px clamp(18px, 3.2cqi, 38px);
 }
@@ -567,7 +638,7 @@
   font-weight: 620;
   margin-bottom: 6px;
 }
-.ops-field :is(textarea, select) {
+.ops-field :is(input, textarea, select) {
   display: block;
   width: 100%;
   padding: 10px 12px;
@@ -582,8 +653,36 @@
   min-height: 52px;
   line-height: 1.55;
 }
-.ops-field textarea::placeholder {
+.ops-field :is(input, textarea)::placeholder {
   color: var(--ops-muted);
+}
+.ops-draft-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+}
+.ops-draft-fields > .ops-field:not(.ops-field-short) {
+  grid-column: 1 / -1;
+}
+.ops-earlier-notes dl {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 12px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+}
+.ops-earlier-notes dt {
+  font-weight: 620;
+}
+.ops-earlier-notes dd {
+  margin: 2px 0 0;
+  color: var(--ops-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ops-advanced > summary {
+  margin-bottom: 10px;
 }
 .ops-tools {
   min-width: 0;

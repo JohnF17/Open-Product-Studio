@@ -18,6 +18,47 @@ CLIPPER_STAGES = {
 }
 
 
+REPLICA_STAGES = {
+    "reference": ("cap.evidence.import", "WP10"),
+    "brief": ("cap.brief.capture", "WP11"),
+    "design": ("cap.content.versions", "WP14"),
+    "export": ("cap.library.export", "WP17"),
+    "prototype": ("cap.interactive.build", "WP41"),
+}
+DAY_TRADER_STAGES = {
+    "practice-data": ("cap.trading.replay", "WP41"),
+    "rules": ("cap.content.versions", "WP14"),
+    "replay": ("cap.trading.replay", "WP41"),
+    "journal": ("cap.content.versions", "WP14"),
+    "export": ("cap.library.export", "WP17"),
+}
+DESIGN_BUILDER_POLICY = {
+    "clipper": {
+        "editAuthority": "studio-project-variant",
+        "executorsPerAction": 1,
+        "executionBindings": ["host", "qualified-route", "selected-model-if-used", "approved-inputs-and-destination", "bounded-cost"],
+        "proposalBindings": ["source-revision", "variant-revision"],
+        "apply": "reviewed-undoable-edit",
+        "supoclip": "documented-workflow-reference",
+        "clipsKitty": "optional-unqualified-external-engine",
+    },
+    "replica": {
+        "references": "permitted-material",
+        "design": "original",
+        "prototype": "small-local-sandbox",
+        "network": "disabled",
+        "publication": "outside-builder",
+    },
+    "day-trader": {
+        "purpose": "local-practice-only",
+        "replay": "deterministic-offline",
+        "network": "disabled",
+        "liveOrders": "disabled",
+        "financialTransactions": "disabled",
+    },
+}
+
+
 RECIPE_POLICY = {
     "selection": "save-recipe-and-prepare-checklist",
     "skipStyle": "use-manual-default-without-reference",
@@ -65,20 +106,23 @@ def valid_refs(refs, entries):
             and len(refs) == len(set(refs)))
 
 
-def check_stages(stages, builder, stage_ids, owners, expected_bindings=None):
+def check_stages(stages, builder, stage_ids, owners, expected_bindings=None, *, optional_stage="publish"):
     if not isinstance(stages, list) or not all(isinstance(stage, dict) for stage in stages):
         return [f"Expected an ordered {builder} stage list"]
     errors = []
     if tuple(stage.get("id") for stage in stages) != tuple(stage_ids):
-        errors.append(f"{builder.capitalize()} builder must reach local export before the optional publish action")
+        if optional_stage == "publish":
+            errors.append(f"{builder.capitalize()} builder must reach local export before the optional publish action")
+        else:
+            errors.append(f"{builder} builder must preserve the planned stage order")
     for stage in stages:
         name, capability, owner = stage.get("id"), stage.get("capability"), stage.get("owner")
         if (not text(stage.get("label")) or not text(capability) or not text(owner)
                 or owners.get(capability) != owner):
             errors.append(f"{name}: invalid work-package capability binding")
-        if stage.get("optional") is not (name == "publish"):
+        if stage.get("optional") is not (optional_stage is not None and name == optional_stage):
             errors.append(f"{name}: invalid optional stage")
-        if (name == "publish") != (capability == "cap.publishing.publish"):
+        if (optional_stage == "publish" and name == "publish") != (capability == "cap.publishing.publish"):
             errors.append(f"{name}: publishing must stay separate from editing and export")
         if expected_bindings is not None:
             if set(stage) != {"id", "label", "capability", "owner", "optional"}:
@@ -170,35 +214,51 @@ def check(catalog, roadmap):
         "readiness": "per-action-on-selected-host",
     }:
         errors.append("Category or style selection cannot authorize preparation actions")
+    if catalog.get("designBuilderPolicy") != DESIGN_BUILDER_POLICY:
+        errors.append("Expected the scoped design-only builder policy")
     groups = ("categories", "styles", "stackEntries")
     if any(not isinstance(catalog.get(group), dict) or not catalog[group] for group in groups):
         return errors + ["Missing category, style or stack-entry definitions"]
     categories, styles, entries = (catalog[group] for group in groups)
     entry_points = {
         "blank": "workspace", "digital-product": "product-builder", "video": "video-builder",
-        "clipper": "clipper-builder",
+        "clipper": "clipper-builder", "replica": "replica-builder", "day-trader": "day-trader-builder",
     }
+    fixed_labels = {"clipper": "Clipper", "replica": "Replica", "day-trader": "Day Trader"}
     if not entry_points.keys() <= categories.keys():
         errors.append("Missing a first-class starting category")
+    seen_entries = set()
     for key, category in categories.items():
         if (not isinstance(category, dict) or not text(category.get("entry"))
                 or not text(category.get("label")) or type(category.get("sourceRequired")) is not bool):
             errors.append(f"{key}: missing category entry, label or source policy")
             continue
+        entry = category["entry"]
+        if entry in seen_entries:
+            errors.append(f"{key}: duplicate category entry point {entry}")
+        seen_entries.add(entry)
         if key in entry_points:
             if category["sourceRequired"]:
                 errors.append(f"{key}: a starting category must be able to start with an empty project")
             if category["entry"] != entry_points[key]:
                 errors.append(f"{key}: starting category must open its own entry point")
-        if key == "clipper":
-            if category["label"] != "Clipper":
-                errors.append("clipper: starting category must be labeled Clipper")
+        if key in fixed_labels:
+            if category["label"] != fixed_labels[key]:
+                errors.append(f"{key}: starting category must be labeled {fixed_labels[key]}")
             if set(category) != {"entry", "label", "sourceRequired"}:
-                errors.append("clipper: categories only describe entry, label and source policy")
+                errors.append(f"{key}: categories only describe entry, label and source policy")
     owners = {cap: p["id"] for p in roadmap["workPackages"] for cap in p["capabilities"]}
     errors.extend(check_stages(catalog.get("videoStages"), "video", FRAMEWORK_STAGES, owners))
     errors.extend(check_stages(
         catalog.get("clipperStages"), "Clipper", CLIPPER_STAGES, owners, expected_bindings=CLIPPER_STAGES,
+    ))
+    errors.extend(check_stages(
+        catalog.get("replicaStages"), "Replica", REPLICA_STAGES, owners,
+        expected_bindings=REPLICA_STAGES, optional_stage="prototype",
+    ))
+    errors.extend(check_stages(
+        catalog.get("dayTraderStages"), "Day Trader", DAY_TRADER_STAGES, owners,
+        expected_bindings=DAY_TRADER_STAGES, optional_stage=None,
     ))
     for key, entry in entries.items():
         if not isinstance(entry, dict) or set(entry) != {"label", "kind", "cost", "capability"}:

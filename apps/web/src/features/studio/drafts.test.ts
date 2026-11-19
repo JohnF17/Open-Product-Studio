@@ -1,19 +1,57 @@
 import { describe, expect, it } from "vite-plus/test";
-import { createDraft, DraftConflict, DraftEditor, isStudioDraft, stages } from "./drafts";
-import { catalog, selectedTools, starterOptions } from "./guide";
+import {
+  categories,
+  createDraft,
+  DraftConflict,
+  DraftEditor,
+  isStudioDraft,
+  stages,
+} from "./drafts";
+import { catalog, draftExport, selectedTools, starterOptions } from "./guide";
 
 describe("Studio working drafts", () => {
-  it("starts all three project types with independent identities", () => {
-    const blank = createDraft("one", "blank");
-    const product = createDraft("one", "digital-product");
+  it("starts six schema-1 project types with independent identities", () => {
+    const drafts = categories.map(({ id }) => createDraft("one", id));
+    expect(new Set(drafts.map(({ id }) => id)).size).toBe(6);
+    expect(drafts.map(({ stage }) => stage)).toEqual([
+      "notes",
+      "format",
+      "style",
+      "source",
+      "reference",
+      "practice-data",
+    ]);
+    expect(drafts.every((draft) => isStudioDraft(draft, "one"))).toBe(true);
     const video = createDraft("one", "video");
-    expect(new Set([blank.id, product.id, video.id]).size).toBe(3);
-    expect([blank.stage, product.stage, video.stage]).toEqual(["notes", "format", "style"]);
     expect(isStudioDraft(video, "two")).toBe(false);
     expect(isStudioDraft({ ...video, stage: "unknown" }, "one")).toBe(false);
     expect(isStudioDraft({ ...video, schema: 2 }, "one")).toBe(false);
     expect(stages.video.at(-2)).toBe("export");
     expect(stages.video.at(-1)).toBe("publish");
+  });
+
+  it("keeps working draft routes aligned with the catalog", () => {
+    expect(stages.clipper).toEqual(catalog.clipperStages.map(({ id }) => id));
+    expect(stages.replica).toEqual(catalog.replicaStages.map(({ id }) => id));
+    expect(stages["day-trader"]).toEqual(catalog.dayTraderStages.map(({ id }) => id));
+  });
+
+  it.each([
+    ["clipper", "edit-plan"],
+    ["replica", "design-brief"],
+    ["day-trader", "practice-journal"],
+  ] as const)("exports %s as authored notes with an explicit artifact type", (category, kind) => {
+    const fields = { notes: "Written by the project owner" };
+    const draft = { ...createDraft("one", category), stage: "export", fields };
+    expect(draftExport(draft)).toEqual({
+      schema: "studio-working-draft/1",
+      category,
+      title: expect.any(String),
+      stage: "export",
+      fields,
+      kind,
+      content: "authored-notes",
+    });
   });
 
   it("coalesces rapid edits and only advances a committed revision", async () => {

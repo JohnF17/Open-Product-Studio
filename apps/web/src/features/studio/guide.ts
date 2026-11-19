@@ -1,6 +1,7 @@
 import catalogText from "../../../../../docs/roadmap/project-categories.json?raw";
 import type { StudioDraft, VideoStyle } from "./drafts";
 import { projectName } from "./drafts";
+import { workingGuide } from "./workingDraftGuides";
 
 type StyleDefinition = {
   label: string;
@@ -13,6 +14,9 @@ type StyleDefinition = {
 export const catalog = JSON.parse(catalogText) as {
   styles: Record<VideoStyle, StyleDefinition>;
   stackEntries: Record<string, { label: string; kind: string; cost: string }>;
+  clipperStages: readonly { id: string }[];
+  replicaStages: readonly { id: string }[];
+  dayTraderStages: readonly { id: string }[];
 };
 
 export const styleNames: readonly VideoStyle[] = ["kinetic-type", "product-demo", "3d-showcase"];
@@ -109,13 +113,15 @@ export function selectedTools(draft: StudioDraft): string[] {
   ];
 }
 
-export function exportDraft(draft: StudioDraft) {
-  const copy = {
+export function draftExport(draft: StudioDraft) {
+  const guide = workingGuide(draft.category);
+  return {
     schema: "studio-working-draft/1",
     category: draft.category,
     title: projectName(draft),
     stage: draft.stage,
     fields: draft.fields,
+    ...(guide ? { kind: guide.kind, content: "authored-notes" } : {}),
     ...(draft.category === "video"
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
@@ -123,7 +129,12 @@ export function exportDraft(draft: StudioDraft) {
         }
       : {}),
   };
-  const blob = new Blob([JSON.stringify(copy, null, 2)], { type: "application/json" });
+}
+
+export function exportDraft(draft: StudioDraft) {
+  const blob = new Blob([JSON.stringify(draftExport(draft), null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

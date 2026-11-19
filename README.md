@@ -2,7 +2,7 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**The Windows development build includes a guided workspace.** Create a Blank, Digital product or Video project, move through its sheets, reopen a saved draft and download editable JSON. The agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
+**Studio includes a guided project workspace.** Create a Blank, Digital product, Video, Clipper, Replica or Day Trader working draft, move through its sheets, reopen it later and download editable JSON. The new guides produce an edit plan, an original behavior brief or a paper-practice journal. Their render, prototype and replay milestones are documented in the [Clipper](docs/CLIPPER.md) and [Replica and Day Trader](docs/REPLICA-AND-DAY-TRADER.md) plans. The agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
 
 Open Product Studio is an Electron workspace for making products with your own AI tools. The roadmap tracks downloadable releases, complete product exports and publishing. New Project offers three starting points:
 
