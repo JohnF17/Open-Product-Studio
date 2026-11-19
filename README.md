@@ -14,6 +14,8 @@ Projects share the T3-derived desktop shell, model selection, library and job hi
 
 The intended experience is simple: let AI investigate the web and recommend choices at every stage, accept or change those choices, review the result, and export or deliberately publish your work. "Recommend and do safe work" handles bounded research and reversible drafting under your chosen budget. A guided first project teaches the interface while you use it. You can always skip the tour.
 
+**Make a reader copy.** In Digital product, write the manuscript and open Export. Enter the public title, review what readers will see, and download editable text or a print-friendly page. Open the page in a browser to save a PDF. In any project, Download private backup saves the editable work. Import backup in Projects opens a new copy for review. [Local project and export guide](docs/acceptance/WP08.md).
+
 ## Your tools, your choice
 
 - **Use your CLI:** connect a supported AI CLI under your own account and its provider's terms. Provider usage limits still apply.

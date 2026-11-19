@@ -47,6 +47,9 @@ import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
 import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
+import { DigitalProductManuscriptExport } from "./DigitalProductManuscriptExport";
+import { digitalProductFormats, writeDigitalProductField } from "./digitalProductExport";
+import { downloadProjectBackup, importProjectBackup, projectBackupErrorMessage } from "./projectBackup";
 import { ProjectTour } from "./ProjectTour";
 
 export interface StudioAgentRequest {
@@ -98,6 +101,9 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
   const [showChooser, setShowChooser] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const backupInput = useRef<HTMLInputElement>(null);
   useLayoutEffect(() => {
     if (!activeEditor) return;
     activeEditor.current = editor;
@@ -126,6 +132,18 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     const next = new DraftEditor(createDraft(workspaceId, category));
     setEditor(next);
     void next.flush();
+  }
+  async function restore(file: File) {
+    setImportError("");
+    setImporting(true);
+    try {
+      const saved = await importProjectBackup(file, workspaceId);
+      setEditor(new DraftEditor(saved));
+    } catch (error) {
+      setImportError(projectBackupErrorMessage(error, "The project could not be saved locally. Try importing the backup again."));
+    } finally {
+      setImporting(false);
+    }
   }
   async function home() {
     if (editor) {
@@ -173,17 +191,43 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                 : "Pick up your work where you left off."}
             </p>
           </div>
-          {projects.length > 0 && (
+          <div className="ops-actions">
             <button
               type="button"
               className="ops-button"
-              onClick={() => setShowChooser(!showChooser)}
+              onClick={() => backupInput.current?.click()}
+              disabled={loading || !!error || importing}
             >
-              {choosing ? <Rows3 size={16} /> : <CirclePlus size={16} />}
-              {choosing ? "All projects" : "New project"}
+              <FolderOpen size={16} /> Import backup
             </button>
-          )}
+            <input
+              ref={backupInput}
+              type="file"
+              hidden
+              aria-label="Select a private backup"
+              accept=".json,application/json"
+              disabled={loading || !!error || importing}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
+                if (file && !importing) void restore(file);
+              }}
+            />
+            {projects.length > 0 && (
+              <button
+                type="button"
+                className="ops-button"
+                onClick={() => setShowChooser(!showChooser)}
+                disabled={importing}
+              >
+                {choosing ? <Rows3 size={16} /> : <CirclePlus size={16} />}
+                {choosing ? "All projects" : "New project"}
+              </button>
+            )}
+          </div>
         </div>
+        {importing && <p role="status">Importing project backup…</p>}
+        {importError && <div className="ops-notice" role="alert">{importError}</div>}
         {error && (
           <div className="ops-notice" role="alert">
             {error}
@@ -202,7 +246,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                 className="ops-choice"
                 key={id}
                 onClick={() => start(id)}
-                disabled={!!error}
+                disabled={!!error || importing}
               >
                 <Artwork kind={id} />
                 <div className="ops-choice-body">
@@ -224,6 +268,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                   className="ops-project"
                   key={project.id}
                   onClick={() => setEditor(new DraftEditor(project))}
+                  disabled={importing}
                 >
                   <span className={"ops-icon ops-icon-" + project.category}>
                     <Icon size={22} />
@@ -296,6 +341,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
     "idle",
   );
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [backupError, setBackupError] = useState("");
   const activePanel = useRef<HTMLDivElement>(null);
   const scroll = useRef<HTMLElement>(null);
   const first = useRef(true);
@@ -390,6 +436,14 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
     error: "Could not save on this device",
   }[status];
   const failed = status === "error" || status === "conflict";
+  function saveBackup() {
+    setBackupError("");
+    try {
+      downloadProjectBackup(editor.snapshot().draft);
+    } catch (error) {
+      setBackupError(projectBackupErrorMessage(error, "The private backup could not be downloaded. Try again."));
+    }
+  }
   function leaveProject() {
     agentRequest.current?.abort();
     agentRequest.current = null;
@@ -404,11 +458,17 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
           <button type="button" className="ops-link ops-identity" onClick={leaveProject}>
             <ArrowLeft size={17} /> Projects
           </button>
-          <span className="ops-location" role="status">
-            <span className={"ops-dot" + (failed ? " ops-dot-error" : "")} />
-            {statusLabel}
-          </span>
+          <div className="ops-actions">
+            <button type="button" className="ops-link" onClick={saveBackup}>
+              <ArrowDownToLine size={15} /> Download private backup
+            </button>
+            <span className="ops-location" role="status">
+              <span className={"ops-dot" + (failed ? " ops-dot-error" : "")} />
+              {statusLabel}
+            </span>
+          </div>
         </header>
+        {backupError && <div className="ops-notice" role="alert">{backupError}</div>}
         {failed && (
           <div className="ops-notice" role="alert">
             <span>
@@ -416,9 +476,6 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
                 ? "A newer draft exists. Export your edits before reopening the saved copy."
                 : "Your edits are in this window. Retry saving or download a copy."}
             </span>
-            <button className="ops-link" onClick={() => exportDraft(draft, "draft")}>
-              {isAffiliate ? "Download private draft" : "Download draft"}
-            </button>
             {status === "error" && (
               <button className="ops-link" onClick={() => void editor.flush()}>
                 Retry save
@@ -657,6 +714,22 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
   if (draft.category === "affiliate-storefront" && draft.affiliate && isAffiliateStage(stage)) {
     return <AffiliateStorefrontSheet stage={stage} affiliate={draft.affiliate} editor={editor} />;
   }
+  if (draft.category === "digital-product" && stage === "export") {
+    return (
+      <>
+        <Heading
+          title="Review and export your manuscript"
+          detail="Readers will see the public title, format and manuscript text. Your brief, outline and project notes stay in your private draft."
+        />
+        <DigitalProductManuscriptExport draft={draft} editor={editor} />
+      </>
+    );
+  }
+
+  function editField(key: string, value: string) {
+    if (draft.category === "digital-product") writeDigitalProductField(editor, key, value);
+    else writeField(key, value);
+  }
 
   function field(key: string, label: string, placeholder: string, rows = 3, singleLine = false) {
     return (
@@ -667,7 +740,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
         rows={rows}
         placeholder={placeholder}
         singleLine={singleLine}
-        onChange={(value) => writeField(key, value)}
+        onChange={(value) => editField(key, value)}
       />
     );
   }
@@ -874,12 +947,12 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
           detail="Pick the shape of your first draft. You can change it as the idea develops."
         />
         <div className="ops-pills">
-          {["Ebook", "Workbook", "Template kit", "Curriculum", "Action plan"].map((format) => (
+          {digitalProductFormats.map((format) => (
             <button
               className="ops-button"
               aria-pressed={(draft.fields.format ?? "Ebook") === format}
               key={format}
-              onClick={() => writeField("format", format)}
+              onClick={() => editField("format", format)}
             >
               {format}
             </button>
@@ -914,7 +987,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
                 className="ops-link"
                 disabled={draft.fields.brief?.includes(starter.brief)}
                 onClick={() =>
-                  writeField(
+                  editField(
                     "brief",
                     [draft.fields.brief?.trim(), starter.brief].filter(Boolean).join("\n\n"),
                   )

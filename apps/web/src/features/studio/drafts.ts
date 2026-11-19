@@ -230,6 +230,18 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
   });
 }
 
+/** Insert a restored draft without ever replacing a row with the same key. */
+export async function insertDraft(draft: StudioDraft): Promise<StudioDraft> {
+  const db = await openDatabase();
+  const saved = { ...draft, revision: 1 };
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("projects", "readwrite");
+    tx.objectStore("projects").add(saved);
+    tx.onabort = () => reject(tx.error);
+    tx.oncomplete = () => resolve(saved);
+  });
+}
+
 type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "affiliate" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 

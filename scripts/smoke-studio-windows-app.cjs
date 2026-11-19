@@ -257,6 +257,9 @@ async function launch(index) {
       await button(chooser, /^Blank\b/).click();
       await textbox(page, "Project name").fill(project);
       await textbox(page, "Project notes").fill(note);
+      await button(page, "Quick tour").click();
+      await button(page, "Next tip").click();
+      await button(page, "Pause tour").click();
       await button(page, "Projects").click();
       await button(chooser, /^Windows package draft\b/).waitFor({ timeout: 30000 });
       await createGuidedDrafts(page, chooser);
@@ -264,6 +267,11 @@ async function launch(index) {
       await button(chooser, /^Windows package draft\b/).click({ timeout: 60000 });
       assert.equal(await textbox(page, "Project notes").inputValue(), note);
       await viewportScreenshot(page, "packaged-restart.png");
+      await button(page, "Resume tour").click();
+      await page.getByRole("heading", { name: "Write on this sheet", exact: true }).waitFor();
+      await viewportScreenshot(page, "packaged-project-tour.png");
+      await button(page, "Next tip").click();
+      await button(page, "Finish tour").click();
       await button(page, "Projects").click();
       await verifyGuidedDraftsAfterRestart(page, chooser);
     }
@@ -330,6 +338,7 @@ async function launch(index) {
           "Studio scheme and user/session roots",
           `project chooser with ${categories.length} working guides`,
           "Blank notes restored across independent processes",
+          "Blank tour bookmark resumed across independent processes",
           "Clipper time marks, caption and saved Callout look restored across independent processes",
           "Day Trader journal restored across independent processes",
           "legacy fixture sentinels unchanged",

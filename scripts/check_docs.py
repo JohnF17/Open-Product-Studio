@@ -47,6 +47,7 @@ STUDIO_WINDOW_RECORDINGS = {
     'docs/acceptance/WP08/affiliate/builder-window.webm': '974c363bb1656cd7e46e588600b8a8e2ddf8b658',
     'docs/acceptance/WP08/categories/entry-resume-edit.webm': '81fb9c80d556428648f0a9f10d7c6e062c9e884a',
     'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
+    'docs/acceptance/WP08/tour/tour-window.webm': '386e24ec2f1073283d2bce0c67ed9531cc4e87a1',
     'docs/acceptance/WP08/video-cues/video-cue-sheet.webm': '41e1cf9b556e932df60fbb34298d544bd555e658',
 }
 

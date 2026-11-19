@@ -1,0 +1,15 @@
+.ops-manuscript-preview {
+  display: block;
+  width: 100%;
+  height: clamp(14rem, 45vh, 28rem);
+  border: 1px solid var(--ops-line);
+  border-radius: 0.5rem;
+  background: white;
+}
+
+.ops-manuscript-approval {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
