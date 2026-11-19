@@ -14,7 +14,6 @@ import {
   DesktopSshEnvironmentEnsureResultSchema,
   DesktopSshEnvironmentTargetSchema,
   DesktopSshHttpBaseUrlInputSchema,
-  DesktopSshPasswordPromptCancelledType,
   DesktopSshPasswordPromptResolutionInputSchema,
   ExecutionEnvironmentDescriptor,
   EnvironmentInternalError,
@@ -137,14 +136,7 @@ export const ensureSshEnvironment = DesktopIpc.makeIpcMethod({
     options,
   }) {
     const sshEnvironment = yield* DesktopSshEnvironment.DesktopSshEnvironment;
-    return yield* sshEnvironment.ensureEnvironment(target, options).pipe(
-      Effect.catchIf(DesktopSshEnvironment.isDesktopSshPasswordPromptCancellation, (error) =>
-        Effect.succeed({
-          type: DesktopSshPasswordPromptCancelledType,
-          message: error.message,
-        }),
-      ),
-    );
+    return yield* sshEnvironment.ensureEnvironment(target, options);
   }),
 });
 

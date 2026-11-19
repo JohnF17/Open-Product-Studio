@@ -1,9 +1,11 @@
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 
-const FALLBACK_TRIAGE_COMMAND = "npx t3 triage";
-const DOWNLOAD_URL = "https://t3.codes/download";
-const ISSUE_URL = "https://github.com/pingdotgg/t3code/issues/new";
-const LAST_FAILURE_KEY = "t3code:boot-failed-at";
+import { TRIAGE_CLI_COMMAND } from "./triageCommand";
+
+const INSTALLER_WORKFLOW_URL =
+  "https://github.com/JohnF17/Open-Product-Studio/actions/workflows/studio-windows-installer.yml";
+const ISSUE_URL = "https://github.com/JohnF17/Open-Product-Studio/issues/new";
+const LAST_FAILURE_KEY = "open-product-studio:boot-failed-at";
 const REPEAT_FAILURE_MS = 5 * 60_000;
 const MAX_CAUSES = 3;
 const MAX_ERROR_CHARS = 6_000;
@@ -23,18 +25,20 @@ function launcherCommand(launcherPath: string) {
     : `'${launcherPath.replaceAll("'", `'"'"'`)}'`;
 }
 
-/** Desktop can run its bundled launcher without Node; everything else falls back to npx. */
+/** Use the bundled launcher for this installation, including when another CLI is on PATH. */
 export async function resolveTriageCommand(bridge: DesktopBridge | undefined) {
   try {
     const state = await bridge?.cliCommand.getState();
-    // Windows reports onPath from its PATH entry alone; only an existing launcher proves it runs.
-    if (state?.launcherPath) {
-      return state.onPath ? "t3 triage" : `${launcherCommand(state.launcherPath)} triage`;
+    if (state?.launcherPath && /(?:^\/|^[A-Za-z]:[\\/]|^\\\\)/.test(state.launcherPath)) {
+      const fileName = state.launcherPath.split(/[\\/]/).at(-1);
+      if (fileName === "open-product-studio" || fileName === "open-product-studio.cmd") {
+        return `${launcherCommand(state.launcherPath)} triage`;
+      }
     }
   } catch (error) {
     console.warn("Could not read the desktop CLI state.", error);
   }
-  return FALLBACK_TRIAGE_COMMAND;
+  return TRIAGE_CLI_COMMAND;
 }
 
 /** The update button only appears when the desktop updater has a newer build to offer. */
@@ -235,7 +239,7 @@ function mountUpdateButton(
           : undefined;
     run?.then(
       (result) => render(result.state),
-      (error: unknown) => console.warn("Could not update T3 Code.", error),
+      (error: unknown) => console.warn("Could not update Open Product Studio.", error),
     );
   });
   // A pushed state is newer than the initial read, so the read must not overwrite it.
@@ -255,7 +259,7 @@ function mountUpdateButton(
 }
 
 export function showBootError(error: unknown) {
-  console.error("T3 Code failed to start.", error);
+  console.error("Open Product Studio failed to start.", error);
   const bootShell = document.getElementById("boot-shell");
   if (!bootShell) return;
 
@@ -274,7 +278,7 @@ export function showBootError(error: unknown) {
   };
 
   const message = element("div", {}, [
-    element("h1", { textContent: "T3 Code failed to start" }),
+    element("h1", { textContent: "Open Product Studio failed to start" }),
     element("p", {
       textContent: offline
         ? "This browser appears to be offline. Check the connection, then reload."
@@ -293,7 +297,7 @@ export function showBootError(error: unknown) {
   const updateNote = element("p", { id: "boot-error-update-note", hidden: true });
   if (bridge) mountUpdateButton(bridge, update, updateNote, announce);
 
-  const command = element("code", { textContent: FALLBACK_TRIAGE_COMMAND });
+  const command = element("code", { textContent: TRIAGE_CLI_COMMAND });
   const copyCommand = element("button", {
     className: "boot-error-icon",
     type: "button",
@@ -349,30 +353,22 @@ export function showBootError(error: unknown) {
 
   const issue = new URL(ISSUE_URL);
   issue.searchParams.set("template", "bug_report.yml");
-  issue.searchParams.set("title", "T3 Code failed to start");
+  issue.searchParams.set("title", "Open Product Studio failed to start");
   issue.searchParams.set("area", "apps/web");
   issue.searchParams.set("version", `${environment.version} (${environment.channel})`);
   issue.searchParams.set("environment", `${environment.surface}, ${environment.platform}`);
   const link = (href: string, textContent: string) =>
     element("a", { href, textContent, target: "_blank", rel: "noreferrer" });
-  const nightly = environment.channel === "nightly";
 
   const more = element("details", { open: isRepeatFailure(Date.now()) }, [
     element("summary", { textContent: "More options if it keeps failing" }),
-    ...(bridge
-      ? [
-          link(
-            nightly ? `${DOWNLOAD_URL}?channel=nightly` : DOWNLOAD_URL,
-            nightly
-              ? "Download and reinstall the latest nightly build"
-              : "Download and reinstall T3 Code",
-          ),
-        ]
+    ...(bridge && environment.platform === "win32"
+      ? [link(INSTALLER_WORKFLOW_URL, "Find a qualified Windows development installer")]
       : []),
     element("div", {}, [
       element("p", {
         textContent:
-          "Run this on the computer that runs T3 Code. Your agent can check the local logs and help you file a bug report.",
+          "Run this on the computer with the Studio CLI installed. Your agent can check the local logs and help you file a bug report.",
       }),
       element("div", { id: "boot-error-command" }, [command, copyCommand]),
     ]),

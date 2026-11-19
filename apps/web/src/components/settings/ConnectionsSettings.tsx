@@ -1790,7 +1790,6 @@ function ConnectionsSettingsContent({
               open={addBackendDialogOpen}
               routeTarget={routeTarget}
               error={savedBackendError}
-              savedEnvironments={savedEnvironments}
               onOpenChange={handleAddBackendDialogOpenChange}
               onErrorChange={setSavedBackendError}
             />
