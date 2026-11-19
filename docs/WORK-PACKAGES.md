@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Implement one work package at a time and record its evidence. Read the [canonical roadmap](ROADMAP.md) and relevant specs before implementation.
 
-WP01 is in progress at the first downstream import commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. All 66 packages await independent acceptance. Consult build receipts for implementation progress. Machine-readable source: [work-packages.json](roadmap/work-packages.json). Paths below are proposed additions or pinned upstream seams. Check the source at import; do not fabricate existing files or test results. A maintainer must assign real people to owner/reviewer roles.
+WP01 and WP02 are in progress. Studio desktop profile and first-launch work began after the pinned Windows source build and isolated Electron launch. The first downstream import is commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. All 66 packages await independent acceptance. Consult build receipts for implementation progress. Machine-readable source: [work-packages.json](roadmap/work-packages.json). Paths below are proposed additions or pinned upstream seams. Check the source at import; do not fabricate existing files or test results. A maintainer must assign real people to owner/reviewer roles.
 
 ## Common execution and review contract
 
@@ -62,7 +62,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 ## WP02: Independent Electron identity and Windows development package
 
-**Milestone:** M0A. **Dependencies:** WP01. **Status:** planned.
+**Milestone:** M0A. **Dependencies:** WP01. **Status:** in-progress.
 
 **Owner:** desktop maintainer. **Independent acceptance:** security/platform reviewer. **External gates:** E1, E7.
 

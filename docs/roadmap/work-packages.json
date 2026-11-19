@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "implementation",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "milestones": [
     {
       "id": "M0A",
@@ -361,7 +361,7 @@
         "E1",
         "E7"
       ],
-      "status": "planned",
+      "status": "in-progress",
       "evidence": [],
       "requirementIds": [
         "OPS-001"
