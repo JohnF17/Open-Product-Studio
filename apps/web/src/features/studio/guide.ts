@@ -168,7 +168,7 @@ export function exportDraft(draft: StudioDraft, mode?: ExportMode) {
   const blob = new Blob([JSON.stringify(draftExport(draft, mode), null, 2)], {
     type: "application/json",
   });
-  const suffix = draft.category === "affiliate-storefront" || (draft.category === "replica" && mode === "draft")
+  const suffix = draft.category === "affiliate-storefront" || (["digital-product", "replica"].includes(draft.category) && mode === "draft")
     ? " - private draft.json"
     : draft.category === "replica" ? " - brief.json" : ".json";
   downloadStudioFile(blob, projectName(draft), suffix);

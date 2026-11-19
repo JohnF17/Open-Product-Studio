@@ -151,7 +151,144 @@ it("restores an early Video export and limits its tools to planning choices", as
     fields: { notes: "Wide shot" },
   });
   expect(draft.fields).not.toHaveProperty("connection");
+  expect(draft.archivedFields).toBeUndefined();
   expect(draft).not.toHaveProperty("videoCues");
+});
+
+it("keeps extra authored strings inert across private and legacy backup round trips", async () => {
+  const source = createDraft(randomUUID(), "video");
+  source.fields = {
+    notes: "  Original notes\r\n",
+    earlySceneNotes: "  Keep the previous transitions\r\n",
+    pronunciationHints: "",
+    apiKey: "discard-token",
+    providerRefreshToken: "discard-credential",
+    publishApproval: "discard-approval",
+    permissionGrant: "discard-grant",
+    constructor: "discard-reserved-key",
+  };
+  const expected = {
+    earlySceneNotes: source.fields.earlySceneNotes,
+    pronunciationHints: "",
+  };
+  const backup = JSON.parse(await projectBackupBlob(source).text());
+  expect(backup.fields).toEqual({ notes: source.fields.notes });
+  expect(backup.archivedFields).toEqual(expected);
+  expect(JSON.stringify(backup)).not.toContain("discard-");
+  for (const input of [draftExport(source, "draft"), backup]) {
+    const scope = randomUUID();
+    const restored = await importProjectBackup(jsonFile(input), scope);
+    const [persisted] = await listDrafts(scope);
+    expect(persisted).toEqual(restored);
+    expect(restored.fields).toEqual({ notes: source.fields.notes });
+    expect(restored.archivedFields).toEqual(expected);
+    expect(JSON.parse(await projectBackupBlob(persisted!).text()).archivedFields).toEqual(expected);
+  }
+});
+
+it("rejects unsupported Video style versions and restores older private backups", async () => {
+  const source = createDraft(randomUUID(), "video");
+  const current = JSON.parse(await projectBackupBlob(source).text());
+  const { styleVersion, ...unversioned } = current;
+  const legacy = draftExport(source, "draft");
+  const scope = randomUUID();
+  expect(styleVersion).toBe(1);
+  for (const version of [0, 2, Number.MAX_SAFE_INTEGER]) {
+    await expect(
+      importProjectBackup(jsonFile({ ...legacy, style: { id: source.style, version } }), scope),
+    ).rejects.toThrow(/video style version/i);
+    await expect(
+      importProjectBackup(jsonFile({ ...current, styleVersion: version }), scope),
+    ).rejects.toThrow(/video style version/i);
+  }
+  expect(await listDrafts(scope)).toEqual([]);
+  expect((await importProjectBackup(jsonFile(unversioned), scope)).style).toBe(source.style);
+});
+
+it("shows the missing private Replica data before saving an ambiguous partial copy", async () => {
+  const scope = randomUUID();
+  const oldFullDraft = createDraft(randomUUID(), "replica");
+  oldFullDraft.fields = { brief: "Sketch the flow", observation: "A public observation" };
+  const oldFullExport = { ...draftExport(oldFullDraft, "draft"), kind: "design-brief" };
+  expect(oldFullExport).toEqual(draftExport(oldFullDraft, "brief-with-observation"));
+
+  const file = jsonFile(oldFullExport);
+  await expect(importProjectBackup(file, scope)).rejects.toThrow(/partial copy/i);
+  await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
+  const input = screen.getByLabelText("Select a private backup");
+  const importButton = screen.getByRole("button", { name: "Import backup" });
+  await expect.element(importButton).toBeEnabled();
+  await userEvent.upload(input, file);
+  const warning = screen.getByRole("alert");
+  await expect.element(warning).toHaveTextContent(/source locations.*rights.*open questions/i);
+  expect(await listDrafts(scope)).toEqual([]);
+
+  await screen.getByRole("button", { name: "Cancel restore" }).click();
+  await expect.element(warning).not.toBeInTheDocument();
+  expect(await listDrafts(scope)).toEqual([]);
+
+  await userEvent.upload(input, file);
+  await screen.getByRole("button", { name: "Restore partial copy" }).click();
+  await expect.element(screen.getByRole("textbox", { name: /Observed behavior/i })).toHaveValue(
+    "A public observation",
+  );
+  expect((await listDrafts(scope)).map(({ fields }) => fields)).toEqual([oldFullDraft.fields]);
+});
+
+it("recovers a large Video backup with all cues after the user confirms the file size", async () => {
+  const scope = randomUUID();
+  const source = createDraft(randomUUID(), "video");
+  const cues = Array.from({ length: 1_001 }, (_, index) => ({
+    ...cue,
+    id: `cue-${index + 1}`,
+    narration: ("???\r\n").repeat(1_100) + index,
+  }));
+  source.videoCues = cues;
+  await saveDraft(source, 0);
+  const [persisted] = await listDrafts(source.workspaceId);
+  const blob = projectBackupBlob(persisted!);
+  expect(blob.size).toBeGreaterThan(8 * 1024 * 1024);
+  const file = new File([blob], "large.json", { type: "application/json" });
+  const read = vi.spyOn(file, "text");
+  await expect(importProjectBackup(file, scope)).rejects.toThrow(/large backup/i);
+  expect(read).not.toHaveBeenCalled();
+  expect(await listDrafts(scope)).toEqual([]);
+
+  await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
+  await expect.element(screen.getByRole("button", { name: "Import backup" })).toBeEnabled();
+  await userEvent.upload(screen.getByLabelText("Select a private backup"), file);
+  await expect.element(screen.getByRole("alert")).toHaveTextContent(/memory/i);
+  expect(await listDrafts(scope)).toEqual([]);
+  await screen.getByRole("button", { name: "Restore large backup" }).click();
+  await expect.element(screen.getByRole("button", { name: "Projects" })).toBeVisible();
+  const [restored] = await listDrafts(scope);
+  expect(restored?.videoCues).toHaveLength(cues.length);
+  expect(await projectBackupBlob(restored!).text()).toBe(await blob.text());
+});
+
+it("backs up and restores every entry of a long Affiliate candidate list", async () => {
+  const source = createDraft(randomUUID(), "affiliate-storefront");
+  source.affiliate!.candidates = Array.from({ length: 1_001 }, (_, index) => ({
+    ...createAffiliateCandidate(`candidate-${index + 1}`),
+    evidenceNotes: `Evidence for row ${index + 1}`,
+  }));
+  const blob = projectBackupBlob(source);
+  const restored = await importProjectBackup(new File([blob], "store.json"), randomUUID());
+  expect(restored.affiliate?.candidates).toEqual(source.affiliate!.candidates);
+  expect(await projectBackupBlob(restored).text()).toBe(await blob.text());
+});
+
+it("gives simultaneous restores distinct visible copy numbers in their own workspace", async () => {
+  const scope = randomUUID();
+  const original = { ...createDraft(scope, "blank"), title: "Pocket notes" };
+  await saveDraft(original, 0);
+  const file = new File([projectBackupBlob(original)], "notes.json");
+  const copies = await Promise.all([importProjectBackup(file, scope), importProjectBackup(file, scope)]);
+  expect(copies.map((copy) => copy.restoredCopy).sort()).toEqual([1, 2]);
+  expect((await importProjectBackup(file, randomUUID())).restoredCopy).toBe(1);
+  await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
+  await expect.element(screen.getByRole("button", { name: /Pocket notes.*Restored copy 1/i })).toBeVisible();
+  await expect.element(screen.getByRole("button", { name: /Pocket notes.*Restored copy 2/i })).toBeVisible();
 });
 
 it("never replaces a saved project when the new key collides", async () => {

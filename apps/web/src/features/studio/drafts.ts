@@ -14,6 +14,7 @@ export interface StudioDraft {
   id: string;
   workspaceId: string;
   revision: number;
+  restoredCopy?: number;
   updatedAt: number;
   category: Category;
   stage: string;
@@ -135,6 +136,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     typeof d.revision === "number" &&
     Number.isSafeInteger(d.revision) &&
     d.revision >= 0 &&
+    (d.restoredCopy === undefined || (Number.isSafeInteger(d.restoredCopy) && d.restoredCopy > 0)) &&
     typeof d.updatedAt === "number" &&
     Number.isFinite(d.updatedAt) &&
     !!d.fields &&
@@ -152,12 +154,14 @@ let database: Promise<IDBDatabase> | undefined;
 function openDatabase(): Promise<IDBDatabase> {
   if (database) return database;
   database = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("open-product-studio-drafts", 1);
+    const request = indexedDB.open("open-product-studio-drafts", 2);
     request.onupgradeneeded = () => {
-      const store = request.result.createObjectStore("projects", {
-        keyPath: ["workspaceId", "id"],
-      });
-      store.createIndex("workspace", "workspaceId");
+      const db = request.result;
+      if (!db.objectStoreNames.contains("projects")) {
+        const store = db.createObjectStore("projects", { keyPath: ["workspaceId", "id"] });
+        store.createIndex("workspace", "workspaceId");
+      }
+      if (!db.objectStoreNames.contains("restoreCounters")) db.createObjectStore("restoreCounters");
     };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -233,11 +237,27 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
 /** Insert a restored draft without ever replacing a row with the same key. */
 export async function insertDraft(draft: StudioDraft): Promise<StudioDraft> {
   const db = await openDatabase();
-  const saved = { ...draft, revision: 1 };
   return new Promise((resolve, reject) => {
-    const tx = db.transaction("projects", "readwrite");
-    tx.objectStore("projects").add(saved);
-    tx.onabort = () => reject(tx.error);
+    const tx = db.transaction(["projects", "restoreCounters"], "readwrite");
+    const counters = tx.objectStore("restoreCounters");
+    const last = counters.get(draft.workspaceId);
+    let saved: StudioDraft;
+    last.onsuccess = () => {
+      if (last.result !== undefined && (!Number.isSafeInteger(last.result) || last.result < 0 || last.result >= Number.MAX_SAFE_INTEGER)) {
+        tx.abort();
+        return;
+      }
+      const restoredCopy = (last.result ?? 0) + 1;
+      saved = { ...draft, revision: 1, restoredCopy };
+      try {
+        counters.put(restoredCopy, draft.workspaceId);
+        tx.objectStore("projects").add(saved);
+      } catch (cause) {
+        tx.abort();
+        reject(cause);
+      }
+    };
+    tx.onabort = () => reject(tx.error ?? new Error("Project restore did not commit."));
     tx.oncomplete = () => resolve(saved);
   });
 }

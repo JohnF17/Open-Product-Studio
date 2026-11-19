@@ -61,15 +61,21 @@ export function ProjectTour({ workspaceId, projectId, category }: {
   useEffect(() => {
     if (open) heading.current?.focus({ preventScroll: true });
   }, [open, position]);
+  useEffect(() => {
+    if (!open) return;
+    const builder = trigger.current?.closest<HTMLElement>(".ops-workspace");
+    function dismiss(event: KeyboardEvent) {
+      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
+      if (event.target instanceof Element && event.target.closest("dialog[open], [role='dialog'], [popover]:popover-open")) return;
+      setOpen(false);
+      trigger.current?.focus();
+    }
+    builder?.addEventListener("keydown", dismiss);
+    return () => builder?.removeEventListener("keydown", dismiss);
+  }, [open]);
 
   return (
-    <div className="ops-tour" data-tip={open ? position : undefined}
-      onKeyDown={(event) => {
-        if (open && event.key === "Escape") {
-          event.stopPropagation();
-          close();
-        }
-      }}>
+    <div className="ops-tour" data-tip={open ? position : undefined}>
       <button type="button" className="ops-link ops-tour-toggle" ref={trigger}
         aria-expanded={open} aria-controls={open ? panelId : undefined}
         onClick={() => {

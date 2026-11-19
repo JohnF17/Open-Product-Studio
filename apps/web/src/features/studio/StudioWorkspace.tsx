@@ -276,6 +276,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                   <span>
                     <strong>{projectName(project)}</strong>
                     <small>
+                      {project.restoredCopy && <>Restored copy {project.restoredCopy} · </>}
                       {categories.find((c) => c.id === project.category)?.label} ·{" "}
                       {stepLabel(project, project.stage)}
                     </small>
@@ -491,6 +492,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
         <div className="ops-project-head">
           <span className="ops-location">
             {categories.find((c) => c.id === draft.category)?.label} project
+            {draft.restoredCopy && <> · Restored copy {draft.restoredCopy}</>}
           </span>
           <input
             aria-label="Project name"

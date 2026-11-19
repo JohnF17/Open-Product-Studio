@@ -17,6 +17,9 @@ it("resumes guidance for the same project without changing sheets, edits, approv
   await button("Quick tour").click();
   await expect.element(screen.getByRole("heading", { name: "Name this project" })).toHaveFocus();
   await button("Next tip").click();
+  const selector = screen.getByRole("combobox", { name: "Go to step" }).element() as HTMLSelectElement;
+  selector.focus();
+  expect(document.activeElement).toBe(selector);
   await userEvent.keyboard("{Escape}");
   await expect.element(button("Resume tour")).toHaveFocus();
   await button("Projects").click();
