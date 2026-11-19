@@ -1,10 +1,179 @@
-import { expect, it } from "vite-plus/test";
+import { expect, it, vi } from "vite-plus/test";
+import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
+import { randomUUID } from "../../lib/randomUUID";
 import StudioWorkspace, { type StudioAgentRequest } from "./StudioWorkspace";
 import { listDrafts } from "./drafts";
 
+const workingDraftCases = [
+  {
+    category: "Clipper",
+    sheets: [
+      ["Reference recording", "Workshop walkthrough, take 2"],
+      ["Mark in", "00:12"],
+      ["Crop and framing", "9:16, keep both hands in frame"],
+      ["Review notes", "Check that the captions clear the hands"],
+    ],
+    download: "Download edit plan",
+    kind: "edit-plan",
+    exportField: { key: "cropNotes", fromSheet: 2 },
+    optional: { button: "Publishing prep (optional)", heading: "Prepare a possible post" },
+  },
+  {
+    category: "Replica",
+    sheets: [
+      ["Reference and location", "My notes from the workshop signup flow"],
+      ["Proposed behavior", "Filter upcoming workshops by skill level"],
+      ["Interface sketch", "A filter row above the list with an inline empty state"],
+    ],
+    download: "Download design brief",
+    kind: "design-brief",
+    exportField: { key: "interfaceSketch", fromSheet: 2 },
+    optional: { button: "Prototype (optional)", heading: "Build an isolated prototype" },
+  },
+  {
+    category: "Day Trader",
+    sheets: [
+      ["Practice dataset reference", "Synthetic workshop series, revision B"],
+      ["Practice rules", "Reveal one saved bar at a time and write down what changed"],
+      ["Practice decision", "Pause the exercise at the first gap in the dataset"],
+      ["Journal notes", "I spotted the gap before looking at the next bar"],
+    ],
+    download: "Download practice journal",
+    kind: "practice-journal",
+    exportField: { key: "journalNotes", fromSheet: 3 },
+    optional: undefined,
+  },
+] as const;
+
+it.each(workingDraftCases)(
+  "edits, reopens and exports a $category working draft",
+  async ({ category, sheets, download, kind, exportField, optional }) => {
+    const workspaceId = randomUUID();
+    const onAskAgent = vi.fn(async () => {});
+    const container = document.createElement("div");
+    container.style.width = "320px";
+    await using screen = await render(
+      <StudioWorkspace workspaceId={workspaceId} onAskAgent={onAskAgent} />,
+      { container, router: false },
+    );
+    const button = (name: string | RegExp) =>
+      screen.getByRole("button", { name, exact: typeof name === "string" });
+    const textbox = (name: string) => screen.getByRole("textbox", { name, exact: true });
+
+    await expect.element(button(/^Day Trader/)).toBeVisible();
+    expect(container.querySelectorAll(".ops-choices button")).toHaveLength(6);
+    const workspace = container.querySelector(".ops-workspace")!;
+    expect(workspace.scrollWidth).toBeLessThanOrEqual(workspace.clientWidth);
+    await button(new RegExp("^" + category)).click();
+    await expect.element(textbox(sheets[0][0])).toHaveValue("");
+    if (category === "Day Trader") {
+      await expect.element(button("Ask agent for options")).not.toBeInTheDocument();
+    }
+    await textbox("Project name").fill("Working study");
+    for (const [index, [label, sample]] of sheets.entries()) {
+      await textbox(label).fill(sample);
+      if (category === "Replica" && label === "Reference and location") {
+        await textbox("Observed behavior").fill("The count updates immediately");
+        await textbox("Rights and use limits").fill("Analysis only");
+      }
+      if (category === "Clipper" && label === "Review notes") {
+        await expect.element(screen.getByText("Caption · Callout", { exact: true })).toBeVisible();
+        await expect.element(screen.getByText("Keep both hands visible", { exact: true })).toBeVisible();
+      }
+      if (category === "Clipper" && label === "Mark in") {
+        await textbox("Mark out").fill("00:29");
+      }
+      if (category === "Clipper" && label === "Crop and framing") {
+        const png = await new Promise<Blob>((resolve) =>
+          document.createElement("canvas").toBlob((blob) => resolve(blob!), "image/png"),
+        );
+        await userEvent.upload(screen.getByLabelText("Use a permitted reference still (optional)"),
+          new File([png], "private-reference.png", { type: "image/png" }));
+        await expect.element(screen.getByRole("img", { name: "Selected reference frame" })).toBeVisible();
+        await textbox("Caption text").fill("A long caption ".repeat(10));
+        await button("Headline").click();
+        await expect.element(screen.getByText(/This caption exceeds the frame/)).toBeVisible();
+        await expect.element(button("Use this look")).toBeDisabled();
+        await textbox("Caption text").fill("Keep both hands visible");
+        await button("Use this look").click();
+        await button("Undo look").click();
+        await button("Callout").click();
+        await button("Use this look").click();
+        await screen.getByText("Style and audio (optional)", { exact: true }).click();
+        await textbox("Style notes").fill("Use a dark backing for captions");
+      }
+      if (index < sheets.length - 1) await button("Next").click();
+    }
+    await button("Projects").click();
+    await button(/^Working study/).click();
+    const [lastLabel, lastValue] = sheets.at(-1)!;
+    await expect.element(textbox(lastLabel)).toHaveValue(lastValue);
+
+    await button("Next").click();
+    const createUrl = vi.spyOn(URL, "createObjectURL");
+    const clickLink = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    try {
+      await button(download).click();
+      const blob = createUrl.mock.calls.at(-1)?.[0];
+      expect(blob).toBeInstanceOf(Blob);
+      const exported = JSON.parse(await (blob as Blob).text());
+      expect(exported).toMatchObject({
+        kind,
+        content: "authored-notes",
+        fields: { [exportField.key]: sheets[exportField.fromSheet]?.[1] },
+      });
+      if (category === "Clipper") {
+        expect(JSON.stringify(exported)).not.toContain("private-reference.png");
+        expect(JSON.stringify(exported)).not.toContain("blob:");
+        expect(exported.fields).toMatchObject({
+          markIn: "00:12",
+          markOut: "00:29",
+          captionLook: "label",
+          captionLine: "Keep both hands visible",
+          styleNotes: "Use a dark backing for captions",
+        });
+      }
+      if (category === "Day Trader") {
+        expect(exported).not.toHaveProperty("orders");
+        expect(exported).not.toHaveProperty("fills");
+      }
+      expect(clickLink).toHaveBeenCalledTimes(1);
+      if (category === "Replica") {
+        expect(Object.keys(exported.fields).sort()).toEqual(["brief", "interfaceSketch"]);
+        await screen.getByText("Review brief contents", { exact: true }).click();
+        await screen.getByRole("checkbox", { name: /permission to share/ }).click();
+        await button(download).click();
+        const shared = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
+        expect(Object.keys(shared.fields).sort()).toEqual(["brief", "interfaceSketch", "observation"]);
+        expect(shared.fields.observation).toBe("The count updates immediately");
+        await screen.getByText("Private backup", { exact: true }).click();
+        await button("Download private draft").click();
+        const backup = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
+        expect(backup.kind).toBe("private-working-draft");
+        expect(Object.values(backup.fields)).toEqual(expect.arrayContaining([sheets[0][1], "Analysis only"]));
+      }
+    } finally {
+      createUrl.mockRestore();
+      clickLink.mockRestore();
+    }
+    if (optional) {
+      await button(optional.button).click();
+      await expect.element(screen.getByRole("heading", { name: optional.heading })).toBeVisible();
+      if (category === "Replica") {
+        await expect.element(screen.getByText(/Planned for M6B/)).toBeVisible();
+        await expect.element(button("Build prototype")).not.toBeInTheDocument();
+      } else {
+        await textbox("Post caption").fill("A draft caption for the workshop clip");
+        await expect.element(button("Publish")).not.toBeInTheDocument();
+      }
+    }
+    expect(onAskAgent).not.toHaveBeenCalled();
+  },
+);
+
 it("preserves an editable video brief through forward, backward and project navigation", async () => {
-  await using screen = await render(<StudioWorkspace workspaceId={crypto.randomUUID()} />, {
+  await using screen = await render(<StudioWorkspace workspaceId={randomUUID()} />, {
     router: false,
   });
   const button = (name: string | RegExp) =>
@@ -29,8 +198,59 @@ it("preserves an editable video brief through forward, backward and project navi
   await expect.element(brief).toHaveValue(note);
 });
 
+it("keeps a stick-figure project's motion direction on its storyboard after reopening", async () => {
+  const workspaceId = randomUUID();
+  await using screen = await render(<StudioWorkspace workspaceId={workspaceId} />, { router: false });
+  const button = (name: string | RegExp) => screen.getByRole("button", { name, exact: typeof name === "string" });
+  const direction = "Hold on the empty chair, then turn the figure toward the open door.";
+  await button(/^Video/).click();
+  await screen.getByRole("textbox", { name: "Project name" }).fill("The spare chair");
+  await button(/^Stick-figure explainer/).click();
+  await button("Next").click();
+  await button("Next").click();
+  await screen.getByRole("textbox", { name: "Motion direction (optional)" }).fill(direction);
+  await button("Next").click();
+  await expect.element(screen.getByRole("heading", { name: "Build your storyboard" })).toBeVisible();
+  await button("Projects").click();
+  await button(/^The spare chair/).click();
+  await expect.element(screen.getByText(direction, { exact: true })).toBeVisible();
+  expect((await listDrafts(workspaceId))[0]).toMatchObject({
+    style: "stick-figure-explainer", stage: "storyboard", fields: { motionDirection: direction },
+  });
+});
+
+it("prepares a Replica question with only the excerpts explicitly included on this sheet", async () => {
+  const requests: StudioAgentRequest[] = [];
+  await using screen = await render(
+    <StudioWorkspace workspaceId={randomUUID()} onAskAgent={async (request) => { requests.push(request); }} />,
+    { router: false },
+  );
+  const button = (name: string | RegExp) => screen.getByRole("button", { name, exact: typeof name === "string" });
+  await button(/^Replica/).click();
+  await screen.getByRole("textbox", { name: "Observed behavior" }).fill("The open count falls by one");
+  await button("Ask agent for options").click();
+  await expect.poll(() => requests.length).toBe(1);
+  expect(requests[0]!.prompt).not.toContain("The open count");
+  await screen.getByText("Choose what to include", { exact: true }).click();
+  await screen.getByRole("checkbox", { name: /Include these excerpts/ }).click();
+  await button("Ask agent for options").click();
+  await expect.poll(() => requests.length).toBe(2);
+  expect(requests[1]!.prompt).toContain("The open count falls by one");
+  await screen.getByRole("textbox", { name: "Observed behavior" }).fill("Revised private observation");
+  await expect.element(screen.getByRole("checkbox", { name: /Include these excerpts/ })).not.toBeChecked();
+  await button("Ask agent for options").click();
+  await expect.poll(() => requests.length).toBe(3);
+  expect(requests[2]!.prompt).not.toContain("Revised private observation");
+  await button("Next").click();
+  await screen.getByRole("textbox", { name: "Proposed behavior" }).fill("Keep an accessible total");
+  await button("Ask agent for options").click();
+  await expect.poll(() => requests.length).toBe(4);
+  expect(requests[3]!.prompt).not.toContain("Keep an accessible total");
+  expect(requests[3]!.prompt).not.toContain("The open count");
+});
+
 it("hands saved context to the agent and cancels requests on step changes and project exit", async () => {
-  const workspace = crypto.randomUUID();
+  const workspace = randomUUID();
   const requests: StudioAgentRequest[] = [];
   const handoff = async (request: StudioAgentRequest) => {
     requests.push(request);

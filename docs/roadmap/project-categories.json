@@ -10,7 +10,9 @@
     "blank": {"label": "Blank", "sourceRequired": false, "entry": "workspace"},
     "digital-product": {"label": "Digital product", "sourceRequired": false, "entry": "product-builder"},
     "video": {"label": "Video", "sourceRequired": false, "entry": "video-builder"},
-    "clipper": {"label": "Clipper", "sourceRequired": false, "entry": "clipper-builder"}
+    "clipper": {"label": "Clipper", "sourceRequired": false, "entry": "clipper-builder"},
+    "replica": {"label": "Replica", "sourceRequired": false, "entry": "replica-builder"},
+    "day-trader": {"label": "Day Trader", "sourceRequired": false, "entry": "day-trader-builder"}
   },
   "videoStages": [
     {"id": "style", "label": "Choose a style", "owner": "WP08", "capability": "cap.dashboard.workspace", "optional": false},
@@ -31,6 +33,45 @@
     {"id": "export", "label": "Save reviewed clips and the editable project locally", "owner": "WP24", "capability": "cap.media.video", "optional": false},
     {"id": "publish", "label": "Review a connected account and approve a post", "owner": "WP28", "capability": "cap.publishing.publish", "optional": true}
   ],
+  "replicaStages": [
+    {"id": "reference", "label": "Record permitted references and their use limits", "owner": "WP10", "capability": "cap.evidence.import", "optional": false},
+    {"id": "brief", "label": "Describe the behavior and functional requirements", "owner": "WP11", "capability": "cap.brief.capture", "optional": false},
+    {"id": "design", "label": "Create and revise an original design", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "export", "label": "Export the reviewed specification for local handoff", "owner": "WP17", "capability": "cap.library.export", "optional": false},
+    {"id": "prototype", "label": "Build a small sandboxed prototype with local fixtures", "owner": "WP41", "capability": "cap.interactive.build", "optional": true}
+  ],
+  "dayTraderStages": [
+    {"id": "practice-data", "label": "Choose built-in practice bars or import an authorized local historical dataset", "owner": "WP41", "capability": "cap.trading.replay", "optional": false},
+    {"id": "rules", "label": "Save versioned practice rules and simulation settings", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "replay", "label": "Replay bars offline and record simulated decisions", "owner": "WP41", "capability": "cap.trading.replay", "optional": false},
+    {"id": "journal", "label": "Review the decision journal with its dataset and rule revisions", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "export", "label": "Export the reviewed practice journal locally", "owner": "WP17", "capability": "cap.library.export", "optional": false}
+  ],
+  "designBuilderPolicy": {
+    "clipper": {
+      "editAuthority": "studio-project-variant",
+      "executorsPerAction": 1,
+      "executionBindings": ["host", "qualified-route", "selected-model-if-used", "approved-inputs-and-destination", "bounded-cost"],
+      "proposalBindings": ["source-revision", "variant-revision"],
+      "apply": "reviewed-undoable-edit",
+      "supoclip": "documented-workflow-reference",
+      "clipsKitty": "optional-unqualified-external-engine"
+    },
+    "replica": {
+      "references": "permitted-material",
+      "design": "original",
+      "prototype": "small-local-sandbox",
+      "network": "disabled",
+      "publication": "outside-builder"
+    },
+    "day-trader": {
+      "purpose": "local-practice-only",
+      "replay": "deterministic-offline",
+      "network": "disabled",
+      "liveOrders": "disabled",
+      "financialTransactions": "disabled"
+    }
+  },
   "stackEntries": {
     "scene-editor": {"label": "Edit scenes by hand", "kind": "built-in", "cost": "local", "capability": "cap.content.versions"},
     "storyboard-skill": {"label": "Guided storyboard skill", "kind": "skill", "cost": "selected-model", "capability": "cap.harness.definitions"},
@@ -73,6 +114,15 @@
         {"need": "Final render", "chooseOne": ["hyperframes"]}
       ],
       "optional": ["voice-import", "elevenlabs", "openverse", "effect-plugin"]
+    },
+    "stick-figure-explainer": {
+      "version": 1,
+      "label": "Stick-figure explainer",
+      "required": [
+        {"need": "Poses, props and scene timing", "chooseOne": ["scene-editor", "storyboard-skill"]},
+        {"need": "Final render", "chooseOne": ["hyperframes"]}
+      ],
+      "optional": ["voice-import", "elevenlabs"]
     }
   },
   "styleRecipes": {
@@ -119,6 +169,14 @@
             "aspectRatio": "16:9",
             "required": {"edit": ["manual-scene-editor"], "render": ["hyperframes", "remotion"]},
             "optional": ["ffprobe", "whisper-cpp"]
+          },
+          "stick-figure-explainer": {
+            "version": 1,
+            "label": "Stick-figure explainer",
+            "treatment": {"framing": "canvas", "captions": "editable", "graphics": "stick-figures"},
+            "aspectRatio": "16:9",
+            "required": {"edit": ["manual-scene-editor"], "render": ["hyperframes", "remotion"]},
+            "optional": ["whisper-cpp"]
           }
         }
       },

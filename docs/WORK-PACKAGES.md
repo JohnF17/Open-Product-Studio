@@ -154,6 +154,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.
 
+- Persist Replica and Day Trader as planned starter categories and keep their category-scoped drafts separate from formats, capabilities and grants. Reopen empty and partial drafts with their optional source revision and cursor, and reject dispatch of unavailable or out-of-scope actions.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -161,6 +163,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A7: **component**, producer WP03. Exercise this contract on isolated synthetic inputs.
 
 - A8: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A9: **component**, producer WP03. Exercise empty and partial drafts, category round-trip and direct dispatch denials on local fixtures.
 
 **Execution steps:**
 
@@ -414,6 +418,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B.
 
+- Offer Replica and Day Trader as peer New project choices that open empty, project-scoped workspaces. Resume the correct draft and step after switching projects or restarting. Explain planned actions and their milestones separately from input, rights and eligibility blockers. Starting or resuming requires no account or connection.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -421,6 +427,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A11: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A12: **component**, producer WP08. Use labeled fixtures to exercise reference, preset, manual and skip choices, tool readiness and the absence of side effects from style and tool selection.
+
+- A13: **component**, producer WP08. Exercise the two workspace shells with labeled fixtures and gated actions.
+
+- A13: **integration**, producer WP03, WP08. Verify persisted category, project isolation and empty/partial draft recovery across a switch and restart.
 
 **Execution steps:**
 
@@ -518,9 +528,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Enforce request/byte/runtime budgets and safe retries; no bypass of verification/rate restrictions.
 
+- Use existing evidence import and research for Replica observations supplied by hand or inspected from permitted public sources. Record source, locator, rights, access limits and uncertainty, and keep unsupported observations explicit.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP10. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5: **component**, producer WP10. Exercise manual, public, inaccessible and denied observation fixtures.
 
 **Execution steps:**
 
@@ -576,6 +590,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable.
 
+- Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -585,6 +601,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A12: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A13: **component**, producer WP11. Exercise source-grounded suggestions, missing or stale evidence, invalid ranges, unsupported quotes and manual selection on isolated fixtures.
+
+- A14: **component**, producer WP11. Exercise revisioned brief scenarios with supported, missing and stale observations.
+
+- A14: **integration**, producer WP10, WP11. Trace a Replica brief to its permitted observations and preserve unresolved gaps.
 
 **Execution steps:**
 
@@ -724,6 +744,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review.
 
+- At M2, save a Replica behavior brief as a versioned original specification and inert mockup with source and rights references. Reopen and edit those artifacts with packaged code execution, network access and side effects disabled.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -731,6 +753,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A5: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A6: **component**, producer WP14. Use permitted, denied and missing reference fixtures. Reopen a style revision and verify trait edits preserve the source and content revisions and invalidate stale sample approval.
+
+- A7: **component**, producer WP14. Exercise revision and inert preview contracts on a Replica fixture.
 
 **Execution steps:**
 
@@ -826,9 +850,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Approvals bind exact artifact/input revision; changed content reopens affected review.
 
+- Review the exact Replica specification and inert mockup for source support, original presentation, rights and testable behavior. Block handoff of unsupported claims, copied assets or a visually indistinguishable proprietary interface.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP16. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5: **component**, producer WP16. Exercise approvals and denials against exact Replica artifact and source revisions.
+
+- A5: **integration**, producer WP14, WP16. Review the versioned original specification and inert mockup against the behavior brief.
 
 **Execution steps:**
 
@@ -880,6 +910,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Record a build-keyed first-result pilot with a declared cohort, hardware, device and eligibility; score source-supported recommendation or abstention, independent edits, readable export and successful external reopen. Record time, abandonment and assistance by stage.
 
+- Export and reopen the reviewed M2 Replica specification and inert mockup outside Studio with editable source, readable output and rights-safe provenance. Exclude unlicensed reference material and keep the mockup inert in the export.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A6, A7, A8, A9, A10: **component**, producer WP17. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
@@ -891,6 +923,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A11: **component**, producer WP17. Exercise the pilot instrumentation on a synthetic walkthrough. Record setup, generation, edit and reopen intervals, interventions, abandonment and the capability profile.
 
 - A11: **integration**, producer WP17. Run the accessible guided sample journey with campaign, merchant and cloud modules disabled. Include keyboard and screen-reader use.
+
+- A12: **component**, producer WP17. Check the export manifest and denied reference fixtures.
+
+- A12: **integration**, producer WP14, WP16, WP17. Read back the original reviewed specification, mockup and permitted provenance in an external reader.
 
 **Execution steps:**
 
@@ -2250,7 +2286,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Owner:** interactive-product maintainer. **Independent acceptance:** independent domain/security reviewer. **External gates:** E2, E6.
 
-**Capabilities:** `cap.interactive.build`.
+**Capabilities:** `cap.interactive.build`, `cap.trading.replay`.
 
 **Files:** `modules/interactive-tool.json`, `packages/studio-contracts/src/interactive.ts`, `apps/server/src/studio/interactive.ts`, `apps/server/src/studio/interactive.test.ts`.
 
@@ -2260,7 +2296,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **External gate applicability:**
 
-- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+- E2: Online release only, including interactive external hosting, with the exact connector account, environment, rights, current quotas and bounded support/cost profile. Local build, export and offline replay require no E2 account.
 
 - E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
@@ -2274,9 +2310,25 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Publication still uses exact reviewed M4C destination capability; interactive external hosting needs E2.
 
+- Optionally build a small original Replica app or code package from the reviewed specification in the bounded isolated build lane. Verify the declared behaviors against approved scenarios, keep source and results inspectable, and require the existing publication gates for any release.
+
+- Provide Day Trader with a deterministic local offline simulated clock and single-symbol paper orders on an approved synthetic CSV. Validate the schema, ordered timestamps and symbol. Reveal only elapsed bars, evaluate orders from the next eligible bar, and document and test a conservative deterministic same-bar ambiguity rule. Exclude live market, order and broker imports, integrations and calls. Replay requires no account or online release approval.
+
+- Persist the Day Trader data revision and digest, simulated clock cursor, paper orders, fills and journal per project. Resume or retry idempotently without duplicate fills or journal rows. Export the simulated journal separately from the input data, recording provenance and data rights. Require separate redistribution rights to include any input rows.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP41. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5: **component**, producer WP41. Exercise build limits, isolation and behavior checks on a small original fixture.
+
+- A5: **integration**, producer WP14, WP17, WP41. Build from the reviewed specification and verify the approved behavior scenarios against the exact package.
+
+- A6: **component**, producer WP41. Use fixed synthetic fixtures to test invalid input, repeatability, no look-ahead, next eligible bar, same-bar ambiguity and blocked network access.
+
+- A7: **component**, producer WP41. Exercise recovery, duplicate prevention and journal export rights on approved synthetic fixtures.
+
+- A7: **integration**, producer WP03, WP08, WP17, WP41. Start a local Day Trader project, interrupt and reopen replay, and read back the journal without exporting input data or using an account.
 
 **Execution steps:**
 

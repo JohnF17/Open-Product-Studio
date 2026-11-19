@@ -1,19 +1,21 @@
 # Integrated desktop product design
 
-The desktop retains the T3 Code shell and adds guided project builders and a shared dashboard. Three categories, editable local working drafts and the agent-composer handoff are implemented in the Windows development build. The catalog below describes each category's intended release capabilities. [Guided workspace](acceptance/WP08.md) · [Desktop baseline](BASELINE.md)
+The desktop retains the T3 Code shell and adds guided project builders and a shared dashboard. The original Windows capture exercised three categories. The builder now includes editable Clipper, Replica and Day Trader working drafts. The catalog below describes each category's intended release capabilities. [Guided workspace](acceptance/WP08.md) · [Desktop baseline](BASELINE.md)
 
 ## Product definition
 
 A downloadable Electron workspace that carries a person from "I do not know what to make" through research, a product, a creator partnership or direct launch, distribution, delivery and improvement. The AI investigates, synthesizes and proposes the next useful decisions throughout the journey. Beginners should not need to invent prompts or learn what every agent does. Experts can inspect the evidence, prompts, model selections, permissions, activity and artifacts.
 
-The roadmap adds Clipper to the three categories available in **New project** today. The chosen category determines the starting builder, suggested decisions and primary artifact on Home. Each uses the same BusinessProject, modules, connections, jobs and library. Each action shows its release availability and the prerequisites for this project.
+**New project** offers six starting points. The chosen category determines the starting builder, suggested decisions and primary artifact on Home. Each uses the same BusinessProject, modules, connections, jobs and library. Each action shows its release availability and the prerequisites for this project.
 
 | Category | Starting experience | Example outcome |
 | --- | --- | --- |
 | **Blank** | Create a named workspace, collect notes and material, then choose an eligible workflow when ready. | A research workspace that later produces a video or document. |
 | **Digital product** | Start with an idea, supplied material or a recommendation. Choose a format and guide the reader toward a useful outcome. | An editable ebook, workbook, template kit, curriculum or action plan. |
 | **Video** | Start with a style or ask for a recommendation. Preview the required tools, prepare the chosen setup, then use a guided brief, storyboard and scene editor. | A standalone captioned explainer, product walkthrough or short with an optional social publication. |
-| **Clipper** (planned) | Start empty, import a permitted recording, mark a moment or inspect suggested cuts, then edit framing and captions. | A reviewed portrait clip from a longer recording, with its source and edits available to reopen. [Clipper plan](CLIPPER.md) |
+| **Clipper** | Start empty, import a permitted recording, mark a moment or inspect suggested cuts, then edit framing and captions. | A reviewed portrait clip from a longer recording, with its source and edits available to reopen. [Clipper plan](CLIPPER.md) |
+| **Replica** | Record a permitted observation and design an original behavior and acceptance test. | A local specification handoff, with an optional isolated prototype planned for M6B. |
+| **Day Trader** | Describe a practice dataset, define a rule and journal hypothetical decisions. | An exportable practice journal. M6B adds deterministic offline replay against historical or synthetic bars. [Both builder designs](REPLICA-AND-DAY-TRADER.md) |
 
 Video and Clipper can share an editable look derived from an original Studio sample, a permitted reference or manual controls. The selection belongs to the project and can be previewed on the user's own content. [Media workflows](MEDIA-WORKFLOWS.md)
 

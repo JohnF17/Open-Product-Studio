@@ -494,7 +494,8 @@
         "Separate component acceptance from integration/public-release activation evidence with producer, exact revision, applicable action, pending/passed state and independent reviewer. Component acceptance alone cannot make a capability available; reject missing or stale activation evidence through direct RPC.",
         "Workspace, BusinessProject, BillingOrganization, provider connection, execution host, sender and merchant are separate typed references. Two projects with overlapping display names cannot share private notes, defaults, callbacks or authority through navigation state.",
         "For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.",
-        "Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants."
+        "Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.",
+        "Persist Replica and Day Trader as planned starter categories and keep their category-scoped drafts separate from formats, capabilities and grants. Reopen empty and partial drafts with their optional source revision and cursor, and reject dispatch of unavailable or out-of-scope actions."
       ],
       "owner": "domain architect",
       "reviewer": "data/authorization reviewer",
@@ -575,6 +576,15 @@
             "WP03"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 9,
+          "phase": "component",
+          "producers": [
+            "WP03"
+          ],
+          "state": "not-run",
+          "scope": "Exercise empty and partial drafts, category round-trip and direct dispatch denials on local fixtures."
         }
       ]
     },
@@ -1041,7 +1051,8 @@
         "Measure the motion/performance profile in PROJECT-EXPERIENCE.md on declared hardware: 120-200 ms local transitions, 250 ms maximum decorative transition, reduced-motion removal, batched streaming, virtualized lists and retained scroll. Record baseline startup/idle memory and reviewed regression budgets, not claimed measurements.",
         "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.",
         "From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.",
-        "Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B."
+        "Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B.",
+        "Offer Replica and Day Trader as peer New project choices that open empty, project-scoped workspaces. Resume the correct draft and step after switching projects or restarting. Explain planned actions and their milestones separately from input, rights and eligibility blockers. Starting or resuming requires no account or connection."
       ],
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
@@ -1156,6 +1167,25 @@
           ],
           "state": "not-run",
           "scope": "Use labeled fixtures to exercise reference, preset, manual and skip choices, tool readiness and the absence of side effects from style and tool selection."
+        },
+        {
+          "item": 13,
+          "phase": "component",
+          "producers": [
+            "WP08"
+          ],
+          "state": "not-run",
+          "scope": "Exercise the two workspace shells with labeled fixtures and gated actions."
+        },
+        {
+          "item": 13,
+          "phase": "integration",
+          "producers": [
+            "WP03",
+            "WP08"
+          ],
+          "state": "not-run",
+          "scope": "Verify persisted category, project isolation and empty/partial draft recovery across a switch and restart."
         }
       ]
     },
@@ -1306,7 +1336,8 @@
         "Actual inspected bodies differ from snippets/metadata/inaccessible URLs; canonicalize repeated underlying sources.",
         "Version/hash/time/locator and analysis/redistribution permissions; stale and contradictory evidence retained.",
         "Malicious/missing/duplicated evidence fixtures; no invented source IDs; offline cache is visibly dated.",
-        "Enforce request/byte/runtime budgets and safe retries; no bypass of verification/rate restrictions."
+        "Enforce request/byte/runtime budgets and safe retries; no bypass of verification/rate restrictions.",
+        "Use existing evidence import and research for Replica observations supplied by hand or inspected from permitted public sources. Record source, locator, rights, access limits and uncertainty, and keep unsupported observations explicit."
       ],
       "owner": "research-quality maintainer",
       "reviewer": "source-support/domain reviewer",
@@ -1365,6 +1396,15 @@
             "WP10"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 5,
+          "phase": "component",
+          "producers": [
+            "WP10"
+          ],
+          "state": "not-run",
+          "scope": "Exercise manual, public, inaccessible and denied observation fixtures."
         }
       ],
       "externalGateApplicability": [
@@ -1418,7 +1458,8 @@
         "Manual progress and user-requested check-ins need no CRM, mailbox, calendar account or Dot. Converting eligible steps into M3 task/campaign records requires an explicit choice; advice and checklists never activate reminders, external actions or persistent wakes. Activity targets are hypotheses, not income or reply guarantees.",
         "A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.",
         "A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.",
-        "Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable."
+        "Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable.",
+        "Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI."
       ],
       "owner": "product/research maintainer",
       "reviewer": "independent domain and novice UX reviewer",
@@ -1556,6 +1597,25 @@
           ],
           "state": "not-run",
           "scope": "Exercise source-grounded suggestions, missing or stale evidence, invalid ranges, unsupported quotes and manual selection on isolated fixtures."
+        },
+        {
+          "item": 14,
+          "phase": "component",
+          "producers": [
+            "WP11"
+          ],
+          "state": "not-run",
+          "scope": "Exercise revisioned brief scenarios with supported, missing and stale observations."
+        },
+        {
+          "item": 14,
+          "phase": "integration",
+          "producers": [
+            "WP10",
+            "WP11"
+          ],
+          "state": "not-run",
+          "scope": "Trace a Replica brief to its permitted observations and preserve unresolved gaps."
         }
       ]
     },
@@ -1779,7 +1839,8 @@
         "Sandboxed HTML/Markdown/SVG/PDF preview fixtures block scripts, privileged links and network/file fetches.",
         "Historical versions/claim links remain inspectable; stale evidence flags affected sections.",
         "Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available.",
-        "Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review."
+        "Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review.",
+        "At M2, save a Replica behavior brief as a versioned original specification and inert mockup with source and rights references. Reopen and edit those artifacts with packaged code execution, network access and side effects disabled."
       ],
       "owner": "content/data maintainer",
       "reviewer": "editorial and preview-security reviewer",
@@ -1857,6 +1918,15 @@
           ],
           "state": "not-run",
           "scope": "Use permitted, denied and missing reference fixtures. Reopen a style revision and verify trait edits preserve the source and content revisions and invalidate stale sample approval."
+        },
+        {
+          "item": 7,
+          "phase": "component",
+          "producers": [
+            "WP14"
+          ],
+          "state": "not-run",
+          "scope": "Exercise revision and inert preview contracts on a Replica fixture."
         }
       ]
     },
@@ -2028,7 +2098,8 @@
         "Detect unsupported factual/numeric assertions and missing exercise instructions; no fabricated plagiarism guarantee.",
         "Specialist subject matter requires named domain approval under E6; retain disagreements and corrections.",
         "Human review each product family; fixed original fixtures and no failing rubric dimension.",
-        "Approvals bind exact artifact/input revision; changed content reopens affected review."
+        "Approvals bind exact artifact/input revision; changed content reopens affected review.",
+        "Review the exact Replica specification and inert mockup for source support, original presentation, rights and testable behavior. Block handoff of unsupported claims, copied assets or a visually indistinguishable proprietary interface."
       ],
       "owner": "editorial-quality maintainer",
       "reviewer": "independent domain reviewer",
@@ -2085,6 +2156,25 @@
             "WP16"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 5,
+          "phase": "component",
+          "producers": [
+            "WP16"
+          ],
+          "state": "not-run",
+          "scope": "Exercise approvals and denials against exact Replica artifact and source revisions."
+        },
+        {
+          "item": 5,
+          "phase": "integration",
+          "producers": [
+            "WP14",
+            "WP16"
+          ],
+          "state": "not-run",
+          "scope": "Review the versioned original specification and inert mockup against the behavior brief."
         }
       ],
       "externalGateApplicability": [
@@ -2127,7 +2217,8 @@
         "Test exported heading navigation, logical reading order, language, meaningful links, image alternatives and table headers/semantics in named external readers. An intended reader completes one guide/workbook exercise using a representative screen reader; visual PDF read-back or app axe alone does not establish output accessibility.",
         "Verify tagged PDF semantics for supported output or disclose the exact PDF limitation and provide a tested accessible DOCX/HTML alternative. Record format/reader/version evidence, not blanket format compliance.",
         "The M2 assistive-technology first-result journey includes unavailable-action explanation, quota/failure recovery, exact action review and outside-app reopening with M3 disabled; focus survives failure and partial work remains exportable.",
-        "Record a build-keyed first-result pilot with a declared cohort, hardware, device and eligibility; score source-supported recommendation or abstention, independent edits, readable export and successful external reopen. Record time, abandonment and assistance by stage."
+        "Record a build-keyed first-result pilot with a declared cohort, hardware, device and eligibility; score source-supported recommendation or abstention, independent edits, readable export and successful external reopen. Record time, abandonment and assistance by stage.",
+        "Export and reopen the reviewed M2 Replica specification and inert mockup outside Studio with editable source, readable output and rights-safe provenance. Exclude unlicensed reference material and keep the mockup inert in the export."
       ],
       "owner": "document/platform maintainer",
       "reviewer": "accessibility/data reviewer",
@@ -2304,6 +2395,26 @@
           ],
           "state": "not-run",
           "scope": "Run the accessible guided sample journey with campaign, merchant and cloud modules disabled. Include keyboard and screen-reader use."
+        },
+        {
+          "item": 12,
+          "phase": "component",
+          "producers": [
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Check the export manifest and denied reference fixtures."
+        },
+        {
+          "item": 12,
+          "phase": "integration",
+          "producers": [
+            "WP14",
+            "WP16",
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Read back the original reviewed specification, mockup and permitted provenance in an external reader."
         }
       ]
     },
@@ -6090,7 +6201,8 @@
         "WP40"
       ],
       "capabilities": [
-        "cap.interactive.build"
+        "cap.interactive.build",
+        "cap.trading.replay"
       ],
       "files": [
         "modules/interactive-tool.json",
@@ -6104,7 +6216,10 @@
         "No unrestricted generated app deployment; dependency/network policy and static export reviewed.",
         "Original example calculator and assessment pass domain/logic/accessibility/usability checks.",
         "Sandbox/preview cannot reach studio engine; no secrets baked into client assets.",
-        "Publication still uses exact reviewed M4C destination capability; interactive external hosting needs E2."
+        "Publication still uses exact reviewed M4C destination capability; interactive external hosting needs E2.",
+        "Optionally build a small original Replica app or code package from the reviewed specification in the bounded isolated build lane. Verify the declared behaviors against approved scenarios, keep source and results inspectable, and require the existing publication gates for any release.",
+        "Provide Day Trader with a deterministic local offline simulated clock and single-symbol paper orders on an approved synthetic CSV. Validate the schema, ordered timestamps and symbol. Reveal only elapsed bars, evaluate orders from the next eligible bar, and document and test a conservative deterministic same-bar ambiguity rule. Exclude live market, order and broker imports, integrations and calls. Replay requires no account or online release approval.",
+        "Persist the Day Trader data revision and digest, simulated clock cursor, paper orders, fills and journal per project. Resume or retry idempotently without duplicate fills or journal rows. Export the simulated journal separately from the input data, recording provenance and data rights. Require separate redistribution rights to include any input rows."
       ],
       "owner": "interactive-product maintainer",
       "reviewer": "independent domain/security reviewer",
@@ -6147,12 +6262,62 @@
             "WP41"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 5,
+          "phase": "component",
+          "producers": [
+            "WP41"
+          ],
+          "state": "not-run",
+          "scope": "Exercise build limits, isolation and behavior checks on a small original fixture."
+        },
+        {
+          "item": 5,
+          "phase": "integration",
+          "producers": [
+            "WP14",
+            "WP17",
+            "WP41"
+          ],
+          "state": "not-run",
+          "scope": "Build from the reviewed specification and verify the approved behavior scenarios against the exact package."
+        },
+        {
+          "item": 6,
+          "phase": "component",
+          "producers": [
+            "WP41"
+          ],
+          "state": "not-run",
+          "scope": "Use fixed synthetic fixtures to test invalid input, repeatability, no look-ahead, next eligible bar, same-bar ambiguity and blocked network access."
+        },
+        {
+          "item": 7,
+          "phase": "component",
+          "producers": [
+            "WP41"
+          ],
+          "state": "not-run",
+          "scope": "Exercise recovery, duplicate prevention and journal export rights on approved synthetic fixtures."
+        },
+        {
+          "item": 7,
+          "phase": "integration",
+          "producers": [
+            "WP03",
+            "WP08",
+            "WP17",
+            "WP41"
+          ],
+          "state": "not-run",
+          "scope": "Start a local Day Trader project, interrupt and reopen replay, and read back the journal without exporting input data or using an account."
         }
       ],
       "externalGateApplicability": [
         {
           "gate": "E2",
-          "when": "Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile."
+          "when": "Online release only, including interactive external hosting, with the exact connector account, environment, rights, current quotas and bounded support/cost profile. Local build, export and offline replay require no E2 account."
         },
         {
           "gate": "E6",
