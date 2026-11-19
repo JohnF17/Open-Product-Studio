@@ -42,8 +42,22 @@
 .ops-look-label figcaption { right: auto; max-width: 86%; bottom: 25%; background: #e2f4bc; color: #153d34; font-weight: 650; }
 .ops-look-controls, .ops-look-import { display: grid; gap: 10px; min-width: 0; }
 .ops-look-import input { max-width: 100%; }
+.ops-look-import input::file-selector-button {
+  margin-inline-end: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--ops-control-line);
+  border-radius: 6px;
+  background: var(--ops-panel);
+  color: var(--ops-panel-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.ops-look-import input::file-selector-button:hover {
+  background: var(--ops-hover);
+  color: var(--ops-hover-ink);
+}
 .ops-look-presets { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-.ops-look-presets [aria-pressed="true"] { border-color: var(--ops-action); box-shadow: inset 0 0 0 1px var(--ops-action); }
+.ops-look [role="alert"] { color: var(--ops-warning); }
 @container studio (max-width: 520px) {
   .ops-look-layout { grid-template-columns: 1fr; }
   .ops-look-frame { width: 104px; }

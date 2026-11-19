@@ -19,11 +19,12 @@ export const catalog = JSON.parse(catalogText) as {
   dayTraderStages: readonly { id: string }[];
 };
 
-export const styleNames: readonly VideoStyle[] = ["kinetic-type", "product-demo", "3d-showcase"];
+export { styleNames } from "./drafts";
 export const styleDescriptions: Record<VideoStyle, string> = {
   "kinetic-type": "Let moving type, rhythm and a few precise words carry the story.",
   "product-demo": "Walk through a real product with screenshots and screen recordings.",
   "3d-showcase": "Build a visual study around a rendered model or an existing 3D shot.",
+  "stick-figure-explainer": "Use simple figures, expressive poses and a few props to explain one idea.",
 };
 
 export const stepNames: Record<string, string> = {
@@ -86,6 +87,19 @@ export function starterOptions(draft: StudioDraft): Starter[] {
         title: "Before and after",
         reason: "Two comparable views make the difference legible.",
         brief: "Compare the same task before and after one change, using real footage.",
+      },
+    ];
+  if (draft.style === "stick-figure-explainer")
+    return [
+      {
+        title: "Show a change of mind",
+        reason: "A change in posture can show the moment an idea clicks.",
+        brief: "Draw a figure trying to balance a backpack. Move one item at a time and hold on the pose that works.",
+      },
+      {
+        title: "Follow one object",
+        reason: "One familiar prop can connect several scenes.",
+        brief: "Follow a letter from one figure to the next. Pause at each handoff to explain what the recipient does.",
       },
     ];
   return [

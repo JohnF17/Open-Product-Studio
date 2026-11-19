@@ -89,7 +89,7 @@ RECIPE_TOOLS = {
 RECIPE_TREATMENTS = {
     "framing": ("canvas", "screen", "manual-subject"),
     "captions": ("editable", "timed-text"),
-    "graphics": ("none", "text-motion", "callouts"),
+    "graphics": ("none", "text-motion", "callouts", "stick-figures"),
 }
 RECIPE_BUILDERS = {
     "video": ("style", ["prepare"], {"edit": "manual-scene-editor", "render": "hyperframes"}),
@@ -171,6 +171,8 @@ def check_style_recipes(recipes, legacy_entries, owners):
         if not isinstance(presets, dict) or len(presets) < 2 or not text(default) or default not in presets:
             errors.append(f"{builder}: choose a local default and offer multiple built-in presets")
             continue
+        if builder == "video" and "stick-figure-explainer" not in presets:
+            errors.append("Video needs a stick-figure explainer recipe")
         has_composition_choice = False
         for key, preset in presets.items():
             if (not isinstance(preset, dict)
@@ -270,7 +272,7 @@ def check(catalog, roadmap):
             errors.append(f"{key}: unknown stack kind, cost or capability")
         elif entry["kind"] == "plugin" and owners[entry["capability"]] != "WP40":
             errors.append(f"{key}: executable plugins require the isolated runtime in WP40")
-    if not {"kinetic-type", "product-demo", "3d-showcase"} <= styles.keys():
+    if not {"kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"} <= styles.keys():
         errors.append("Missing a reference video style")
     for key, style in styles.items():
         if (not isinstance(style, dict) or type(style.get("version")) is not int or style["version"] < 1
@@ -284,7 +286,7 @@ def check(catalog, roadmap):
                 errors.append(f"{key}: required slot needs explicit catalog alternatives")
                 continue
             required.update(slot["chooseOne"])
-            if key == "kinetic-type" and not any(
+            if key in ("kinetic-type", "stick-figure-explainer") and not any(
                 isinstance(entries[ref], dict) and entries[ref].get("cost") == "local"
                 and entries[ref].get("kind") in ("built-in", "local-tool")
                 for ref in slot["chooseOne"]

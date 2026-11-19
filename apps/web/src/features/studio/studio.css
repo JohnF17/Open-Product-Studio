@@ -1,11 +1,22 @@
 .ops-workspace {
-  --ops-ink: var(--foreground, #eceee8);
-  --ops-muted: var(--muted-foreground, #929995);
-  --ops-line: var(--border, #343a37);
-  --ops-panel: var(--card, #1b201f);
-  --ops-bg: var(--background, #141817);
-  --ops-action: #a7e6c5;
-  --ops-action-ink: #132f24;
+  --ops-ink: var(--contrast-foreground, var(--foreground, light-dark(#18181b, #f5f5f5)));
+  --ops-panel-ink: var(--contrast-card-foreground, var(--card-foreground, var(--ops-ink)));
+  --ops-muted: var(--contrast-muted-foreground, var(--muted-foreground, light-dark(#52525b, #a3a3a3)));
+  --ops-placeholder: var(--contrast-placeholder, var(--ops-muted));
+  --ops-line: var(--contrast-border, var(--border, light-dark(#e4e4e7, #343434)));
+  --ops-control-line: color-mix(
+    in srgb,
+    var(--contrast-input, var(--input, var(--ops-line))),
+    var(--ops-muted) 70%
+  );
+  --ops-panel: var(--card, light-dark(white, #131313));
+  --ops-bg: var(--background, light-dark(#fdfdfd, black));
+  --ops-action: var(--primary, light-dark(oklch(0.488 0.217 264), oklch(0.571 0.21 264)));
+  --ops-action-ink: var(--primary-foreground, white);
+  --ops-selection: var(--ring, var(--ops-action));
+  --ops-hover: var(--accent, color-mix(in srgb, var(--ops-ink) 8%, transparent));
+  --ops-hover-ink: var(--contrast-accent-foreground, var(--accent-foreground, var(--ops-ink)));
+  --ops-warning: var(--warning-foreground, light-dark(#92400e, #fbbf24));
   container: studio / inline-size;
   flex: 1 1 auto;
   width: 100%;
@@ -34,11 +45,14 @@
 .ops-workspace :is(button, select, summary) {
   cursor: pointer;
 }
-.ops-workspace button {
+:where(.ops-workspace) button {
   color: inherit;
 }
+.ops-workspace input {
+  accent-color: var(--ops-action);
+}
 .ops-workspace :is(button, input, textarea, summary, select):focus-visible {
-  outline: 2px solid var(--ring, #6dab90);
+  outline: 2px solid var(--ops-selection);
   outline-offset: 3px;
 }
 .ops-workspace button:disabled {
@@ -86,11 +100,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #5aa27c;
+  background: var(--success-foreground, light-dark(#047857, #34d399));
   flex: none;
 }
 .ops-dot-error {
-  background: #d48d45;
+  background: var(--ops-warning);
 }
 .ops-hero {
   padding: clamp(27px, 5cqi, 65px) 0 clamp(20px, 3cqi, 32px);
@@ -130,6 +144,7 @@
   border: 1px solid var(--ops-line);
   border-radius: 14px;
   background: var(--ops-panel);
+  color: var(--ops-panel-ink);
   text-align: left;
   transition:
     border-color 0.18s ease,
@@ -332,13 +347,15 @@
 }
 .ops-button {
   padding: 9px 13px;
-  border: 1px solid var(--ops-line);
+  border: 1px solid var(--ops-control-line);
   border-radius: 8px;
   background: var(--ops-panel);
+  color: var(--ops-panel-ink);
 }
 .ops-button:hover:not(:disabled),
 .ops-link:hover:not(:disabled) {
-  background: var(--secondary, color-mix(in srgb, var(--ops-ink) 8%, transparent));
+  background: var(--ops-hover);
+  color: var(--ops-hover-ink);
 }
 .ops-link {
   padding: 5px 2px;
@@ -352,11 +369,11 @@
 .ops-primary,
 .ops-primary:hover:not(:disabled) {
   background: var(--ops-action);
-  color: var(--ops-action-ink) !important;
+  color: var(--ops-action-ink);
   border-color: transparent;
 }
 .ops-primary:hover:not(:disabled) {
-  filter: brightness(0.96);
+  background: var(--message-action-hover, var(--ops-action));
 }
 .ops-projects {
   display: grid;
@@ -371,6 +388,7 @@
   border-radius: 12px;
   padding: 14px;
   background: var(--ops-panel);
+  color: var(--ops-panel-ink);
   text-align: left;
 }
 .ops-project:hover {
@@ -432,7 +450,7 @@
   opacity: 1;
 }
 .ops-title:focus::placeholder {
-  color: var(--ops-muted);
+  color: var(--ops-placeholder);
 }
 .ops-project-head .ops-title {
   font-family: inherit;
@@ -450,7 +468,7 @@
 }
 .ops-progress select {
   background: var(--ops-bg);
-  border: 1px solid var(--ops-line);
+  border: 1px solid var(--ops-control-line);
   color: var(--ops-ink);
   border-radius: 6px;
   padding: 4px 7px;
@@ -467,12 +485,13 @@
   background: var(--ops-line);
 }
 .ops-meter .on {
-  background: #539d79;
+  background: var(--ops-action);
 }
 .ops-sheet {
   border: 1px solid var(--ops-line);
   border-radius: 16px;
   background: var(--ops-panel);
+  color: var(--ops-panel-ink);
   overflow: hidden;
 }
 .ops-slide-window {
@@ -547,9 +566,10 @@
   gap: 15px;
   padding: 11px;
   text-align: left;
-  border: 1px solid var(--ops-line);
+  border: 1px solid var(--ops-control-line);
   border-radius: 10px;
   background: var(--ops-bg);
+  color: var(--ops-ink);
 }
 .ops-style strong,
 .ops-export strong {
@@ -562,22 +582,23 @@
   font-size: 13px;
 }
 .ops-style[aria-pressed="true"],
-.ops-pills [aria-pressed="true"] {
-  border-color: #539d79;
-  box-shadow: inset 0 0 0 1px #539d79;
+.ops-pills [aria-pressed="true"],
+.ops-look-presets [aria-pressed="true"] {
+  border-color: var(--ops-selection);
+  box-shadow: inset 0 0 0 1px var(--ops-selection);
 }
 .ops-select-mark {
   width: 18px;
   height: 18px;
-  border: 1px solid var(--ops-line);
+  border: 1px solid var(--ops-control-line);
   border-radius: 50%;
   display: grid;
   place-items: center;
 }
 .ops-style[aria-pressed="true"] .ops-select-mark {
-  background: #285f52;
-  border-color: #539d79;
-  color: white;
+  background: var(--ops-action);
+  border-color: var(--ops-action);
+  color: var(--ops-action-ink);
 }
 .ops-swatch {
   width: 69px;
@@ -620,6 +641,16 @@
   background: conic-gradient(from 60deg, #265c4d 0 33.33%, #467c67 33.33% 66.66%, #d4e6ba 66.66%);
   clip-path: polygon(50% 0, 94% 25%, 94% 75%, 50% 100%, 6% 75%, 6% 25%);
 }
+.swatch-stick-figure-explainer {
+  display: grid;
+  place-items: center;
+  background: #eee6d5;
+  color: #29332c;
+}
+.swatch-stick-figure-explainer svg {
+  width: 72%;
+  height: 72%;
+}
 .ops-footer {
   justify-content: space-between;
   flex-wrap: wrap;
@@ -643,7 +674,7 @@
   width: 100%;
   padding: 10px 12px;
   background: var(--ops-bg);
-  border: 1px solid var(--ops-line);
+  border: 1px solid var(--ops-control-line);
   color: var(--ops-ink);
   border-radius: 8px;
   font-size: 14px;
@@ -654,7 +685,7 @@
   line-height: 1.55;
 }
 .ops-field :is(input, textarea)::placeholder {
-  color: var(--ops-muted);
+  color: var(--ops-placeholder);
 }
 .ops-draft-fields {
   display: grid;
@@ -698,7 +729,6 @@
 }
 .ops-tools input {
   margin-top: 4px;
-  accent-color: #438466;
 }
 .ops-actions,
 .ops-pills,
@@ -708,6 +738,7 @@
 .ops-notice {
   margin: 12px 0;
   background: var(--ops-panel);
+  color: var(--ops-panel-ink);
   padding: 12px;
   border: 1px solid var(--ops-line);
   border-radius: 9px;

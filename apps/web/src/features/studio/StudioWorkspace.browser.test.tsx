@@ -96,7 +96,6 @@ it.each(workingDraftCases)(
         await expect.element(screen.getByText(/This caption exceeds the frame/)).toBeVisible();
         await expect.element(button("Use this look")).toBeDisabled();
         await textbox("Caption text").fill("Keep both hands visible");
-        await button("Headline").click();
         await button("Use this look").click();
         await button("Undo look").click();
         await button("Callout").click();
@@ -197,6 +196,27 @@ it("preserves an editable video brief through forward, backward and project navi
   await button("Projects").click();
   await button(/^Hinge study/).click();
   await expect.element(brief).toHaveValue(note);
+});
+
+it("keeps a stick-figure project's motion direction on its storyboard after reopening", async () => {
+  const workspaceId = randomUUID();
+  await using screen = await render(<StudioWorkspace workspaceId={workspaceId} />, { router: false });
+  const button = (name: string | RegExp) => screen.getByRole("button", { name, exact: typeof name === "string" });
+  const direction = "Hold on the empty chair, then turn the figure toward the open door.";
+  await button(/^Video/).click();
+  await screen.getByRole("textbox", { name: "Project name" }).fill("The spare chair");
+  await button(/^Stick-figure explainer/).click();
+  await button("Next").click();
+  await button("Next").click();
+  await screen.getByRole("textbox", { name: "Motion direction (optional)" }).fill(direction);
+  await button("Next").click();
+  await expect.element(screen.getByRole("heading", { name: "Build your storyboard" })).toBeVisible();
+  await button("Projects").click();
+  await button(/^The spare chair/).click();
+  await expect.element(screen.getByText(direction, { exact: true })).toBeVisible();
+  expect((await listDrafts(workspaceId))[0]).toMatchObject({
+    style: "stick-figure-explainer", stage: "storyboard", fields: { motionDirection: direction },
+  });
 });
 
 it("prepares a Replica question with only the excerpts explicitly included on this sheet", async () => {

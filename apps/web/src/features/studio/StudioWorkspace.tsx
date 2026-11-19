@@ -13,6 +13,7 @@ import {
   FolderOpen,
   Layers3,
   PanelsTopLeft,
+  PersonStanding,
   Rows3,
   Scissors,
   Sparkles,
@@ -725,6 +726,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
               }}
             >
               <span className={"ops-swatch swatch-" + style} aria-hidden="true">
+                {style === "stick-figure-explainer" && <PersonStanding size="100%" strokeWidth={1.5} />}
                 <i />
                 <b />
               </span>
@@ -836,6 +838,12 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
         />
         {field("brief", "What will you make?", "Describe the idea in a sentence or two.")}
         {field("audience", "Who is it for?", "Describe your viewer or reader.", 2)}
+        {draft.category === "video" && field(
+          "motionDirection",
+          "Motion direction (optional)",
+          "Describe what moves, when it starts, and how long to hold the final frame.",
+          2,
+        )}
         {field("notes", "Project notes", "Keep references and constraints here.", 2)}
         <h3 className="ops-subhead">Starter suggestions</h3>
         <div className="ops-suggestions">
@@ -892,8 +900,16 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
           detail="Write the narration, then list the shots in the order your viewer will see them."
         />
         <Reference label="Project brief" value={draft.fields.brief} />
+        <Reference label="Motion direction" value={draft.fields.motionDirection} expanded />
         {field("script", "Script", "What will be said or shown?", 4)}
-        {field("shots", "Shot list", "One shot per line. These become your storyboard preview.", 4)}
+        {field(
+          "shots",
+          "Shot list",
+          draft.style === "stick-figure-explainer"
+            ? "One shot per line. Describe the figure’s pose, the prop and the hold or transition."
+            : "One shot per line. These become your storyboard preview.",
+          4,
+        )}
       </>
     );
   if (stage === "assets")

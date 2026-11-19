@@ -18,6 +18,20 @@ class ProjectCategoryTests(unittest.TestCase):
     def test_committed_catalog_matches_the_roadmap(self):
         self.assertEqual(check(self.catalog, self.roadmap), [])
 
+    def test_stick_figure_explainer_has_a_manual_path_and_editable_recipe(self):
+        style_id = "stick-figure-explainer"
+        for section in ("chooser", "recipe"):
+            with self.subTest(section=section):
+                candidate = copy.deepcopy(self.catalog)
+                styles = (candidate["styles"] if section == "chooser"
+                          else candidate["styleRecipes"]["builders"]["video"]["presets"])
+                self.assertIn(style_id, styles)
+                del styles[style_id]
+                self.assertTrue(check(candidate, self.roadmap))
+        candidate = copy.deepcopy(self.catalog)
+        candidate["styles"][style_id]["required"][0]["chooseOne"] = ["storyboard-skill"]
+        self.assertTrue(check(candidate, self.roadmap))
+
     def test_clipper_cannot_be_removed_or_redirected_to_another_builder(self):
         for change, expected in (
             (None, "Missing a first-class starting category"),

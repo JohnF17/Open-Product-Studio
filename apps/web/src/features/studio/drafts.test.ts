@@ -7,7 +7,7 @@ import {
   isStudioDraft,
   stages,
 } from "./drafts";
-import { catalog, draftExport, selectedTools, starterOptions } from "./guide";
+import { catalog, draftExport, selectedTools, starterOptions, styleNames } from "./guide";
 
 describe("Studio working drafts", () => {
   it("starts six schema-1 project types with independent identities", () => {
@@ -34,6 +34,28 @@ describe("Studio working drafts", () => {
     expect(stages.clipper).toEqual(catalog.clipperStages.map(({ id }) => id));
     expect(stages.replica).toEqual(catalog.replicaStages.map(({ id }) => id));
     expect(stages["day-trader"]).toEqual(catalog.dayTraderStages.map(({ id }) => id));
+  });
+
+  it("reopens the original video styles and the stick-figure style in schema 1", () => {
+    const draft = createDraft("one", "video");
+    expect(draft.style).toBe("kinetic-type");
+    for (const style of ["kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"]) {
+      expect(isStudioDraft({ ...draft, style }, "one")).toBe(true);
+    }
+    expect(isStudioDraft({ ...draft, style: "unknown" }, "one")).toBe(false);
+    expect(styleNames).toContain("stick-figure-explainer");
+    expect(new Set(styleNames)).toEqual(new Set(Object.keys(catalog.styles)));
+  });
+
+  it("exports a stick-figure storyboard with the creator's motion direction and local tool plan", () => {
+    const fields = { motionDirection: "Hold while the figure points, then reveal the label." };
+    const draft = { ...createDraft("one", "video"), style: "stick-figure-explainer" as const, fields };
+    expect(draftExport(draft)).toMatchObject({
+      style: { id: "stick-figure-explainer", version: 1 },
+      plannedTools: ["scene-editor", "hyperframes"],
+      fields,
+    });
+    expect(starterOptions(draft)[0]?.brief).toMatch(/figure/i);
   });
 
   it.each([

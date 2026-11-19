@@ -4,7 +4,8 @@ import { randomUUID } from "../../lib/randomUUID";
 
 export type WorkingCategory = "clipper" | "replica" | "day-trader";
 export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
-export type VideoStyle = "kinetic-type" | "product-demo" | "3d-showcase";
+export const styleNames = ["kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"] as const;
+export type VideoStyle = (typeof styleNames)[number];
 
 export interface StudioDraft {
   schema: 1;
@@ -117,7 +118,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     Object.hasOwn(stages, d.category) &&
     typeof d.stage === "string" &&
     draftStages(d.category).includes(d.stage) &&
-    ["kinetic-type", "product-demo", "3d-showcase"].includes(String(d.style)) &&
+    styleNames.some((style) => style === d.style) &&
     typeof d.title === "string" &&
     typeof d.revision === "number" &&
     Number.isSafeInteger(d.revision) &&

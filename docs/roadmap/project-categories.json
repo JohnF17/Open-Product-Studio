@@ -114,6 +114,15 @@
         {"need": "Final render", "chooseOne": ["hyperframes"]}
       ],
       "optional": ["voice-import", "elevenlabs", "openverse", "effect-plugin"]
+    },
+    "stick-figure-explainer": {
+      "version": 1,
+      "label": "Stick-figure explainer",
+      "required": [
+        {"need": "Poses, props and scene timing", "chooseOne": ["scene-editor", "storyboard-skill"]},
+        {"need": "Final render", "chooseOne": ["hyperframes"]}
+      ],
+      "optional": ["voice-import", "elevenlabs"]
     }
   },
   "styleRecipes": {
@@ -160,6 +169,14 @@
             "aspectRatio": "16:9",
             "required": {"edit": ["manual-scene-editor"], "render": ["hyperframes", "remotion"]},
             "optional": ["ffprobe", "whisper-cpp"]
+          },
+          "stick-figure-explainer": {
+            "version": 1,
+            "label": "Stick-figure explainer",
+            "treatment": {"framing": "canvas", "captions": "editable", "graphics": "stick-figures"},
+            "aspectRatio": "16:9",
+            "required": {"edit": ["manual-scene-editor"], "render": ["hyperframes", "remotion"]},
+            "optional": ["whisper-cpp"]
           }
         }
       },
