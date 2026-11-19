@@ -4,6 +4,7 @@ import { ServerSelfUpdateError, type ManagedPolicyDocument } from "@t3tools/cont
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
+import * as Layer from "effect/Layer";
 import * as Path from "effect/Path";
 import * as Stream from "effect/Stream";
 
@@ -22,8 +23,9 @@ const unavailable = DesktopAppUpdate.DesktopAppUpdate.of({
 const makeService = (baseDir: string, desktop = unavailable, policy?: ManagedPolicyDocument) =>
   ServerSelfUpdate.make().pipe(
     Effect.provideService(DesktopAppUpdate.DesktopAppUpdate, desktop),
-    Effect.provide(ManagedPolicy.layerTest(policy)),
-    Effect.provide(ServerConfig.layerTest(baseDir, baseDir)),
+    Effect.provide(
+      Layer.mergeAll(ManagedPolicy.layerTest(policy), ServerConfig.layerTest(baseDir, baseDir)),
+    ),
   );
 
 it.layer(NodeServices.layer)("Studio server self update", (it) => {
