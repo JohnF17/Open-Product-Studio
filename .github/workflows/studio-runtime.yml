@@ -90,6 +90,7 @@ jobs:
           src/app/DesktopEnvironment.test.ts src/app/DesktopStartupRecovery.test.ts
           src/app/DesktopUserData.test.ts src/backend/DesktopBackendConfiguration.test.ts
           src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts src/updates/DesktopUpdates.test.ts
+          src/ssh/DesktopSshEnvironment.test.ts
       - name: Check server configuration, telemetry, pairing and MCP approval
         working-directory: apps/server
         run: >-
@@ -102,7 +103,7 @@ jobs:
           vp test run --project unit
           src/hostedPairing.test.ts src/components/settings/pairingUrls.test.ts
           src/components/settings/ConnectionsSettings.logic.test.ts src/components/desktopUpdate.logic.test.ts
-          src/components/composerInlineTokenPaste.test.ts
+          src/components/composerInlineTokenPaste.test.ts src/lib/bootError.test.ts
       - name: Check foreground command and updater boundaries
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: apps/server
@@ -116,7 +117,7 @@ jobs:
       - name: Check Studio diagnostic sources and session instructions
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: apps/server
-        run: vp test run --maxWorkers=2 src/triage/TriageService.test.ts src/triage/triagePrompt.test.ts src/triage/triageSession.test.ts src/cli/triage.test.ts
+        run: vp test run --maxWorkers=2 src/binCli.test.ts src/triage/TriageService.test.ts src/triage/triagePrompt.test.ts src/triage/triageSession.test.ts src/cli/triage.test.ts
       - name: Typecheck affected desktop, server, shared and renderer packages
         if: ${{ !cancelled() && steps.install.outcome == 'success' && runner.os == 'Linux' }}
         run: |
