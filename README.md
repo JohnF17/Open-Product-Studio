@@ -2,7 +2,7 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**Development has started.** The pinned T3 Code desktop, web and server source is in this repository. The first work package establishes a reproducible Windows baseline. The Studio dashboard and guided product workflows are planned. See the [baseline record](docs/BASELINE.md) for the build and launch evidence.
+**The Windows desktop baseline builds and opens.** We built the pinned T3 Code desktop, web and server from source and opened a fixture conversation in Electron. The Studio dashboard and guided product workflows are planned. See the [baseline record](docs/BASELINE.md) and [verified window](docs/acceptance/WP01/windows-source-smoke.png).
 
 Open Product Studio is a planned downloadable Electron application, built as a substantially adapted downstream fork of T3 Code. It is an open-source workspace for researching a buyer's problem, creating a digital product, and preparing its launch. The complete workspace includes research, strategy, product creation, creator partnerships, contacts, launch campaigns, media, publishing, feedback, exports and guidance. All modules appear in the first dashboard; explicit engineering milestones govern which actions are available.
 

@@ -5,14 +5,41 @@
   "upstreamTree": "36c257eed595d33dfec796c03e04cac4b5b801b0",
   "planningParent": "978587fc31d3c75d3f2fe1781de3c07b3a896f64",
   "integrationCommit": "8d14fde6896b3636915e38849416e1fedbec4b6c",
-  "state": "source-imported",
+  "state": "windows-source-smoke-verified",
   "sourceLicenseSha256": "935d8f2af0c703f9c39517ee57cc4930b19d02d533be930b63f0e82f93614b43",
   "rootLockSha256": "14583f92987020ef8700ace21b4df5a3f8222d515ffa3dd10596369e3cf3abb4",
   "node": "26.12.1",
   "pnpm": "12.14.0",
   "targetUnderTest": "windows-x64",
-  "stagedProductionGraphs": [],
-  "verifiedPackagedNativeArtifacts": [],
+  "stagedProductionGraphs": [
+    {"target":"windows-x64-desktop","lock":"docs/acceptance/WP01/app-production-lock.yaml","sha256":"69c1db8e7feb4abdb8c1ea7c87535aea8b0e6c26fb860aa2fb9ed3c1f6a24b32"},
+    {"target":"windows-x64-server","lock":"docs/acceptance/WP01/server-production-lock.yaml","sha256":"051040ae641038f6397ca5b4bccd09f775478420e40675f575c4ab3d595bd153"}
+  ],
+  "verifiedPackagedNativeArtifacts": [
+    {"name":"conpty.node","check":"win-unpacked file matches staged loader input","sha256":"ec2fd8545c30e051ee3fa17d26127f7e615919814879c7f746cf4c80845226e0"},
+    {"name":"ffi-rs.win32-x64-msvc.node","check":"win-unpacked file matches staged loader input","sha256":"015a7d7bb86916f4a01965c48a57afb7586de44d27abaf187f35ca9282e1d496"},
+    {"name":"keyring.win32-x64-msvc.node","check":"win-unpacked file matches staged loader input","sha256":"f0d154e418b8ab013a89e57216dbe75a3841cb8964c781d110f8d6f704529eab"}
+  ],
+  "pristineWindowsPackaging": {
+    "runtimeVerifierExit": 0,
+    "packagerExit": 1,
+    "unpackedFileLimit": 80,
+    "observedUnpackedFiles": 89,
+    "installerBytes": 208932213,
+    "installerSha256": "00334ccc09d1f861ee86d28659703409bd583b0f5d5d177d27aefcbd0275293e",
+    "appAsarSha256": "8c337bd48e3891f3f21aac780abcf32951ba36c1fdf5fca0710ee3f96a71d824",
+    "serverAsarSha256": "0ea6c6638fb7c30bc1f79cf10b9c712d67b5f8aad74c30de7a148f61f9ffa7ec",
+    "promotion": "withheld"
+  },
+  "stagedNativeLoad": {
+    "runtime": "electron-44.10.1-windows-x64",
+    "nodeAbi": 149,
+    "files": [
+      {"name":"conpty.node","sha256":"ec2fd8545c30e051ee3fa17d26127f7e615919814879c7f746cf4c80845226e0"},
+      {"name":"ffi-rs.win32-x64-msvc.node","sha256":"015a7d7bb86916f4a01965c48a57afb7586de44d27abaf187f35ca9282e1d496"},
+      {"name":"keyring.win32-x64-msvc.node","sha256":"f0d154e418b8ab013a89e57216dbe75a3841cb8964c781d110f8d6f704529eab"}
+    ]
+  },
   "acceptedDistributionTargets": [],
   "maintainers": {"primary": null, "backup": null}
 }
