@@ -255,14 +255,14 @@ async function launch(index) {
       }
       await viewportScreenshot(page, "packaged-window.png");
       await button(chooser, /^Blank\b/).click();
-      await page.getByLabel("Project name", { exact: true }).fill(project);
-      await page.getByLabel("Project notes", { exact: true }).fill(note);
+      await textbox(page, "Project name").fill(project);
+      await textbox(page, "Project notes").fill(note);
       await button(page, "Projects").click();
       await button(chooser, /^Windows package draft\b/).waitFor({ timeout: 30000 });
       await createGuidedDrafts(page, chooser);
     } else {
       await button(chooser, /^Windows package draft\b/).click({ timeout: 60000 });
-      assert.equal(await page.getByLabel("Project notes", { exact: true }).inputValue(), note);
+      assert.equal(await textbox(page, "Project notes").inputValue(), note);
       await viewportScreenshot(page, "packaged-restart.png");
       await button(page, "Projects").click();
       await verifyGuidedDraftsAfterRestart(page, chooser);
