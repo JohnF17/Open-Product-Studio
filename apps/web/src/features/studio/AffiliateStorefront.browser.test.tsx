@@ -16,8 +16,13 @@ it("hands off only the question the creator chooses to put in the T3 composer", 
   await screen.getByText("Ask AI to research products", { exact: true }).click();
   const prepare = screen.getByRole("button", { name: "Prepare research question" });
   await expect.element(prepare).toBeDisabled();
+  const chooseLink = screen.getByRole("combobox", { name: "Start with a saved link" });
+  await chooseLink.selectOptions(screen.getByRole("option", { name: "source.example", exact: true }));
+  const researchField = screen.getByRole("textbox", { name: "Research question" });
+  await expect.element(researchField).toHaveValue(expect.stringContaining("https://source.example/private-draft"));
+  expect(onAskAgent).not.toHaveBeenCalled();
   const question = "Compare pocket notebooks for rainy hikes and show dated sources.";
-  await screen.getByRole("textbox", { name: "Research question" }).fill(question);
+  await researchField.fill(question);
   expect(onAskAgent).not.toHaveBeenCalled();
   await prepare.click();
   await expect.element(screen.getByText("Question opened in the composer.")).toBeVisible();

@@ -45,6 +45,7 @@ import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
 import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
+import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
 
 export interface StudioAgentRequest {
@@ -276,6 +277,9 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
   const isAffiliate = draft.category === "affiliate-storefront";
   const researchStep = isAffiliate && (draft.stage === "discover" || draft.stage === "compare");
   const [researchQuestion, setResearchQuestion] = useState("");
+  const researchSources = researchStep
+    ? draft.affiliate?.candidates.filter(({ sourceUrl }) => sourceUrl.trim().length <= 3000 && affiliateLinkIsValid(sourceUrl.trim()))
+    : undefined;
   const isWorkingExport = (!!guide || isAffiliate) && draft.stage === "export";
   const canAskAgent = !isAffiliate && (!guide || !!(guide.agentScope && sheet?.fields && !sheet.optional));
   const [approvedExcerpts, setApprovedExcerpts] = useState<string | null>(null);
@@ -491,7 +495,22 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
               {onAskAgent && researchStep && (
                 <details className="ops-reference ops-agent-context">
                   <summary>Ask AI to research products</summary>
-                  <p>Only the question you enter below is included. Review it and choose your model in the composer.</p>
+                  <p>Only the question shown below goes to the composer. Review its contents and choose your model there.</p>
+                  {!researchQuestion && !!researchSources?.length && (
+                    <label className="ops-field">
+                      <span>Start with a saved link</span>
+                      <select value="" onChange={(event) => {
+                        const candidate = researchSources.find(({ id }) => id === event.currentTarget.value);
+                        if (candidate) setResearchQuestion(
+                          `Identify the product and exact variant at ${candidate.sourceUrl.trim()}\nCompare two alternatives for the same buyer. Cite dated sources for availability and claims, and flag details I should verify before recommending it.`,
+                        );
+                      }}>
+                        <option value="">Choose a source to include…</option>
+                        {researchSources.map(({ id, name, sourceUrl }) =>
+                          <option key={id} value={id}>{name.trim() || new URL(sourceUrl.trim()).hostname}</option>)}
+                      </select>
+                    </label>
+                  )}
                   <label className="ops-field">
                     <span>Research question</span>
                     <textarea rows={3} value={researchQuestion} maxLength={4000}

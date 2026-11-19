@@ -12,7 +12,7 @@ Open Projects → Affiliate Storefront. Discover records candidate names, source
 | Shopify | An installable Liquid section for an authorized merchant's unpublished theme, plus a JSON handoff. The section sends visitors to the merchant through the reviewed links. Shopify theme installation and the live shop preview still need merchant qualification. |
 | Chosen stack | A ready-to-import React component for React or Next.js. Astro, SvelteKit and Other receive a public JSON handoff for the selected stack. |
 
-Discover and Compare can open a **user-written research question** in the T3 composer. The question field is blank until the creator types in it. It shares only that entered text, and the creator chooses a model and sends from the composer. Private candidate records stay in the project. Automated catalog discovery, social publication and statement reconciliation have separate milestones below. [Desktop and phone evidence](acceptance/WP08/affiliate/README.md)
+Discover and Compare can open a **research question** in the T3 composer. Write one, or explicitly pick a saved source to prepare an editable question about its exact variant and two alternatives. Only the displayed question is included. The creator reviews the URL and wording, chooses a model and sends from the composer. Other candidate records and private evidence stay in the project. Automated catalog discovery, social publication and statement reconciliation have separate milestones below. [Desktop and phone evidence](acceptance/WP08/affiliate/README.md)
 
 ## Product case
 
