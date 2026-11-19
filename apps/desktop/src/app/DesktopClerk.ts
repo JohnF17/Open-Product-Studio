@@ -102,7 +102,7 @@ function createDesktopClerkBridge(stateDir: string, isDevelopment: boolean, user
 }
 
 /** @public */
-export const make = Effect.gen(function* () {
+export const make = Effect.fnUntraced(function* (cloudAuthConfigured: boolean) {
   const environment = yield* DesktopEnvironment.DesktopEnvironment;
   const electronApp = yield* ElectronApp.ElectronApp;
   const shell = yield* ElectronShell.ElectronShell;
@@ -140,28 +140,32 @@ export const make = Effect.gen(function* () {
     if (handleOpenUrl(url)) event.preventDefault();
   });
 
-  yield* Effect.acquireRelease(
-    Effect.try({
-      try: () =>
-        createDesktopClerkBridge(environment.stateDir, environment.isDevelopment, userDataPath),
-      catch: (cause) =>
-        new DesktopClerkBridgeInitializationError({
-          stateDir: environment.stateDir,
-          isDevelopment: environment.isDevelopment,
-          cause,
-        }),
-    }),
-    (bridge) =>
+  // The Clerk SDK registers an OS protocol handler when constructed. A local
+  // Studio build serves its renderer through ElectronProtocol without touching that handler.
+  if (cloudAuthConfigured) {
+    yield* Effect.acquireRelease(
       Effect.try({
-        try: () => bridge.cleanup(),
+        try: () =>
+          createDesktopClerkBridge(environment.stateDir, environment.isDevelopment, userDataPath),
         catch: (cause) =>
-          new DesktopClerkBridgeCleanupError({
+          new DesktopClerkBridgeInitializationError({
             stateDir: environment.stateDir,
             isDevelopment: environment.isDevelopment,
             cause,
           }),
-      }).pipe(Effect.orDie),
-  );
+      }),
+      (bridge) =>
+        Effect.try({
+          try: () => bridge.cleanup(),
+          catch: (cause) =>
+            new DesktopClerkBridgeCleanupError({
+              stateDir: environment.stateDir,
+              isDevelopment: environment.isDevelopment,
+              cause,
+            }),
+        }).pipe(Effect.orDie),
+    );
+  }
 
   return DesktopClerk.of({
     configure: Effect.gen(function* () {
@@ -260,4 +264,7 @@ export const make = Effect.gen(function* () {
   });
 });
 
-export const layer = Layer.effect(DesktopClerk, make);
+export const layer = Layer.effect(
+  DesktopClerk,
+  make(desktopClerkFrontendApiHostname !== undefined),
+);

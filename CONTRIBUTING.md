@@ -15,6 +15,7 @@ Do not submit copied proprietary prompts, courses, workbooks, recordings, screen
 - Never introduce silent model substitutions, unbounded retries, hidden external calls, automatic paid actions, or claims of free unlimited usage.
 - Validate untrusted input on the server/process boundary. UI validation alone is insufficient.
 - Never log credentials or export tokens. New network destinations, executable tools, auth changes, billing changes, and plugin execution require security review.
+- Run packaged install and uninstall checks on the disposable Windows runner. When working inside T3 Code, use synthetic homes for local fixtures and move large builds to CI if they compete with the host. Keep provider accounts and real user profiles out of fixtures. [Windows qualification](docs/BASELINE.md)
 - Add meaningful regression tests for behavior/security fixes. Avoid tests that simply repeat the implementation. Documentation-only wording changes need a docs check, not ceremonial app tests.
 - Show responsive evidence for UI behavior at narrow mobile and desktop widths; include keyboard and reduced-motion results. Use synthetic content and redact secrets.
 - Do not weaken tests, checks, budgets, policy, or security controls to obtain a green badge. Any intentional policy change must be explicit in the PR description.

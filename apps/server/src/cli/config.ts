@@ -23,7 +23,6 @@ import { Argument, Flag } from "effect/cli";
 import * as CliError from "effect/cli/CliError";
 
 import { readBootstrapEnvelope } from "../bootstrap.ts";
-import { resolveServiceLauncherMode } from "../cloud/serviceLauncherClient.ts";
 import * as ServerConfig from "../config.ts";
 import { expandHomePath, resolveBaseDir } from "../os-jank.ts";
 import { isProcessAlive, readPersistedServerRuntimeState } from "../serverRuntimeState.ts";
@@ -44,7 +43,7 @@ const hostFlag = Flag.String("host").pipe(
 );
 export const baseDirFlag = Flag.String("base-dir").pipe(
   Flag.withDescription(
-    "Explicit T3 Code data directory; runtime state is stored under userdata (equivalent to T3CODE_HOME).",
+    "Open Product Studio data directory; runtime state is stored under userdata (equivalent to STUDIO_HOME).",
   ),
   Flag.optional,
 );
@@ -88,12 +87,12 @@ const tailscaleServePortFlag = Flag.Int("tailscale-serve-port").pipe(
 );
 const lanFlag = Flag.Boolean("lan").pipe(
   Flag.withDescription(
-    "Accept connections from your local network and tailnet, not only this machine (equivalent to T3CODE_LAN).",
+    "Accept connections from your local network and tailnet, not only this machine (equivalent to STUDIO_LAN).",
   ),
   Flag.optional,
 );
 
-export const traceFileConfig = Config.String("T3CODE_TRACE_FILE").pipe(
+export const traceFileConfig = Config.String("STUDIO_TRACE_FILE").pipe(
   Config.option,
   Config.map(Option.getOrUndefined),
 );
@@ -131,13 +130,13 @@ const EnvServerConfig = Config.all({
   otlpProtocol: Config.schema(OtlpProtocol, "T3CODE_OTLP_PROTOCOL").pipe(
     Config.withDefault("http/json"),
   ),
-  mode: Config.schema(ServerConfig.RuntimeMode, "T3CODE_MODE").pipe(
+  mode: Config.schema(ServerConfig.RuntimeMode, "STUDIO_MODE").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  port: Config.Port("T3CODE_PORT").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  host: Config.String("T3CODE_HOST").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  t3Home: Config.String("T3CODE_HOME").pipe(Config.option, Config.map(Option.getOrUndefined)),
+  port: Config.Port("STUDIO_PORT").pipe(Config.option, Config.map(Option.getOrUndefined)),
+  host: Config.String("STUDIO_HOST").pipe(Config.option, Config.map(Option.getOrUndefined)),
+  t3Home: Config.String("STUDIO_HOME").pipe(Config.option, Config.map(Option.getOrUndefined)),
   devUrl: Config.URL("VITE_DEV_SERVER_URL").pipe(Config.option, Config.map(Option.getOrUndefined)),
   devAllowedOrigins: Config.String("T3CODE_DEV_ALLOWED_ORIGINS").pipe(
     Config.withDefault(""),
@@ -152,7 +151,7 @@ const EnvServerConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  bootstrapFd: Config.Int("T3CODE_BOOTSTRAP_FD").pipe(
+  bootstrapFd: Config.Int("STUDIO_BOOTSTRAP_FD").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
@@ -164,15 +163,15 @@ const EnvServerConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  tailscaleServeEnabled: Config.Boolean("T3CODE_TAILSCALE_SERVE").pipe(
+  tailscaleServeEnabled: Config.Boolean("STUDIO_TAILSCALE_SERVE").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  tailscaleServePort: Config.Port("T3CODE_TAILSCALE_SERVE_PORT").pipe(
+  tailscaleServePort: Config.Port("STUDIO_TAILSCALE_SERVE_PORT").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  lan: Config.Boolean("T3CODE_LAN").pipe(Config.option, Config.map(Option.getOrUndefined)),
+  lan: Config.Boolean("STUDIO_LAN").pipe(Config.option, Config.map(Option.getOrUndefined)),
 });
 
 const DevAuthTokenConfig = Config.Redacted("T3CODE_DEV_AUTH_TOKEN").pipe(
@@ -277,7 +276,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
   const selectAutomaticPort = options?.selectAutomaticPort ?? findAvailablePort;
   const path = yield* Path.Path;
   const fs = yield* FileSystem.FileSystem;
-  const env = yield* EnvServerConfig;
+  const env = yield* EnvServerConfig.pipe(OtelEnvironment.withStudioExporterEnvironment);
   const normalizedFlags = {
     mode: flags.mode ?? Option.none(),
     port: flags.port ?? Option.none(),
@@ -333,7 +332,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
     mode === "web" && devUrl !== undefined ? yield* DevAuthTokenConfig : undefined;
   const explicitBaseDir = resolveOptionPrecedence(
     normalizedFlags.baseDir,
-    Option.fromUndefinedOr(env.t3Home),
+    Option.fromUndefinedOr(mode === "desktop" && bootstrap?.t3Home ? undefined : env.t3Home),
   ).pipe(Option.filter((value) => value.trim().length > 0));
   const baseDir = yield* resolveBaseDir(
     Option.getOrUndefined(
@@ -362,7 +361,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
         baseDir,
       ]);
       return yield* new CliError.UserError({
-        cause: `A T3 Code server is already running for ${baseDir} (pid ${runtime.value.pid}, ${runtime.value.origin}). To open it, run \`${pairCommand}\` and open the pairing URL it prints. To start another server, stop this one first or use a different --base-dir.`,
+        cause: `An Open Product Studio server is already running for ${baseDir} (pid ${runtime.value.pid}, ${runtime.value.origin}). To open it, run \`${pairCommand}\` and open the pairing URL it prints. To start another server, stop this one first or use a different --base-dir.`,
       });
     }
   }
@@ -389,7 +388,9 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
   const shellEnvironmentPrepared = bootstrap?.shellEnvironmentPrepared;
   const desktopTelemetryFd = bootstrap?.desktopTelemetryFd;
   const desktopTelemetryControlFd = bootstrap?.desktopTelemetryControlFd;
-  const desktopAppUpdate = bootstrap?.desktopAppUpdate;
+  const desktopAppUpdate = bootstrap?.studioDesktopAppUpdate === true
+    ? bootstrap.desktopAppUpdate === true
+    : undefined;
   const desktopBrowserFd = bootstrap?.desktopBrowserFd;
   const desktopBrowserControlFd = bootstrap?.desktopBrowserControlFd;
   const resourceMonitorPath = bootstrap?.resourceMonitorPath;
@@ -431,25 +432,15 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
     Option.fromUndefinedOr(env.host),
     Option.fromUndefinedOr(bootstrap?.host),
   );
-  // Private networks only, so clients learn a LAN address and prefer it over
-  // T3 Connect. `t3 service install` writes T3CODE_LAN=false for a new
-  // service; one installed before T3CODE_LAN existed keeps listening.
   const lan = resolveOptionPrecedence(normalizedFlags.lan, Option.fromUndefinedOr(env.lan));
   const privateNetworkOnly =
-    Option.isNone(explicitHost) &&
-    mode === "web" &&
-    (Option.isSome(lan)
-      ? lan.value
-      : yield* resolveServiceLauncherMode().pipe(
-          Effect.map((launcher) => launcher.managed),
-          Effect.orElseSucceed(() => false),
-        ));
+    Option.isNone(explicitHost) && mode === "web" && Option.getOrElse(lan, () => false);
   const host = Option.getOrElse(explicitHost, () =>
     privateNetworkOnly ? "0.0.0.0" : mode === "desktop" ? "127.0.0.1" : undefined,
   );
   const logLevel = Option.getOrElse(cliLogLevel, () => env.logLevel);
 
-  const otel = yield* OtelEnvironment.load;
+  const otel = yield* OtelEnvironment.load.pipe(OtelEnvironment.withStudioExporterEnvironment);
 
   const signalExport: SignalExport = {
     protocol: env.otlpProtocol,

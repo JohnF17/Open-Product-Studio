@@ -30,120 +30,20 @@ it.layer(NodeServices.layer)("root CLI commands", (it) => {
       Effect.provideService(HostProcess.Environment, { PATH: input.path ?? "", ...input.env }),
     );
 
-  const pathWithT3 = Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const path = yield* Path.Path;
-    const bin = yield* fs.makeTempDirectoryScoped();
-    yield* fs.writeFileString(path.join(bin, "t3"), "#!/bin/sh\n", { mode: 0o755 });
-    return bin;
-  });
-
-  it.effect("keeps a user-installed Node reachable when the command runs under sudo", () =>
+  it.effect("ignores upstream package-runner, PATH and launcher settings", () =>
     Effect.gen(function* () {
-      const npx = "/home/theo/.npm/_npx/abc/node_modules/t3/dist/bin.mjs";
-      expect(yield* rootCommand({ node: "/usr/bin/node", entry: npx })).toBe(
-        "sudo npx t3 browser setup",
-      );
-      expect(
-        yield* rootCommand({ node: "/home/theo/.nvm/versions/node/v24/bin/node", entry: npx }),
-      ).toBe('sudo env "PATH=$PATH" npx t3 browser setup');
-      expect(
-        yield* rootCommand({
-          node: "/home/theo/.local/node/bin/node",
-          entry: "/home/theo/.local/lib/node_modules/t3/dist/bin.mjs",
-          path: yield* pathWithT3,
-        }),
-      ).toBe('sudo env "PATH=$PATH" t3 browser setup');
-    }),
-  );
-
-  it.effect("keeps the arguments, so root runs setup on the same T3 home", () =>
-    Effect.gen(function* () {
-      const args = ["--base-dir", "/srv/t3 home"];
-      expect(
-        yield* rootCommand({
-          node: "/home/theo/.local/node/bin/node",
-          entry: "/home/theo/.local/lib/node_modules/t3/dist/bin.mjs",
-          path: yield* pathWithT3,
-          args,
-        }),
-      ).toBe(`sudo env "PATH=$PATH" t3 browser setup --base-dir '/srv/t3 home'`);
-      expect(
-        yield* rootCommand({ node: "/opt/t3/t3", entry: "/opt/t3/t3", executable: true, args }),
-      ).toBe("sudo /opt/t3/t3 browser setup --base-dir '/srv/t3 home'");
-    }),
-  );
-
-  it.effect("names this install's launcher when t3 is not on PATH", () =>
-    Effect.gen(function* () {
-      const fs = yield* FileSystem.FileSystem;
-      const path = yield* Path.Path;
-      const home = yield* fs.makeTempDirectoryScoped();
-      const shim = path.join(home, ".local bin", "t3");
-      yield* fs.makeDirectory(path.dirname(shim), { recursive: true });
-      yield* fs.writeFileString(shim, "#!/bin/sh\n", { mode: 0o755 });
-      const desktop = {
-        node: "/tmp/.mount_T3abc/t3code",
-        entry: "/tmp/.mount_T3abc/resources/app.asar/apps/server/dist/bin.mjs",
-        env: { T3CODE_CLI_PATH: shim },
-      };
-
-      expect(yield* rootCommand(desktop)).toBe(`sudo '${shim}' browser setup`);
-
-      // An unrelated `t3` on PATH, such as an older npm global, is another install's CLI.
-      expect(yield* rootCommand({ ...desktop, path: yield* pathWithT3 })).toBe(
-        `sudo '${shim}' browser setup`,
-      );
-
-      // The link the app installs onto PATH leads to its own launcher, so plain `t3` is right.
-      const linked = yield* fs.makeTempDirectoryScoped();
-      yield* fs.symlink(shim, path.join(linked, "t3"));
-      expect(yield* rootCommand({ ...desktop, path: linked })).toBe(
-        'sudo env "PATH=$PATH" t3 browser setup',
-      );
-
-      expect(
-        yield* rootCommand({
-          node: "/opt/t3/t3",
-          entry: "/opt/t3/t3",
-          executable: true,
-        }),
-      ).toBe("sudo /opt/t3/t3 browser setup");
-
-      // A standalone executable started directly (systemd, no launcher) is still this install.
-      expect(
-        yield* rootCommand({
-          node: "/opt/t3/t3",
-          entry: "/opt/t3/t3",
-          executable: true,
-          path: yield* pathWithT3,
-        }),
-      ).toBe("sudo /opt/t3/t3 browser setup");
-
-      // A global npm launcher runs the downloaded executable; PATH's `t3` is that launcher.
-      const prefix = path.join(home, "npm");
-      const npmLauncher = path.join(prefix, "lib/node_modules/t3/bin/t3.mjs");
-      yield* fs.makeDirectory(path.dirname(npmLauncher), { recursive: true });
-      yield* fs.makeDirectory(path.join(prefix, "bin"));
-      yield* fs.writeFileString(npmLauncher, "", { mode: 0o755 });
-      yield* fs.writeFileString(
-        path.join(prefix, "lib/node_modules/t3/package.json"),
-        `{"name":"t3","version":"${packageJson.version}"}`,
-      );
-      yield* fs.symlink(npmLauncher, path.join(prefix, "bin/t3"));
-      expect(
-        yield* rootCommand({
-          node: "/home/theo/.t3/runtime/versions/1.0.0/t3",
-          entry: "/home/theo/.t3/runtime/versions/1.0.0/t3",
-          executable: true,
-          path: path.join(prefix, "bin"),
-          env: { T3CODE_NPM_LAUNCHER_PATH: npmLauncher },
-        }),
-      ).toBe('sudo env "PATH=$PATH" t3 browser setup');
-
-      expect(
-        yield* rootCommand({ ...desktop, env: { T3CODE_CLI_PATH: path.join(home, "gone") } }),
-      ).toBe('sudo env "PATH=$PATH" t3 browser setup');
+      for (const entry of ["/home/person/.npm/_npx/example/node_modules/t3/dist/bin.mjs", "/bin/t3"]) {
+        const input = {
+          node: "/usr/bin/node",
+          entry,
+          env: { T3CODE_CLI_PATH: "/bin/t3", T3CODE_NPM_LAUNCHER_PATH: "/bin/t3" },
+          args: ["--base-dir", "/srv/studio data"],
+        };
+        expect(yield* rootCommand(input)).toBe("sudo open-product-studio browser setup --base-dir '/srv/studio data'");
+        expect(yield* rootCommand({ ...input, node: "/opt/node/bin/node" })).toBe(
+          `sudo env "PATH=$PATH" open-product-studio browser setup --base-dir '/srv/studio data'`,
+        );
+      }
     }),
   );
 });
@@ -154,7 +54,7 @@ it.layer(NodeServices.layer)("host CLI commands", (it) => {
       const fs = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
       const home = yield* fs.makeTempDirectoryScoped();
-      const shim = path.join(home, "t3.cmd");
+      const shim = path.join(home, "open-product-studio.cmd");
       yield* fs.writeFileString(shim, "@echo off\r\n");
       const hostCommand = (platform: NodeJS.Platform, env: Record<string, string>) =>
         resolveHostCliCommand("doctor", ["--base-dir", "C:\\Users\\Jane Doe\\.t3"]).pipe(
@@ -167,11 +67,11 @@ it.layer(NodeServices.layer)("host CLI commands", (it) => {
           Effect.provideService(HostProcess.Platform, platform),
           Effect.provideService(HostProcess.Environment, { PATH: "", ...env }),
         );
-      expect((yield* hostCommand("win32", { T3CODE_CLI_PATH: shim })).command).toBe(
+      expect((yield* hostCommand("win32", { STUDIO_CLI_PATH: shim })).command).toBe(
         `& "${shim}" doctor "--base-dir" "C:\\Users\\Jane Doe\\.t3"`,
       );
       expect((yield* hostCommand("win32", {})).command).toBe(
-        't3 doctor "--base-dir" "C:\\Users\\Jane Doe\\.t3"',
+        'open-product-studio doctor "--base-dir" "C:\\Users\\Jane Doe\\.t3"',
       );
       expect(
         (yield* resolveHostCliCommand("doctor", ["--base-dir", "C:\\T3\\\u201CArchive\u201D"]).pipe(
@@ -181,8 +81,8 @@ it.layer(NodeServices.layer)("host CLI commands", (it) => {
           Effect.provideService(HostProcess.Arguments, ["C:\\t3.exe", "C:\\bin.mjs"]),
           Effect.provideService(HostProcess.IsExecutable, false),
         )).command,
-      ).toBe('t3 doctor "--base-dir" "C:\\T3\\\u201C\u201CArchive\u201D\u201D"');
-      expect((yield* hostCommand("linux", { T3CODE_CLI_PATH: shim })).command).toMatch(
+      ).toBe('open-product-studio doctor "--base-dir" "C:\\T3\\\u201C\u201CArchive\u201D\u201D"');
+      expect((yield* hostCommand("linux", { STUDIO_CLI_PATH: shim })).command).toMatch(
         / doctor --base-dir 'C:\\Users\\Jane Doe\\\.t3'$/,
       );
     }),

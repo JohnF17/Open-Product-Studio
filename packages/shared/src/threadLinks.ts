@@ -2,14 +2,22 @@ import { EnvironmentId, ThreadId, type ScopedThreadRef } from "@t3tools/contract
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
-import { DEFAULT_HOSTED_APP_URL } from "./connectAuth.ts";
+import { buildStudioShareUrl } from "./promptLinks.ts";
 
 export const THREAD_LINK_PROTOCOL = "t3-thread";
 const V1_PREFIX = `${THREAD_LINK_PROTOCOL}://v1/`;
 const V2_PREFIX = `${THREAD_LINK_PROTOCOL}://v2/`;
-const HOSTED_PREFIX = `${DEFAULT_HOSTED_APP_URL}/threads/`;
+// Recognize existing upstream links in saved conversations without creating new ones.
+const THREAD_PREFIXES = [
+  "open-product-studio://threads/",
+  "open-product-studio-dev://threads/",
+  "https://app.t3.codes/threads/",
+];
 const HOSTED_SEGMENT = "[A-Za-z0-9_%-]+";
-const HOSTED_LINK = `${HOSTED_PREFIX.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}${HOSTED_SEGMENT}/${HOSTED_SEGMENT}`;
+// The scanner recognizes web URL shapes. The parser checks their exact origin before a title or
+// thread record can be read. This also supports IPv6 loopback and non-default ports.
+const THREAD_BASE = String.raw`(?:open-product-studio(?:-dev)?:\/\/threads\/|https?:\/\/[^\s/?#<>()]+\/threads\/)`;
+const HOSTED_LINK = `${THREAD_BASE}${HOSTED_SEGMENT}/${HOSTED_SEGMENT}`;
 const THREAD_HREF = String.raw`t3-thread:\/\/v[12]\/`;
 // A label stops at any bracket, so a run of unclosed brackets is scanned once, not once per bracket.
 const LABEL = String.raw`[^[\]\n]*`;
@@ -46,16 +54,16 @@ const hostedSegment = (id: string) =>
     (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
   );
 
-/** Opens the thread from anywhere: the hosted app offers the desktop app, the mobile app, or itself. */
-export function hostedThreadLink(ref: ScopedThreadRef, origin = DEFAULT_HOSTED_APP_URL): string {
+/** Opens the thread in Studio or at the caller's web origin. */
+export function hostedThreadLink(ref: ScopedThreadRef, origin?: string): string {
   const path = `/threads/${hostedSegment(ref.environmentId)}/${hostedSegment(ref.threadId)}`;
-  return new URL(path, origin).toString();
+  return buildStudioShareUrl(path, origin).toString();
 }
 
 const HOSTED_PATH = new RegExp(`^(${HOSTED_SEGMENT})/(${HOSTED_SEGMENT})$`);
 
-function parseHostedThreadLink(href: string): ThreadLink | null {
-  const match = HOSTED_PATH.exec(href.slice(HOSTED_PREFIX.length));
+function parseHostedThreadLink(path: string): ThreadLink | null {
+  const match = HOSTED_PATH.exec(path);
   if (!match) return null;
   try {
     const environmentId = Option.getOrNull(decodeEnvironmentId(decodeURIComponent(match[1]!)));
@@ -70,8 +78,16 @@ function parseHostedThreadLink(href: string): ThreadLink | null {
  * The ids as written. Thread ids can hold percent escapes of their own, so they are not decoded,
  * except in a hosted link, which escapes them itself.
  */
-export function parseThreadLinkHref(href: string): ThreadLink | null {
-  if (href.startsWith(HOSTED_PREFIX)) return parseHostedThreadLink(href);
+export function parseThreadLinkHref(
+  href: string,
+  trustedWebOrigins: readonly string[] = [],
+): ThreadLink | null {
+  const prefix = THREAD_PREFIXES.find((candidate) => href.startsWith(candidate));
+  if (prefix) return parseHostedThreadLink(href.slice(prefix.length));
+  for (const origin of trustedWebOrigins) {
+    const webPrefix = `${origin}/threads/`;
+    if (href.startsWith(webPrefix)) return parseHostedThreadLink(href.slice(webPrefix.length));
+  }
   if (href.startsWith(V1_PREFIX)) {
     const threadId = Option.getOrNull(decodeThreadId(href.slice(V1_PREFIX.length)));
     return threadId === null ? null : { environmentId: null, threadId };
@@ -155,14 +171,22 @@ export function formatHostedThreadLink(
   return cleaned ? `[${cleaned}](${href})` : href;
 }
 
-export function hasThreadLinks(markdown: string): boolean {
-  return markdown.includes(`${THREAD_LINK_PROTOCOL}://v`) || markdown.includes(HOSTED_PREFIX);
+export function hasThreadLinks(
+  markdown: string,
+  trustedWebOrigins: readonly string[] = [],
+): boolean {
+  return (
+    markdown.includes(`${THREAD_LINK_PROTOCOL}://v`) ||
+    THREAD_PREFIXES.some((prefix) => markdown.includes(prefix)) ||
+    trustedWebOrigins.some((origin) => markdown.includes(`${origin}/threads/`))
+  );
 }
 
 /** Every thread the markdown's links can name, so their titles are keyed reads. */
 export function threadLinkRefs(
   markdown: string,
   messageEnvironmentId: EnvironmentId,
+  trustedWebOrigins: readonly string[] = [],
 ): ReadonlyArray<ScopedThreadRef> {
   const refs = new Map<string, ScopedThreadRef>();
   // Hermes' matchAll yields matches without `groups`; exec keeps them.
@@ -170,7 +194,7 @@ export function threadLinkRefs(
   for (let match = pattern.exec(markdown); match !== null; match = pattern.exec(markdown)) {
     const href =
       match.groups?.angleHref ?? match.groups?.href ?? match.groups?.autolink ?? match.groups?.bare;
-    const link = href === undefined ? null : parseThreadLinkHref(href);
+    const link = href === undefined ? null : parseThreadLinkHref(href, trustedWebOrigins);
     if (link === null) continue;
     for (const ref of threadLinkCandidates(link, messageEnvironmentId)) {
       refs.set(`${ref.environmentId}/${ref.threadId}`, ref);
@@ -183,14 +207,15 @@ export function threadLinkRefs(
 export function replaceThreadLinks(
   markdown: string,
   replace: (link: ThreadLink, label: string | undefined) => string | undefined,
+  trustedWebOrigins: readonly string[] = [],
 ): string {
-  if (!hasThreadLinks(markdown)) return markdown;
+  if (!hasThreadLinks(markdown, trustedWebOrigins)) return markdown;
   return markdown.replace(THREAD_LINK_OUTSIDE_CODE, (source, ...args) => {
     const groups = args.at(-1) as Partial<
       Record<"angleHref" | "href" | "autolink" | "bare" | "label", string>
     >;
     const href = groups.angleHref ?? groups.href ?? groups.autolink ?? groups.bare;
-    const link = href === undefined ? null : parseThreadLinkHref(href);
+    const link = href === undefined ? null : parseThreadLinkHref(href, trustedWebOrigins);
     return (link && replace(link, groups.label)) ?? source;
   });
 }

@@ -1,0 +1,20 @@
+{
+  "candidate": "c16b4f42f8f0e38785664334d289b4e89a6a3842",
+  "workflowSha": "377639afdc41af6a871b6729e2b11e94ecdb38c3",
+  "runnerImage": "20261103.298.1",
+  "workflowRun": "44519224673/1",
+  "lockfileSha256": "73ba22b9064104de1c68c034929a6f3a79d50ca755858e70d1b7925c809dc451",
+  "smokeScriptSha256": "18b2c9d26bd3d4cafe6b34089a7b45ad709df90f0aa10431cf2f64466f49800a",
+  "artifact": "Open-Product-Studio-0.1.10-x64.exe",
+  "sha256": "09d25900abc1997a5751cb21d3f8b723d4bd84941ce61e6c65d2cec418e1e536",
+  "bytes": 214076150,
+  "signature": "NotSigned",
+  "installExit": 0,
+  "installedExecutableSha256": "55c0e01eb3cdfc693fd03e4b9124778eeb356681fb85c91fa7762ae153daa092",
+  "installedProtocol": "open-product-studio",
+  "startupExit": 0,
+  "uninstallExit": 0,
+  "installationRemoved": true,
+  "protocolRemoved": true,
+  "userPathUnchanged": true
+}

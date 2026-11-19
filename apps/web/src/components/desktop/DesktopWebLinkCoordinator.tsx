@@ -22,6 +22,7 @@ import { requestConfirmDialog } from "../../confirmDialog";
 import { connectPairing } from "../../connection/onboarding";
 import { isLocalEnvironmentDisabled } from "../../localEnvironment";
 import { useComposerDraftStore } from "../../composerDraftStore";
+import { configuredHostedAppUrl } from "../../hostedPairing";
 import { useNewThreadHandler } from "../../hooks/useHandleNewThread";
 import { useScratchProject } from "../../hooks/useScratchProject";
 import { useClientSettings } from "../../hooks/useSettings";
@@ -211,7 +212,7 @@ export function DesktopWebLinkCoordinator() {
       await pairFromLink(pairingUrl);
       return;
     }
-    const appPath = promptLinkAppPath(url);
+    const appPath = promptLinkAppPath(url, configuredHostedAppUrl() ?? undefined);
     if (appPath !== null) {
       await router.navigate({ href: appPath });
       return;

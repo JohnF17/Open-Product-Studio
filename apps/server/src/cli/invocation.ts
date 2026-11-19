@@ -6,7 +6,6 @@ import * as Schema from "effect/Schema";
 
 import type { ServerInstallation } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
-import { resolveCommandPath } from "@t3tools/shared/shell";
 
 import packageJson from "../../package.json" with { type: "json" };
 import {
@@ -127,28 +126,10 @@ export const resolveServerInstallation = Effect.gen(function* () {
   return { kind: "npm-global", prefix } satisfies ServerInstallation;
 }).pipe(Effect.orElseSucceed(() => null));
 
-/** The original package spec is unavailable at startup; infer its channel from the version. */
-function suggestedPackageSpec(version: string): string {
-  const channel = /^[^-+]+-(nightly|preview)\./.exec(version)?.[1];
-  return channel === undefined ? "t3" : `t3@${channel}`;
-}
-
-function formatCliCommand(input: {
-  readonly subcommand: string;
-  readonly entryPath: string;
-  readonly version: string;
-}): string {
-  const runner = detectCliRunner(input.entryPath);
-  if (runner === null) {
-    return `t3 ${input.subcommand}`;
-  }
-  return `${runner} ${suggestedPackageSpec(input.version)} ${input.subcommand}`;
-}
+const STUDIO_CLI = "open-product-studio";
 
 export const resolveCliCommand = (subcommand: string) =>
-  Effect.map(resolveEntryPath, (entryPath) =>
-    formatCliCommand({ subcommand, entryPath, version: packageJson.version }),
-  );
+  Effect.succeed(`${STUDIO_CLI} ${subcommand}`.trimEnd());
 
 const shellWord = (value: string) =>
   /^[\w@%+=:,./-]+$/.test(value) ? value : `'${value.replaceAll("'", `'"'"'`)}'`;
@@ -163,57 +144,29 @@ const powershellWord = (value: string) =>
 export const hostShellWord = (platform: NodeJS.Platform, value: string) =>
   platform === "win32" ? powershellWord(value) : shellWord(value);
 
-/** Script installs have no single launcher; desktop shims and standalone binaries do. */
-const resolveInstallLauncher = Effect.gen(function* () {
-  const fs = yield* FileSystem.FileSystem;
-  const shim = (yield* HostProcess.Environment).T3CODE_CLI_PATH?.trim();
-  if (shim && (yield* fs.exists(shim).pipe(Effect.orElseSucceed(() => false)))) {
-    return Option.some(shim);
-  }
-  return (yield* HostProcess.IsExecutable)
-    ? Option.some(yield* HostProcess.ExecutablePath)
-    : Option.none<string>();
-});
-
-/**
- * Uses this install's `t3` on PATH, the originating runner, or its absolute launcher path.
- * Arguments are quoted for POSIX shells or PowerShell on Windows.
- */
+/** Use Studio's own launcher when it is installed outside PATH. */
 export const resolveHostCliCommand = Effect.fn("invocation.resolveHostCliCommand")(function* (
   subcommand: string,
   args: ReadonlyArray<string> = [],
 ) {
   const platform = yield* HostProcess.Platform;
-  const withArgs = (prefix: string) =>
-    // An empty subcommand names the root `t3` command.
-    [prefix.trimEnd(), ...args.map((arg) => hostShellWord(platform, arg))].join(" ");
-  const command = yield* resolveCliCommand(subcommand);
-  if (command !== `t3 ${subcommand}`) return { command: withArgs(command), launcher: false };
-  const onPath = yield* resolveCommandPath("t3");
-  if (onPath !== null) {
-    const shim = (yield* HostProcess.Environment).T3CODE_CLI_PATH?.trim();
-    const fs = yield* FileSystem.FileSystem;
-    const real = (file: string) => fs.realPath(file).pipe(Effect.orElseSucceed(() => null));
-    // Windows `t3.cmd` shims are text files that never realpath to the executable they run.
-    const own = shim
-      ? yield* real(shim)
-      : platform !== "win32" && (yield* HostProcess.IsExecutable)
-        ? yield* resolveEntryPath.pipe(
-            Effect.flatMap((entry) =>
-              real(entry).pipe(Effect.map((resolved) => resolved ?? entry)),
-            ),
-          )
-        : null;
-    if (own === null || own === (yield* real(onPath))) {
-      return { command: withArgs(command), launcher: false };
-    }
-  }
-  const launcher = yield* resolveInstallLauncher;
-  if (Option.isNone(launcher)) return { command: withArgs(command), launcher: false };
-  // PowerShell runs a quoted path only through the call operator.
-  const quoted = hostShellWord(platform, launcher.value);
-  const call = platform === "win32" ? `& ${quoted}` : quoted;
-  return { command: withArgs(`${call} ${subcommand}`), launcher: true };
+  const path = yield* Path.Path;
+  const fs = yield* FileSystem.FileSystem;
+  const shim = (yield* HostProcess.Environment).STUDIO_CLI_PATH?.trim();
+  const ownLauncher =
+    shim || ((yield* HostProcess.IsExecutable) ? yield* HostProcess.ExecutablePath : undefined);
+  const useAbsolute =
+    ownLauncher !== undefined &&
+    path.isAbsolute(ownLauncher) &&
+    /^open-product-studio(?:\.cmd|\.exe)?$/i.test(path.basename(ownLauncher)) &&
+    (yield* fs.exists(ownLauncher).pipe(Effect.orElseSucceed(() => false)));
+  const executable = useAbsolute
+    ? (platform === "win32" ? "& " : "") + hostShellWord(platform, ownLauncher)
+    : STUDIO_CLI;
+  const command = [executable, subcommand, ...args.map((arg) => hostShellWord(platform, arg))]
+    .filter(Boolean)
+    .join(" ");
+  return { command, launcher: useAbsolute };
 });
 
 /** A hint's command, run against the caller's `--base-dir` when one was given. */

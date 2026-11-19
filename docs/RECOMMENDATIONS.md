@@ -6,7 +6,7 @@ Recommendations run through versioned [harness roles and reply contracts](AGENT-
 
 ## Who chooses the model
 
-The current Studio composer handoff uses T3's provider and model selection. The proposed Guided experience starts from that selection and the project's approved connections. It offers a project preset at the first AI step, with the exact account, model, supported effort, host and spending limit visible before acceptance. An offline, manually edited project needs no preset.
+The current Studio handoff prepares a draft in T3's composer. Its native defaults and any user-configured usage-limit fallback apply there. A research prompt requests read-only work in words. Enforcing tool permissions and enforcing a pinned model belong to the qualified action runner. The proposed Guided experience starts from that selection and the project's approved connections. It offers a project preset at the first AI step, with the exact account, model, supported effort, host and spending limit visible before acceptance. An offline, manually edited project needs no preset.
 
 | Creator control | Behavior to qualify |
 | --- | --- |

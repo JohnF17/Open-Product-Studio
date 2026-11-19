@@ -16,7 +16,6 @@ import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { EnvironmentHttpApi, type RepositoryIdentity } from "@t3tools/contracts";
-import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Cause from "effect/Cause";
 import * as Duration from "effect/Duration";
 import * as Deferred from "effect/Deferred";
@@ -39,7 +38,6 @@ import {
   keepIdleConnections,
   rejectRequestsUntilServing,
 } from "./httpResponseErrorGuard.ts";
-import { resolveLauncherPath } from "./cloud/pinnedRuntime.ts";
 import { fixPath } from "./os-jank.ts";
 import * as Ws from "./ws.ts";
 import * as AgentScopeLive from "./process/agentScope.ts";
@@ -196,7 +194,6 @@ import * as CloudCliTokenManager from "./cloud/CliTokenManager.ts";
 import * as CloudCliState from "./cloud/CliState.ts";
 import * as ServerSelfUpdate from "./cloud/selfUpdate.ts";
 import * as DesktopAppUpdate from "./desktopUpdate/DesktopAppUpdate.ts";
-import * as ServiceLauncherClient from "./cloud/serviceLauncherClient.ts";
 import * as ProcessDiagnostics from "./diagnostics/ProcessDiagnostics.ts";
 import * as HostResources from "./resourceTelemetry/HostResources.ts";
 import * as ProcessResourceMonitor from "./diagnostics/ProcessResourceMonitor.ts";
@@ -674,15 +671,14 @@ const layerProviderInstallationRefresh = Layer.effectDiscard(
   }),
 );
 
-// The desktop app and the background service start the server again after it exits.
+// The supervising Studio desktop app starts its server again after it exits.
 const layerServerRestart = Layer.effect(
   DatabaseStorage.ServerRestart,
   Effect.gen(function* () {
     const config = yield* ServerConfig.ServerConfig;
-    const launcher = yield* ServiceLauncherClient.ServiceLauncherClient;
     // As in runServerCommand, only the desktop app passes a bootstrap token; `serve --mode desktop` by hand has no supervisor.
     const desktopLaunched = config.mode === "desktop" && config.desktopBootstrapToken !== undefined;
-    if (!desktopLaunched && !launcher.managed) return null;
+    if (!desktopLaunched) return null;
     // Stop as a SIGTERM would: runMain's listener interrupts the server, so its shutdown path runs.
     return Effect.sync(() => void process.emit("SIGTERM"));
   }),
@@ -773,7 +769,7 @@ const layerRuntimeCoreDependencies = layerRuntimeCoreDependenciesBase.pipe(
   Layer.provideMerge(
     Layer.mergeAll(
       layerProviderEventLoggers,
-      ModelManifest.layerModelCatalog.pipe(Layer.provideMerge(ModelManifest.layer)),
+      ModelManifest.layerModelCatalog.pipe(Layer.provideMerge(ModelManifest.layerBundledOnly)),
       ResetCreditCoordinator.layer,
       ProviderLatestVersions.layer,
       McpProviderSessions.layer,
@@ -818,7 +814,7 @@ const layerRuntimeDependencies = layerRuntimeCoreDependencies.pipe(
   Layer.provideMerge(TraceDiagnostics.layer),
   Layer.provideMerge(TriageService.layer.pipe(Layer.provide(GitVcsDriver.layer))),
   // Layers memoize by reference, so this is the same policy the settings layer reads.
-  Layer.provideMerge(AnalyticsService.layer.pipe(Layer.provide(ManagedPolicy.layer))),
+  Layer.provideMerge(AnalyticsService.layerLocal),
   Layer.provideMerge(ExternalLauncher.layer),
   Layer.provideMerge(RemoteOpenTargets.layer),
   Layer.provideMerge(DirectEndpoints.layer.pipe(Layer.provide(layerServerEnvironment))),
@@ -924,10 +920,7 @@ const layerMakeServer = Layer.unwrap(
     const tailscaleParked = yield* Deferred.make<void>();
     const cloudLinkParked = yield* Deferred.make<void>();
     const routesReady = yield* Deferred.make<void>();
-    const layerLauncher = ServiceLauncherClient.layer;
 
-    // fixPath rewrites PATH, so pin the launcher the shell chose before it does.
-    const invokedAs = (yield* resolveLauncherPath) ?? (yield* HostProcess.InvokedAs);
     yield* fixPath({ shellEnvironmentPrepared: config.shellEnvironmentPrepared });
 
     const layerHttpListening = Layer.effectDiscard(
@@ -958,11 +951,9 @@ const layerMakeServer = Layer.unwrap(
           return;
         }
 
-        const launcher = yield* ServiceLauncherClient.ServiceLauncherClient;
         const state = yield* makePersistedServerRuntimeState({
           config,
           port: address.port,
-          serviceManaged: launcher.managed,
           managedPolicy: yield* ManagedPolicy.loadedPolicy(yield* ManagedPolicy.ManagedPolicy),
         });
         yield* ownership
@@ -1338,9 +1329,9 @@ const layerMakeServer = Layer.unwrap(
         ],
         { concurrency: "unbounded" },
       ).pipe(Effect.asVoid),
-    }).pipe(Layer.provideMerge(layerRuntimeDependencies), Layer.provide(layerLauncher));
+    }).pipe(Layer.provideMerge(layerRuntimeDependencies));
 
-    const layerRoutes = HttpRouter.serve(layerMakeRoutes.pipe(Layer.provide(layerLauncher)), {
+    const layerRoutes = HttpRouter.serve(layerMakeRoutes, {
       disableLogger: !config.logWebSocketEvents,
       routerConfig: HTTP_ROUTER_CONFIG,
     }).pipe(
@@ -1352,7 +1343,7 @@ const layerMakeServer = Layer.unwrap(
       layerRoutes,
       layerHttpListening,
       layerDesktopReadySignal,
-      layerRuntimeState.pipe(Layer.provide(layerLauncher)),
+      layerRuntimeState,
       layerTailscaleServe,
       layerCloudDesiredLinkReconcile,
       HeapSnapshot.layer,
@@ -1376,7 +1367,6 @@ const layerMakeServer = Layer.unwrap(
       Layer.provide(VcsProcess.layer),
       Layer.provideMerge(AgentScopeLive.layer),
       Layer.provideMerge(layerPlatformServices),
-      Layer.provide(Layer.succeed(HostProcess.InvokedAs, invokedAs)),
     );
   }),
 ).pipe(Layer.provide(ProcessRunner.layer));

@@ -90,7 +90,7 @@ function layer(baseDir: string) {
       Layer.mergeAll(
         NodeServices.layer,
         NodeCrypto.layer,
-        DesktopConfig.layerTest({ T3CODE_HOME: baseDir }),
+        DesktopConfig.layerTest({ STUDIO_HOME: baseDir }),
       ),
     ),
   );
@@ -122,7 +122,7 @@ describe("DesktopClientSettings", () => {
         const dotfiles = yield* fileSystem.makeTempDirectoryScoped({
           prefix: "t3-desktop-client-settings-dotfiles-",
         });
-        const linkedSettingsPath = `${dotfiles}/client-settings.json`;
+        const linkedSettingsPath = environment.path.join(dotfiles, "client-settings.json");
         yield* fileSystem.writeFileString(linkedSettingsPath, "{}\n");
         yield* fileSystem.makeDirectory(environment.stateDir, { recursive: true });
         yield* fileSystem.symlink(linkedSettingsPath, environment.clientSettingsPath);

@@ -187,7 +187,11 @@ describe("server ownership", () => {
             Effect.flip,
           );
           assert.equal(refused._tag, "ServerAlreadyRunningError");
-          assert.include(refused.message, "do not delete it while a server is running");
+          assert.include(refused.message, "--base-dir with a new, empty directory");
+          assert.include(
+            refused.message,
+            "Leave the running server and its server-owner.sqlite lock in place.",
+          );
           assert.equal(yield* fs.readFileString(statePath), before);
         }),
       );
@@ -370,9 +374,8 @@ describe("server ownership", () => {
           assert.equal(result.failure._tag, "OlderBootServiceError");
           assert.equal(Runtime.getErrorExitCode(result.failure), 78);
           assert.include(result.failure.message, t3Home);
-          assert.include(result.failure.message, "t3 update");
-          assert.include(result.failure.message, "t3 service restart");
-          assert.include(result.failure.message, "No server was stopped");
+          assert.include(result.failure.message, "--base-dir with a new, empty directory");
+          assert.notMatch(result.failure.message, /t3 update|t3 service|npx t3/i);
         }
       }).pipe(Effect.provide(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))),
     );

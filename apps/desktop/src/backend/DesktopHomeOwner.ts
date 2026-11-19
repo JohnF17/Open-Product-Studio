@@ -91,14 +91,10 @@ export const readLiveHomeOwner = Effect.fn("DesktopHomeOwner.readLiveHomeOwner")
   );
 });
 
-export const homeOwnedMessage = (owner: Option.Option<HomeOwner>): string =>
-  Option.match(owner, {
+export const homeOwnedMessage = (owner: Option.Option<HomeOwner>): string => {
+  const details = Option.match(owner, {
     onNone: () =>
-      m(
-        msg(
-          "Another T3 Code server, such as the background service, is using this data directory, or an older background service is set up for it. Stop that server or try `t3 update`. If the older launcher cannot update, run `t3 service uninstall` and optionally reinstall with `t3 service install` from a current CLI. Use `npx t3@latest` if `t3` is missing or outdated, and pass `--base-dir` with the service's T3 home to each command. Then reopen T3 Code. You can also set a separate T3CODE_HOME and pair with the running server.",
-        ),
-      ),
+      m(msg("This engine directory is already in use or reserved by a background service.")),
     onSome: (owner) => {
       const variables = {
         pid: String(owner.pid),
@@ -108,30 +104,24 @@ export const homeOwnedMessage = (owner: Option.Option<HomeOwner>): string =>
       if (owner.serviceManaged) {
         return owner.serverVersion
           ? m(
-              msg(
-                "The T3 Code background service is using this T3 home (PID {pid}, port {port}, version {version}). Stop it with `t3 service uninstall`, passing `--base-dir` with this T3 home, and reopen T3 Code. You can also set a separate T3CODE_HOME and pair with the running server.",
-              ),
+              msg("A background service owns this engine directory (PID {pid}, port {port}, version {version})."),
               variables,
             )
           : m(
-              msg(
-                "The T3 Code background service is using this T3 home (PID {pid}, port {port}). Stop it with `t3 service uninstall`, passing `--base-dir` with this T3 home, and reopen T3 Code. You can also set a separate T3CODE_HOME and pair with the running server.",
-              ),
+              msg("A background service owns this engine directory (PID {pid}, port {port})."),
               variables,
             );
       }
       return owner.serverVersion
         ? m(
-            msg(
-              "Another T3 Code server (for example `t3 serve`, or one started over SSH) is using this T3 home (PID {pid}, port {port}, version {version}). If a T3 Code app on another machine started it over SSH, that app restarts it: remove or disconnect that SSH environment there, or quit that app. Then stop the server, and reopen T3 Code. You can also set a separate T3CODE_HOME and pair with the running server.",
-            ),
+            msg("A server owns this engine directory (PID {pid}, port {port}, version {version})."),
             variables,
           )
-        : m(
-            msg(
-              "Another T3 Code server (for example `t3 serve`, or one started over SSH) is using this T3 home (PID {pid}, port {port}). If a T3 Code app on another machine started it over SSH, that app restarts it: remove or disconnect that SSH environment there, or quit that app. Then stop the server, and reopen T3 Code. You can also set a separate T3CODE_HOME and pair with the running server.",
-            ),
-            variables,
-          );
+        : m(msg("A server owns this engine directory (PID {pid}, port {port})."), variables);
     },
   });
+  const recovery = m(
+    msg("To start a separate workspace, set STUDIO_HOME to a new, empty directory for the Open Product Studio process and reopen the app."),
+  );
+  return [details, recovery].join(" ");
+};

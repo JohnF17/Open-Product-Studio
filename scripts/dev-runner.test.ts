@@ -517,7 +517,12 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           devUrl: undefined,
         });
 
-        assert.equal(env.T3CODE_HOME, undefined);
+        const path = yield* Path.Path;
+        assert.equal(
+          env.T3CODE_HOME,
+          path.join(yield* HostProcess.HomeDirectory, ".open-product-studio", "dev"),
+        );
+        assert.equal(env.STUDIO_HOME, env.T3CODE_HOME);
       }),
     );
 
@@ -827,7 +832,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
             cwd: root,
             ambientHome: "/home/user/.t3",
           });
-          assert.equal(home, path.join(path.resolve(root), ".t3"));
+          assert.equal(home, path.join(path.resolve(root), ".t3", "studio"));
         }).pipe(Effect.scoped),
       );
 
@@ -840,17 +845,18 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
             cwd: root,
             ambientHome: "/home/user/.t3",
           });
-          assert.equal(home, path.join(path.resolve(root), ".t3"));
+          assert.equal(home, path.join(path.resolve(root), ".t3", "studio"));
         }).pipe(Effect.scoped),
       );
 
-      it.effect("seeds a worktree database from ~/.t3 only when it has none", () =>
+      it.effect("only an explicit seed copies Studio development data into an empty worktree", () =>
         Effect.gen(function* () {
           const path = yield* Path.Path;
           const root = yield* makeWorktree;
           const home = path.join(root, "home");
-          NodeFS.mkdirSync(path.join(home, ".t3", "userdata"), { recursive: true });
-          NodeFS.writeFileSync(path.join(home, ".t3", "userdata", "statev2.sqlite"), "");
+          const source = path.join(home, ".open-product-studio", "dev", "userdata", "statev2.sqlite");
+          NodeFS.mkdirSync(path.dirname(source), { recursive: true });
+          NodeFS.writeFileSync(source, "");
 
           const spawnedArgs = (seed: boolean | undefined) =>
             Effect.gen(function* () {
@@ -877,15 +883,18 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
             });
 
           assert.deepStrictEqual(yield* spawnedArgs(false), []);
-          const [seedArgs] = yield* spawnedArgs(undefined);
-          assert.includeMembers([...(seedArgs ?? [])], ["--base-dir", path.join(root, ".t3")]);
+          assert.deepStrictEqual(yield* spawnedArgs(undefined), []);
+          const [seedArgs] = yield* spawnedArgs(true);
+          assert.includeMembers([...(seedArgs ?? [])], [
+            "--source", source, "--base-dir", path.join(root, ".t3", "studio"),
+          ]);
 
           // Either database means the worktree already has data.
           for (const name of ["state.sqlite", "statev2.sqlite"]) {
-            const file = path.join(root, ".t3", "userdata", name);
+            const file = path.join(root, ".t3", "studio", "userdata", name);
             NodeFS.mkdirSync(path.dirname(file), { recursive: true });
             NodeFS.writeFileSync(file, "");
-            assert.deepStrictEqual(yield* spawnedArgs(undefined), []);
+            assert.deepStrictEqual(yield* spawnedArgs(true), []);
             NodeFS.rmSync(file);
           }
         }).pipe(Effect.scoped),
@@ -903,7 +912,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
             const path = yield* Path.Path;
             const root = yield* makeWorktree;
             const home = path.join(root, "home");
-            const source = path.join(home, ".t3", "userdata", "statev2.sqlite");
+            const source = path.join(home, ".open-product-studio", "dev", "userdata", "statev2.sqlite");
             NodeFS.mkdirSync(path.dirname(source), { recursive: true });
             NodeFS.writeFileSync(source, "");
             const spawned: Array<ReadonlyArray<string>> = [];
@@ -916,7 +925,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
               }),
             );
 
-            yield* runDevRunnerWithInput({ ...devServerInput, t3Home: undefined }).pipe(
+            yield* runDevRunnerWithInput({ ...devServerInput, t3Home: undefined, seed: true }).pipe(
               Effect.provide([
                 emptyConfigLayer,
                 netServiceLayer,
@@ -965,7 +974,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           }).pipe(Effect.scoped),
       );
 
-      it.effect("falls back to an ambient T3CODE_HOME outside a worktree", () =>
+      it.effect("isolates Studio from an ambient T3CODE_HOME outside a worktree", () =>
         Effect.gen(function* () {
           const path = yield* Path.Path;
           const home = yield* spawnedHome({
@@ -973,7 +982,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
             cwd: NodeOS.tmpdir(),
             ambientHome: "/home/user/.t3",
           });
-          assert.equal(home, path.resolve("/home/user/.t3"));
+          assert.equal(home, path.join(NodeOS.tmpdir(), ".open-product-studio", "dev"));
         }),
       );
     });

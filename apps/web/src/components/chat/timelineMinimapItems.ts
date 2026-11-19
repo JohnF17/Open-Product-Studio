@@ -1,5 +1,4 @@
 import { assistantCitationsToPlainText } from "@t3tools/shared/assistantCitations";
-import { parseThreadLinkHref } from "@t3tools/shared/threadLinks";
 import {
   isAttachmentOnlyBootstrapPrompt,
   replaceComposerContextReferences,
@@ -10,6 +9,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 
 import type { MessagesTimelineRow } from "./MessagesTimeline.logic";
+import { parseRendererThreadLink } from "../../threadLinks";
 
 export interface TimelineMinimapItem {
   readonly id: string;
@@ -90,7 +90,7 @@ function markdownNodeText(node: Nodes): string {
   const separator = INLINE_PARENT_TYPES.has(node.type) ? "" : " ";
   const text = node.children.map(markdownNodeText).join(separator);
   // A thread autolink's only text is its URL.
-  return node.type === "link" && parseThreadLinkHref(text) !== null ? "a thread" : text;
+  return node.type === "link" && parseRendererThreadLink(text) !== null ? "a thread" : text;
 }
 
 /** Markdown as one line of the text it renders, without markup or link targets. */

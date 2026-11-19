@@ -52,78 +52,28 @@ export interface IconOverride {
   readonly targetRelativePath: string;
 }
 
-const WEB_ICON_TARGET_FILENAMES = {
-  faviconIco: "favicon.ico",
-  favicon16Png: "favicon-16x16.png",
-  favicon32Png: "favicon-32x32.png",
-  appleTouchIconPng: "apple-touch-icon.png",
-  icon192Png: "icon-192x192.png",
-  icon512Png: "icon-512x512.png",
-} as const;
+const WEB_ICON_FILENAMES = [
+  "favicon.ico",
+  "favicon-16x16.png",
+  "favicon-32x32.png",
+  "apple-touch-icon.png",
+  "icon-192x192.png",
+  "icon-512x512.png",
+] as const;
 
-const WEB_ICON_SOURCE_PATHS_BY_BRAND = {
-  development: {
-    faviconIco: BRAND_ASSET_PATHS.developmentWebFaviconIco,
-    favicon16Png: BRAND_ASSET_PATHS.developmentWebFavicon16Png,
-    favicon32Png: BRAND_ASSET_PATHS.developmentWebFavicon32Png,
-    appleTouchIconPng: BRAND_ASSET_PATHS.developmentWebAppleTouchIconPng,
-    icon192Png: BRAND_ASSET_PATHS.developmentWebIcon192Png,
-    icon512Png: BRAND_ASSET_PATHS.developmentWebIcon512Png,
-  },
-  nightly: {
-    faviconIco: BRAND_ASSET_PATHS.nightlyWebFaviconIco,
-    favicon16Png: BRAND_ASSET_PATHS.nightlyWebFavicon16Png,
-    favicon32Png: BRAND_ASSET_PATHS.nightlyWebFavicon32Png,
-    appleTouchIconPng: BRAND_ASSET_PATHS.nightlyWebAppleTouchIconPng,
-    icon192Png: BRAND_ASSET_PATHS.nightlyWebIcon192Png,
-    icon512Png: BRAND_ASSET_PATHS.nightlyWebIcon512Png,
-  },
-  production: {
-    faviconIco: BRAND_ASSET_PATHS.productionWebFaviconIco,
-    favicon16Png: BRAND_ASSET_PATHS.productionWebFavicon16Png,
-    favicon32Png: BRAND_ASSET_PATHS.productionWebFavicon32Png,
-    appleTouchIconPng: BRAND_ASSET_PATHS.productionWebAppleTouchIconPng,
-    icon192Png: BRAND_ASSET_PATHS.productionWebIcon192Png,
-    icon512Png: BRAND_ASSET_PATHS.productionWebIcon512Png,
-  },
-} as const satisfies Record<WebAssetBrand, Record<keyof typeof WEB_ICON_TARGET_FILENAMES, string>>;
+export const STUDIO_WINDOWS_ICON = "assets/studio/windows.ico";
+export const STUDIO_MAC_ICON = "assets/studio/macos-1024.png";
+export const STUDIO_LINUX_ICON = "assets/studio/linux-1024.png";
 
+// Studio uses a single icon for all web release channels.
 export function resolveWebIconOverrides(
-  brand: WebAssetBrand,
+  _brand: WebAssetBrand,
   targetDirectory: string,
 ): ReadonlyArray<IconOverride> {
-  const sourcePaths = WEB_ICON_SOURCE_PATHS_BY_BRAND[brand];
-  return [
-    {
-      sourceRelativePath: sourcePaths.faviconIco,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.faviconIco}`,
-    },
-    {
-      sourceRelativePath: sourcePaths.favicon16Png,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.favicon16Png}`,
-    },
-    {
-      sourceRelativePath: sourcePaths.favicon32Png,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.favicon32Png}`,
-    },
-    {
-      sourceRelativePath: sourcePaths.appleTouchIconPng,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.appleTouchIconPng}`,
-    },
-    {
-      sourceRelativePath: sourcePaths.icon192Png,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.icon192Png}`,
-    },
-    {
-      sourceRelativePath: sourcePaths.icon512Png,
-      targetRelativePath: `${targetDirectory}/${WEB_ICON_TARGET_FILENAMES.icon512Png}`,
-    },
-  ];
+  return WEB_ICON_FILENAMES.map((fileName) => ({
+    sourceRelativePath: `apps/web/public/${fileName}`,
+    targetRelativePath: `${targetDirectory}/${fileName}`,
+  }));
 }
 
 export const DEVELOPMENT_ICON_OVERRIDES = resolveWebIconOverrides("development", "dist/client");
-
-export const DEVELOPMENT_PUBLIC_ICON_OVERRIDES = resolveWebIconOverrides(
-  "development",
-  "apps/web/public",
-);

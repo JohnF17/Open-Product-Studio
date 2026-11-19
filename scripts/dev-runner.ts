@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import * as NodeOS from "node:os";
-
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as NetService from "@t3tools/shared/Net";
@@ -67,9 +65,10 @@ function sharedBackendTargetHost(host: string | undefined): string {
   return "127.0.0.1";
 }
 
-export const DEFAULT_T3_HOME = Effect.map(Effect.service(Path.Path), (path) =>
-  path.join(NodeOS.homedir(), ".t3"),
-);
+const defaultStudioDevHome = Effect.gen(function* () {
+  const path = yield* Path.Path;
+  return path.join(yield* HostProcess.HomeDirectory, ".open-product-studio", "dev");
+});
 
 const MODE_ARGS = {
   dev: [
@@ -285,7 +284,7 @@ const resolveBaseDir = Effect.fn("dev-runner.resolveBaseDir")(function* (
     return path.resolve(configured);
   }
 
-  return yield* DEFAULT_T3_HOME;
+  return yield* defaultStudioDevHome;
 });
 
 interface CreateDevRunnerEnvInput {
@@ -329,11 +328,10 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
       `http://${isDesktopMode ? DESKTOP_DEV_LOOPBACK_HOST : "localhost"}:${webPort}`,
   };
 
-  if (configuredBaseDir !== undefined) {
-    output.T3CODE_HOME = resolvedBaseDir;
-  } else {
-    delete output.T3CODE_HOME;
-  }
+  // T3's child processes still read this variable. Always give them an isolated directory.
+  output.T3CODE_HOME = resolvedBaseDir;
+  output.STUDIO_HOME = resolvedBaseDir;
+  output.STUDIO_PORT = String(serverPort);
 
   // Managed T3 service shells leak launcher variables that make dev servers fail version checks.
   // Dev-runner servers are never launcher-managed (serviceLauncherClient.ts resolveStartup).
@@ -373,16 +371,20 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
     // must not make Vite drop those URLs.
     delete output.T3CODE_SINGLE_ORIGIN_DEV;
     delete output.T3CODE_MODE;
+    delete output.STUDIO_MODE;
     delete output.T3CODE_NO_BROWSER;
     delete output.T3CODE_DEV_AUTH_TOKEN;
   }
 
   // Agent shells inherit the parent T3 server's bind settings; only --host widens the dev server.
   delete output.T3CODE_LAN;
+  delete output.STUDIO_LAN;
   if (!isDesktopMode && host !== undefined) {
     output.T3CODE_HOST = host;
+    output.STUDIO_HOST = host;
   } else {
     delete output.T3CODE_HOST;
+    delete output.STUDIO_HOST;
   }
 
   if (!isDesktopMode) {
@@ -403,11 +405,13 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
 
   if (mode === "dev") {
     output.T3CODE_MODE = "web";
+    output.STUDIO_MODE = "web";
     delete output.T3CODE_DESKTOP_WS_URL;
   }
 
   if (mode === "dev:server" || mode === "dev:web") {
     output.T3CODE_MODE = "web";
+    output.STUDIO_MODE = "web";
     delete output.T3CODE_DESKTOP_WS_URL;
   }
 
@@ -614,9 +618,8 @@ const runRepoScript = Effect.fn("dev-runner.runRepoScript")(function* (
 });
 
 /**
- * The first start in a worktree seeds its empty database from a small live database,
- * builds the native resource monitor, and warms the web dependency cache. Each step
- * checks for its own output, so later starts skip it.
+ * First start builds the resource monitor and warms the web dependency cache.
+ * An explicit seed can copy the Studio development database into an empty worktree.
  */
 const prepareFirstStart = Effect.fn("dev-runner.prepareFirstStart")(function* (input: {
   readonly mode: DevMode;
@@ -639,7 +642,6 @@ const prepareFirstStart = Effect.fn("dev-runner.prepareFirstStart")(function* (i
         );
       }
     }
-    const source = path.join(yield* HostProcess.HomeDirectory, ".t3", "userdata", "statev2.sqlite");
     // A V1 state.sqlite counts as data too: the server imports it only while
     // statev2.sqlite is missing, so seeding would hide it.
     if (
@@ -647,6 +649,7 @@ const prepareFirstStart = Effect.fn("dev-runner.prepareFirstStart")(function* (i
       !(yield* exists(path.join(stateDir, "statev2.sqlite"))) &&
       !(yield* exists(path.join(stateDir, "state.sqlite")))
     ) {
+      const source = path.join(yield* defaultStudioDevHome, "userdata", "statev2.sqlite");
       const info = yield* fs.stat(source).pipe(Effect.option);
       if (Option.isSome(info)) {
         if (Number(info.value.size) > LARGE_DEV_DATABASE_BYTES) {
@@ -655,7 +658,7 @@ const prepareFirstStart = Effect.fn("dev-runner.prepareFirstStart")(function* (i
           );
         } else {
           yield* Effect.logInfo(
-            `[dev-runner] seeding ${input.worktreeHome} from ${source} (read-only). --no-seed or T3CODE_DEV_SEED=0 skips this.`,
+            `[dev-runner] copying the requested Studio development seed from ${source} to ${input.worktreeHome}.`,
           );
           yield* runRepoScript(
             "apps/server/scripts/migrate-dev-db.ts",
@@ -770,9 +773,6 @@ export const runDevRunnerWithInput = Effect.fn("dev-runner.runDevRunnerWithInput
   });
 
   const hostEnvironment = yield* HostProcess.Environment;
-  // A dev server started inside a worktree defaults to that worktree's own
-  // (gitignored) `.t3` — see @t3tools/shared/devHome for why this must
-  // outrank an ambient T3CODE_HOME. `--home-dir` still wins.
   const worktreeHome = yield* resolveWorktreeT3Home(yield* HostProcess.WorkingDirectory);
   // Trim before choosing: `--home-dir ""` is not a selection, and treating it
   // as one would skip the worktree default and land on the shared home —
@@ -780,7 +780,7 @@ export const runDevRunnerWithInput = Effect.fn("dev-runner.runDevRunnerWithInput
   const resolvedT3Home =
     (input.t3Home?.trim() || undefined) ??
     worktreeHome ??
-    (hostEnvironment.T3CODE_HOME?.trim() || undefined);
+    (hostEnvironment.OPEN_PRODUCT_STUDIO_DEV_HOME?.trim() || undefined);
   const env = yield* createDevRunnerEnv({
     mode: input.mode,
     baseEnv: hostEnvironment,
@@ -799,7 +799,7 @@ export const runDevRunnerWithInput = Effect.fn("dev-runner.runDevRunnerWithInput
     serverOffset !== offset || webOffset !== offset
       ? ` selectedOffset(server=${serverOffset},web=${webOffset})`
       : "";
-  const baseDir = env.T3CODE_HOME ?? (yield* DEFAULT_T3_HOME);
+  const baseDir = env.T3CODE_HOME ?? (yield* defaultStudioDevHome);
 
   yield* Effect.logInfo(
     `[dev-runner] mode=${input.mode} source=${source}${selectionSuffix} serverPort=${String(env.T3CODE_PORT)} webPort=${String(env.PORT)} baseDir=${baseDir}`,
@@ -900,7 +900,7 @@ export const runDevRunnerWithInput = Effect.fn("dev-runner.runDevRunnerWithInput
   // After sharing, so the warm step sees the same bundled-dev env as Vite.
   yield* prepareFirstStart({
     mode: input.mode,
-    seed: input.seed !== false,
+    seed: input.seed === true,
     worktreeHome: baseDir === worktreeHome ? worktreeHome : undefined,
     env,
   });
@@ -966,7 +966,7 @@ const devRunnerCli = Command.make("dev-runner", {
   ),
   t3Home: Flag.String("home-dir").pipe(
     Flag.withDescription(
-      "Explicit T3 Code data directory; runtime state is stored under userdata (equivalent to T3CODE_HOME). Inside a git worktree this defaults to that worktree's own .t3 so dev state stays off the shared home.",
+      "Studio development data directory. Defaults to .t3/studio inside a linked worktree, otherwise OPEN_PRODUCT_STUDIO_DEV_HOME or ~/.open-product-studio/dev.",
     ),
     Flag.optional,
     Flag.map(Option.getOrUndefined),
@@ -1021,9 +1021,9 @@ const devRunnerCli = Command.make("dev-runner", {
   ),
   seed: Flag.Boolean("seed").pipe(
     Flag.withDescription(
-      "Seed an empty worktree database from ~/.t3 on first start (read-only, via migrate-dev-db) if the source is at most 500 MiB. On by default; --no-seed or T3CODE_DEV_SEED=0 skips it.",
+      "Copy the Studio development database from ~/.open-product-studio/dev into an empty worktree on request (up to 500 MiB).",
     ),
-    Flag.withFallbackConfig(optionalBooleanConfig("T3CODE_DEV_SEED")),
+    Flag.withDefault(false),
   ),
   built: Flag.Boolean("built").pipe(
     Flag.withDescription(

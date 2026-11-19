@@ -86,7 +86,8 @@ function layerEnvironment(
         NodeServices.layer,
         NodeCrypto.layer,
         DesktopConfig.layerTest({
-          T3CODE_HOME: baseDir,
+          STUDIO_HOME: baseDir,
+          STUDIO_USE_OTLP_ENV: "1",
           T3CODE_PORT: "9999",
           T3CODE_MODE: "desktop",
           T3CODE_DESKTOP_LAN_HOST: "192.168.1.50",
@@ -254,6 +255,7 @@ describe("DesktopBackendConfiguration", () => {
         assert.equal(first.bootstrap.t3Home, environment.baseDir);
         assert.equal(first.bootstrap.tailscaleServeEnabled, true);
         assert.equal(first.bootstrap.tailscaleServePort, 8443);
+        assert.equal(first.bootstrap.studioDesktopAppUpdate, false);
         assert.match(first.bootstrap.desktopBootstrapSecret ?? "", /^[0-9a-f]{64}$/i);
         assert.equal(
           second.bootstrap.desktopBootstrapSecret,
@@ -310,6 +312,10 @@ describe("DesktopBackendConfiguration", () => {
             ),
           ),
         ),
+        Effect.provideService(HostProcess.Environment, {
+          t3code_home: "sentinel",
+          Vite_Dev_Server_Url: "https://another.example.test",
+        }),
       );
 
       assert.equal(
@@ -317,6 +323,12 @@ describe("DesktopBackendConfiguration", () => {
         path.join(resourcesPath, "server.asar/apps/server/dist/bin.mjs"),
       );
       assert.equal(config.env.ELECTRON_RUN_AS_NODE, "1");
+      assert.isUndefined(config.env.T3CODE_HOME);
+      assert.propertyVal(config.env, "t3code_home", undefined);
+      assert.propertyVal(config.env, "Vite_Dev_Server_Url", undefined);
+      assert.equal(config.bootstrap.t3Home, baseDir);
+      assert.includeMembers([...config.args], ["--base-dir", baseDir]);
+      assert.isUndefined(config.env.T3CODE_CLI_PATH);
     }).pipe(Effect.scoped, Effect.provide(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))),
   );
 
@@ -663,9 +675,8 @@ describe("DesktopBackendConfiguration", () => {
           linuxEntryPath,
           "--bootstrap-fd",
           "0",
-          "--dev-url",
-          devServerUrl,
         ]);
+        assert.notInclude(config.args, devServerUrl);
         assert.notInclude(config.args, "bash");
         assert.notInclude(config.args, "/bin/sh");
         assert.notInclude(config.args, "-c");
@@ -790,7 +801,7 @@ describe("DesktopBackendConfiguration", () => {
         assert.equal(config.env.T3CODE_OTLP_PROTOCOL, "http/protobuf");
         assert.equal(
           config.env.WSLENV,
-          "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u:T3CODE_DESKTOP_HOST_SCOPE:ANTHROPIC_API_KEY:T3CODE_OTLP_HEADERS:T3CODE_OTLP_PROTOCOL",
+          "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u:T3CODE_DESKTOP_HOST_SCOPE:STUDIO_USE_OTLP_ENV:ANTHROPIC_API_KEY:T3CODE_OTLP_HEADERS:T3CODE_OTLP_PROTOCOL",
         );
       }).pipe(
         Effect.provide(
@@ -812,6 +823,7 @@ describe("DesktopBackendConfiguration", () => {
           WSLENV: "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u",
           OPENAI_API_KEY: "openai-key",
           ANTHROPIC_API_KEY: "anthropic-key",
+          STUDIO_USE_OTLP_ENV: "1",
           T3CODE_OTLP_HEADERS: 'authorization="Bearer%20my-token"',
           T3CODE_OTLP_PROTOCOL: "http/protobuf",
         }),

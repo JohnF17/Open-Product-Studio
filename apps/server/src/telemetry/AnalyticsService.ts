@@ -9,6 +9,7 @@ import * as SecureRandom from "effect/crypto/SecureRandom";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
+import { constant } from "effect/Function";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Random from "effect/Random";
@@ -362,3 +363,10 @@ export const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(AnalyticsService, make);
+
+// Local Studio has no external analytics integration or user consent flow.
+export const layerLocal = Layer.succeed(AnalyticsService, {
+  record: constant(Effect.void),
+  recordOwners: constant(Effect.void),
+  flush: Effect.void,
+});

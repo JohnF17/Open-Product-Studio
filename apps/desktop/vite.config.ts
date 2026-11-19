@@ -22,7 +22,9 @@ const devElectronCommand =
     : "exec node scripts/dev-electron.mjs";
 const publicConfigDefine = {
   __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__: JSON.stringify(
-    repoEnv.T3CODE_CLERK_PUBLISHABLE_KEY?.trim() ?? "",
+    repoEnv.STUDIO_ENABLE_HOSTED_CONNECTIONS?.trim() === "1"
+      ? (repoEnv.T3CODE_CLERK_PUBLISHABLE_KEY?.trim() ?? "")
+      : "",
   ),
 };
 

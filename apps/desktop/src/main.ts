@@ -12,9 +12,7 @@ import * as NodeServices from "@effect/platform-node/NodeServices";
 // @effect-diagnostics-next-line nodeBuiltinImport:off - Version output must flush before Electron exits, without acquiring the runtime.
 import * as NodeFS from "node:fs";
 import * as NodeOS from "node:os";
-import * as SecureRandom from "effect/crypto/SecureRandom";
 import * as Effect from "effect/Effect";
-import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 
 import * as Electron from "electron";
@@ -106,28 +104,6 @@ const layerDesktopEnvironment = Layer.unwrap(
   }),
 );
 
-const layerDesktopSshEnvironment = Layer.unwrap(
-  Effect.gen(function* () {
-    const environment = yield* DesktopEnvironment.DesktopEnvironment;
-    const env = yield* HostProcess.Environment;
-    return DesktopSshEnvironment.layer({
-      // Per connect: the login shell's environment is installed after this layer is built.
-      resolveCliRunner: Effect.sync(() =>
-        DesktopSshEnvironment.resolveDesktopSshCliRunner(environment, env),
-      ),
-      resolveLauncherId: yield* Effect.cached(
-        DesktopSshEnvironment.readOrCreateLauncherId(
-          environment.path.join(environment.stateDir, "ssh-launcher-id"),
-        ).pipe(
-          Effect.provide(
-            yield* Effect.context<FileSystem.FileSystem | SecureRandom.SecureRandom>(),
-          ),
-        ),
-      ),
-    });
-  }),
-);
-
 const layerElectron = Layer.mergeAll(
   ElectronApp.layer,
   ElectronDialog.layer,
@@ -156,7 +132,7 @@ const layerDesktopFoundation = Layer.mergeAll(
   DesktopRendererHistory.layer,
 ).pipe(Layer.provideMerge(layerDesktopEnvironment));
 
-const layerDesktopSsh = layerDesktopSshEnvironment.pipe(
+const layerDesktopSsh = DesktopSshEnvironment.layer.pipe(
   Layer.provideMerge(DesktopSshPasswordPrompts.layer()),
 );
 

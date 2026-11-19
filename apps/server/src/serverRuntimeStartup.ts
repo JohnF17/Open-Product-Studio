@@ -28,7 +28,6 @@ import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 
 import * as ServerConfig from "./config.ts";
-import * as ServiceLauncherClient from "./cloud/serviceLauncherClient.ts";
 import { flushCompileCache } from "./compileCache.ts";
 import * as Keybindings from "./keybindings.ts";
 import * as ExternalLauncher from "./process/externalLauncher.ts";
@@ -46,8 +45,6 @@ import * as AgentAwarenessRelay from "./relay/AgentAwarenessRelay.ts";
 import * as ServerLifecycleEvents from "./serverLifecycleEvents.ts";
 import * as ServerSettings from "./serverSettings.ts";
 import { forkParked, forkParkedFiber } from "./serverActivation.ts";
-import * as AnalyticsService from "./telemetry/AnalyticsService.ts";
-import { getServerOwners } from "./telemetry/Identify.ts";
 import * as ServerEnvironment from "./environment/ServerEnvironment.ts";
 import * as EnvironmentAuth from "./auth/EnvironmentAuth.ts";
 import { formatHeadlessServeOutput, issueHeadlessServeAccessInfo } from "./startupAccess.ts";
@@ -141,38 +138,6 @@ export const makeCommandGate = Effect.gen(function* () {
     }),
     enqueueCommand,
   } satisfies CommandGate;
-});
-
-const recordStartupHeartbeat = Effect.gen(function* () {
-  const analytics = yield* AnalyticsService.AnalyticsService;
-  const projects = yield* ProjectService.ProjectService;
-  const threads = yield* ThreadManagement.ThreadManagementService;
-
-  const { threadCount, projectCount } = yield* Effect.all({
-    projects: projects.snapshot,
-    threadCount: threads.countThreads(),
-  }).pipe(
-    Effect.map(({ projects: projectSnapshot, threadCount }) => ({
-      projectCount: projectSnapshot.projects.length,
-      threadCount,
-    })),
-    Effect.catch((cause) =>
-      Effect.logWarning("failed to gather V2 startup counts for telemetry", {
-        cause,
-      }).pipe(
-        Effect.as({
-          threadCount: 0,
-          projectCount: 0,
-        }),
-      ),
-    ),
-  );
-
-  yield* analytics.record("server.boot.heartbeat", {
-    threadCount,
-    projectCount,
-  });
-  yield* analytics.recordOwners(yield* getServerOwners, "server");
 });
 
 const getAutoBootstrapThreadModelSelection = (): ModelSelection => ({
@@ -460,7 +425,6 @@ const make = Effect.fn("serverRuntimeStartup.make")(function* (options?: Startup
   const serverSettings = yield* ServerSettings.ServerSettingsService;
   const serverEnvironment = yield* ServerEnvironment.ServerEnvironment;
   const random = yield* SecureRandom.SecureRandom;
-  const launcher = yield* ServiceLauncherClient.ServiceLauncherClient;
 
   const commandGate = yield* makeCommandGate;
   const httpListening = yield* Deferred.make<void>();
@@ -616,13 +580,6 @@ const make = Effect.fn("serverRuntimeStartup.make")(function* (options?: Startup
 
     yield* forkParked(
       Effect.gen(function* () {
-        yield* Effect.logDebug("startup phase: recording startup heartbeat");
-        yield* recordStartupHeartbeat.pipe(
-          Effect.withSpan("server.startup.heartbeat.record", {
-            attributes: { "startup.phase": "heartbeat.record" },
-          }),
-          Effect.ignoreCause({ log: true }),
-        );
         if (serverConfig.startupPresentation === "headless") {
           yield* Effect.logDebug("startup phase: headless access info");
           const accessInfo = yield* issueHeadlessServeAccessInfo();
@@ -644,8 +601,6 @@ const make = Effect.fn("serverRuntimeStartup.make")(function* (options?: Startup
     yield* Effect.logDebug("startup phase: waiting for http listener");
     yield* runStartupPhase("http.wait", Deferred.await(httpListening));
     yield* runStartupPhase("auxiliary-roots.parked", options?.awaitAuxiliaryParked ?? Effect.void);
-
-    const updateOutcome = yield* launcher.prepareTrial({ baseDir: serverConfig.baseDir });
 
     yield* Effect.logDebug("startup phase: publishing welcome event", {
       environmentId: environment.environmentId,
@@ -679,7 +634,6 @@ const make = Effect.fn("serverRuntimeStartup.make")(function* (options?: Startup
         payload: {
           at: DateTime.formatIso(yield* DateTime.now),
           environment,
-          ...(updateOutcome === undefined ? {} : { updateOutcome }),
         },
       }),
     );

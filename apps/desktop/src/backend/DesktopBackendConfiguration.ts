@@ -20,8 +20,8 @@ import * as SynchronizedRef from "effect/SynchronizedRef";
 import serverPackageJson from "../../../server/package.json" with { type: "json" };
 
 import * as DesktopBackendManager from "./DesktopBackendManager.ts";
-import * as DesktopCliShim from "../app/DesktopCliShim.ts";
 import * as DesktopEnvironment from "../app/DesktopEnvironment.ts";
+import * as DesktopCliShim from "../app/DesktopCliShim.ts";
 import * as DesktopState from "../app/DesktopState.ts";
 import * as DesktopServerExposure from "./DesktopServerExposure.ts";
 import * as DesktopShellEnvironment from "../shell/DesktopShellEnvironment.ts";
@@ -73,6 +73,13 @@ const emptyBackendObservabilitySettings: BackendObservabilitySettings = {
 };
 
 const DESKTOP_BACKEND_ENV_NAMES = [
+  "STUDIO_PORT",
+  "STUDIO_HOST",
+  "STUDIO_MODE",
+  "STUDIO_BOOTSTRAP_FD",
+  "STUDIO_TAILSCALE_SERVE",
+  "STUDIO_TAILSCALE_SERVE_PORT",
+  "STUDIO_LAN",
   "T3CODE_PORT",
   "T3CODE_MODE",
   "T3CODE_NO_BROWSER",
@@ -86,6 +93,8 @@ const DESKTOP_BACKEND_ENV_NAMES = [
 
 // Windows forwards these variables into WSL only through WSLENV.
 const WSL_FORWARDED_ENV_NAMES = [
+  "STUDIO_USE_OTLP_ENV",
+  "STUDIO_ENABLE_HOSTED_CONNECTIONS",
   "OPENAI_API_KEY",
   "ANTHROPIC_API_KEY",
   "T3CODE_TELEMETRY_ENABLED",
@@ -545,6 +554,7 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       desktopTelemetryFd: 4,
       desktopTelemetryControlFd: 5,
       desktopAppUpdate: input.desktopAppUpdate,
+      studioDesktopAppUpdate: input.desktopAppUpdate,
       desktopBrowserFd: 6,
       desktopBrowserControlFd: 7,
       ...Option.match(input.resourceMonitorPath, {
@@ -554,24 +564,46 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       ...buildObservabilityFragment(input.observabilitySettings),
     };
 
+    const env: Record<string, string | undefined> = {
+      ...backendChildEnvPatch(),
+      ...(environment.isPackaged
+        ? {
+            VITE_DEV_SERVER_URL: undefined,
+            T3CODE_TRACE_FILE: undefined,
+            STUDIO_TRACE_FILE: undefined,
+            T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: undefined,
+          }
+        : {}),
+      ELECTRON_RUN_AS_NODE: "1",
+      T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
+      // An unrelated T3 installation may have exported its own home into this process.
+      T3CODE_HOME: undefined,
+      T3CODE_CLI_PATH: undefined,
+      STUDIO_CLI_PATH: Option.getOrUndefined(input.cliPath),
+      [DESKTOP_HOST_SCOPE_ENV]: input.hostScope,
+    };
+    if (environment.platform === "win32") {
+      // Node's child environment merge deletes exact object keys. Windows treats Path,
+      // PATH and other case variants as one variable, including variables we removed.
+      for (const name of Object.keys(yield* HostProcess.Environment)) {
+        const canonical = name.toUpperCase();
+        if (name !== canonical && Object.hasOwn(env, canonical)) env[name] = undefined;
+      }
+    }
+
     return {
       executablePath: process.execPath,
       // Packaged builds have a separate cache; --require prevents cache settings leaking to provider subprocesses.
       args: [
         ...(environment.isPackaged ? ["--require", environment.compileCachePath] : []),
         environment.backendEntryPath,
+        ...(environment.explicitStudioHome ? ["--base-dir", environment.baseDir] : []),
         "--bootstrap-fd",
         "3",
       ],
       entryPath: environment.backendEntryPath,
       cwd: environment.backendCwd,
-      env: {
-        ...backendChildEnvPatch(),
-        ELECTRON_RUN_AS_NODE: "1",
-        T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
-        T3CODE_CLI_PATH: Option.getOrUndefined(input.cliPath),
-        [DESKTOP_HOST_SCOPE_ENV]: input.hostScope,
-      },
+      env,
       extendEnv: true,
       bootstrap,
       bootstrapDelivery: "fd3",
@@ -830,7 +862,7 @@ export const make = Effect.gen(function* () {
       Effect.provideService(FileSystem.FileSystem, fileSystem),
       Effect.provideService(DesktopEnvironment.DesktopEnvironment, environment),
     );
-    const cliPath = yield* DesktopCliShim.install.pipe(
+    const cliPath = yield* DesktopCliShim.refreshInstalled.pipe(
       Effect.provideService(FileSystem.FileSystem, fileSystem),
       Effect.provideService(DesktopEnvironment.DesktopEnvironment, environment),
     );

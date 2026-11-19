@@ -11,7 +11,7 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Queue from "effect/Queue";
-import type * as Path from "effect/Path";
+import * as Path from "effect/Path";
 import type * as Scope from "effect/Scope";
 import * as Stream from "effect/Stream";
 import { SCAN_CACHE_FILE_NAME } from "./usage/usageScanCache.ts";
@@ -2246,7 +2246,7 @@ describe("orphan worktree reports", () => {
           const config = yield* ServerConfig.ServerConfig;
           const checkout = yield* fs.makeTempDirectoryScoped({ prefix: "cleanup-dev-checkout-" });
           yield* fs.writeFileString(`${checkout}/.git`, "gitdir: /repo/.git/worktrees/dev\n");
-          const baseDir = worktreeHome ? `${checkout}/.t3` : config.baseDir;
+          const baseDir = worktreeHome ? `${checkout}/.t3/studio` : config.baseDir;
           const fixture = yield* cleanupFixture().pipe(
             Effect.provideService(ServerConfig.ServerConfig, {
               ...config,
@@ -2257,7 +2257,8 @@ describe("orphan worktree reports", () => {
           const customFolder = yield* fs.realPath(
             yield* fs.makeTempDirectoryScoped({ prefix: "cleanup-real-worktrees-" }),
           );
-          const realWorktree = `${customFolder}/seeded`;
+          const path = yield* Path.Path;
+          const realWorktree = path.join(customFolder, "seeded");
           yield* fixture.command(fixture.repo, ["worktree", "add", "-b", "seeded", realWorktree]);
           fixture.setSettings({ worktreesDirectory: customFolder });
           fixture.setThreads([
@@ -2276,8 +2277,8 @@ describe("orphan worktree reports", () => {
 
           const { entries } = yield* fixture.service.runNow;
 
-          expect(entries.find((entry) => entry.path === realWorktree)?.outcome).toBe(
-            customFolderOutcome,
+          expect(entries).toContainEqual(
+            expect.objectContaining({ path: realWorktree, outcome: customFolderOutcome }),
           );
           expect(yield* fs.exists(realWorktree)).toBe(customFolderOutcome === "kept");
           expect(yield* fs.exists(fixture.worktree)).toBe(false);

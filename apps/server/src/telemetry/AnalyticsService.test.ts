@@ -176,6 +176,15 @@ const sendFor = (
     return batches;
   });
 
+it.effect("runs local Studio analytics without an HTTP client or provider identity", () =>
+  Effect.gen(function* () {
+    const analytics = yield* AnalyticsService.AnalyticsService;
+    yield* analytics.record("studio.fixture");
+    yield* analytics.recordOwners([{ source: "device", ownerId: "fixture" }], "server");
+    yield* analytics.flush;
+  }).pipe(Effect.provide(AnalyticsService.layerLocal)),
+);
+
 it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("AnalyticsService test", (it) => {
   it.effect("waits for desktop shell consent and honors a late telemetry opt-out", () =>
     Effect.gen(function* () {

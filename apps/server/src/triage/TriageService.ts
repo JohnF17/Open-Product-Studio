@@ -16,7 +16,7 @@ import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
 import { buildTriageAppPrompt, type TriageSourceClone } from "./triagePrompt.ts";
 import { triageSourceCacheDir, writeTriageSession } from "./triageSession.ts";
 
-const T3CODE_REPOSITORY_URL = "https://github.com/pingdotgg/t3code";
+const STUDIO_REPOSITORY_URL = "https://github.com/JohnF17/Open-Product-Studio";
 
 // No tty: a credential prompt would hang until the timeout, so git must fail
 // instead. An empty GIT_ASKPASS also skips core.askPass and SSH_ASKPASS helpers.
@@ -27,7 +27,7 @@ const GIT_ENV = {
   LANGUAGE: "C",
 } satisfies NodeJS.ProcessEnv;
 
-/** Starts in-app triage sessions: the same files `t3 triage` writes, plus a source clone. */
+/** Starts in-app triage sessions: the same files `open-product-studio triage` writes, plus a source clone. */
 export class TriageService extends Context.Service<
   TriageService,
   {
@@ -43,7 +43,7 @@ const describeClient = (client: AuthClientPresentationMetadata) =>
     client.appVersion === undefined ? undefined : `version ${client.appVersion}`,
     client.os === undefined ? undefined : `on ${client.os}`,
     client.browser === undefined ? undefined : `in ${client.browser}`,
-    client.webDeployment === "hosted" ? "(app.t3.codes)" : undefined,
+    client.webDeployment === "hosted" ? "(hosted web client)" : undefined,
   ]
     .filter((part) => part !== undefined)
     .join(" ");
@@ -71,9 +71,7 @@ const make = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const sourceDir = triageSourceCacheDir(config.baseDir, path);
-  // Beside the cache, not in it: the playbook has agents prune the cache, and a
-  // clone in progress must not look like a stale entry. Same filesystem, so the
-  // finished clone moves in with a rename.
+  // Stage beside the cache on the same filesystem so readers only see complete clones.
   const stagingDir = `${sourceDir}-staging`;
   const serverVersion = packageJson.version;
 
@@ -97,7 +95,7 @@ const make = Effect.gen(function* () {
       yield* runGit(
         "addSourceRemote",
         staging,
-        ["remote", "add", "origin", T3CODE_REPOSITORY_URL],
+        ["remote", "add", "origin", STUDIO_REPOSITORY_URL],
         10_000,
       );
       yield* runGit(
@@ -130,7 +128,7 @@ const make = Effect.gen(function* () {
     const listed = yield* runGit(
       "resolveSourceRef",
       sourceDir,
-      ["ls-remote", T3CODE_REPOSITORY_URL, tag, `${tag}^{}`, "refs/heads/main"],
+      ["ls-remote", STUDIO_REPOSITORY_URL, tag, `${tag}^{}`, "refs/heads/main"],
       // Triage still starts without source; a dead network should not stall it.
       5_000,
     );

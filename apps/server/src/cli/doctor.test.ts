@@ -29,7 +29,7 @@ const layerHost = Layer.mergeAll(
 ).pipe(Layer.provideMerge(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer)));
 
 it.effect(
-  "--fix locks the home while the service is paused, names a server that holds it, keeps the V1 database, and --dry-run changes nothing",
+  "--fix locks the home without pausing any service and refuses while another server owns it",
   () =>
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
@@ -91,13 +91,7 @@ it.effect(
       assert.deepEqual(calls, []);
       yield* doctor(false);
       yield* startServer;
-      assert.deepEqual(calls, [
-        "pause",
-        "ServerAlreadyRunningError",
-        "compact",
-        "resume",
-        "server started",
-      ]);
+      assert.deepEqual(calls, ["ServerAlreadyRunningError", "compact", "server started"]);
 
       calls.length = 0;
       const state = yield* makePersistedServerRuntimeState({
@@ -112,9 +106,9 @@ it.effect(
       ).pipe(Effect.flip);
       assert.equal(
         refused.message,
-        `Stop T3 Code server process ${state.pid}, which the background service did not start, before repairing the database.`,
+        `Process ${state.pid} is using the database at ${path.join(stateDir, "statev2.sqlite")}. Retry the repair after the database is available.`,
       );
-      assert.deepEqual(calls, ["pause", "resume"]);
+      assert.deepEqual(calls, []);
     }).pipe(Effect.provide(layerHost)),
 );
 
@@ -179,17 +173,15 @@ it.effect("warns how long reclaiming can take and reports each step with its ela
       }),
     );
 
-    const paused = output.indexOf("<pause>");
-    const resumed = output.indexOf("<resume>");
-    assert.isAbove(paused, -1, "the repair must run with the service paused");
-    const beforePause = output.slice(0, paused).join("\n");
-    const description = beforePause.slice(beforePause.indexOf("Reclaim database space"));
+    assert.notInclude(output, "<pause>");
+    assert.notInclude(output, "<resume>");
+    const description = output.join("\n");
     assert.include(description, "12.80 GiB", "the repair must state the database size up front");
     assert.match(description, /hour/, "the repair must warn it can take over an hour");
-    const progress = output
-      .slice(paused + 1, resumed)
-      .filter((line) => line.trim() !== "" && !line.trim().startsWith("Done"))
-      .map((line) => /\[(\d+:\d{2})\]/.exec(line)?.[1] ?? `unprefixed: ${line}`);
+    const progress = output.flatMap((line) => {
+      const match = /\[(\d+:\d{2})\]/.exec(line);
+      return match ? [match[1]] : [];
+    });
     assert.deepEqual(
       progress,
       ["0:00", "1:05", "12:46", "12:47"],

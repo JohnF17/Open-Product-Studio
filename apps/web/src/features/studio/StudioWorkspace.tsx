@@ -39,6 +39,7 @@ import {
   styleDescriptions,
   styleNames,
 } from "./guide";
+import { StudioMark } from "../../components/StudioMark";
 import { workingGuide } from "./workingDraftGuides";
 import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
@@ -155,7 +156,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
       <div className="ops-wrap">
         <header className="ops-header">
           <span className="ops-identity">
-            <Layers3 size={18} /> Open Product Studio
+            <StudioMark width={18} height={18} aria-hidden /> Open Product Studio
           </span>
           <span className="ops-location">
             <span className="ops-dot" /> Local workspace
