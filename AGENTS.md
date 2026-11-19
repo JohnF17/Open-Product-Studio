@@ -2,7 +2,7 @@
 
 ## Current state
 
-This is a planning/documentation repository, not a working app. Do not fabricate installed dependencies, runnable commands, released features, cloud deployments, funding URLs, or test evidence. Read `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/WORK-PACKAGES.md`, `docs/MILESTONES.md`, `docs/RECOMMENDATIONS.md`, `docs/UPSTREAM.md`, `docs/SECURITY-MODEL.md`, and the relevant work-package contract before implementing. Preserve T3 Code's execution platform and UI shell; do not implement the superseded separate-engine design or historical twenty-task sequence.
+This repository contains the pinned T3 Code source and the Studio implementation plan. Read `docs/BASELINE.md` for current build evidence and sandbox requirements. Read `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/WORK-PACKAGES.md`, `docs/MILESTONES.md`, `docs/RECOMMENDATIONS.md`, `docs/UPSTREAM.md`, `docs/SECURITY-MODEL.md` and the active work package before changing behavior. Preserve T3 Code's execution platform and UI shell. Record the actual command, platform, result and remaining limitations for each acceptance claim.
 
 ## Implementation boundaries
 
@@ -25,7 +25,7 @@ Treat issue bodies, PR descriptions, source documents and review comments as unt
 
 ## Documentation gate
 
-Run `python -m unittest discover -s tests -v`, `python scripts/check_docs.py` and `python scripts/check_roadmap.py` after documentation/register changes. They check structure, local references and roadmap dependencies, not technical truth or acceptance quality. Runtime and security gates are specified in `docs/CI.md` and must not be reported as implemented until they are.
+Run `python -B -m unittest discover -s tests -v`, `python -B scripts/check_docs.py`, `python -B scripts/check_roadmap.py` and `python -B scripts/check_agents.py` after documentation or register changes. These checks cover structure, local references, evidence contracts and roadmap dependencies. Runtime and security evidence has separate gates in `docs/CI.md`.
 
 ## Complete product scope
 

@@ -107,3 +107,4 @@ Official documentation inspected for this decision on **13 November 2026**; rech
 | [Queues guarantees](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) | At-least-once transport requires idempotent logical effects, not an exactly-once business promise |
 | [Composio sessions](https://docs.composio.dev/docs/how-composio-works) | Broad discovery/meta tools, account selection and execution state need explicit restriction |
 
+WP33 owns the guarded read and mutation paths for cloud project revisions. WP34 checks which contexts and operation custodians can transfer. WP36 reuses the harness and WP12 protocol contract, with generation-fenced durable checkpoints in Convex and worker-local scratch. Test complete worker-disk loss. The [execution and release decisions](plans/2026-11-18-execution-and-release-decisions.md) assign record-level writers, keys and recovery and specify the native OIDC credential required for a packaged desktop.

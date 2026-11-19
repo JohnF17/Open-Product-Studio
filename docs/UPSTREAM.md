@@ -2,11 +2,11 @@
 
 ## Selected foundation
 
-Recommended source baseline: [pingdotgg/t3code at 7d71f852a8edd298ffde67c295760c286a71a27c](https://github.com/pingdotgg/t3code/tree/7d71f852a8edd298ffde67c295760c286a71a27c). The repository currently contains our planning foundation, not an imported working fork. The first implementation task prepares the source, preserves history/notices, establishes the clean baseline and separates product identity.
+Recommended source baseline: [pingdotgg/t3code at 7d71f852a8edd298ffde67c295760c286a71a27c](https://github.com/pingdotgg/t3code/tree/7d71f852a8edd298ffde67c295760c286a71a27c). The first source import is downstream commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. WP01 verifies the retained baseline and WP02 establishes the separate desktop identity.
 
 The [upstream MIT license](https://github.com/pingdotgg/t3code/blob/7d71f852a8edd298ffde67c295760c286a71a27c/LICENSE) permits modification/distribution with its notice conditions. Preserve the T3 Tools Inc. copyright/permission text for substantial upstream code, original file notices and packaged license viewer. Distinct branding must not imply endorsement.
 
-Our existing Apache-2.0 planning material remains separately identified. When importing the fork, use the upstream root license for upstream code and retain the Apache text under a clearly scoped license file for our original material. Add an exact directory/file scope map and third-party notices; do not replace MIT notices with our Apache license or claim to have authored upstream code. Resolve the precise downstream licensing layout before publishing code.
+The retained upstream source carries its MIT license and third-party notices. Original Studio planning files and their planning checks retain their Apache-2.0 terms. Use the [license scope map](../LICENSES/README.md) and [planning manifest](../LICENSES/planning-manifest.json) to identify these files and their original digests.
 
 Keep `scripts/sync-third-party-license-notices.ts` and review generated notices against the actual shipped dependency graph, including separately licensed embedded code and native helpers. A source license does not grant rights to provider accounts, trademarks, proprietary CLIs, fonts or paid-product assets. The [payment design](PAYMENTS.md) preserves useful account-free local code/CLI/export use while optional hosted jobs require independently licensed commercial API use. Do not resell consumer CLI subscriptions, pool consumer OAuth or confuse a fork license with merchant/product approval. Studio subscription/seat billing, service-unit consumption and creator commerce have separate provider agreements; neither sponsorship nor a paid plan grants upstream merge or release authority.
 
@@ -34,7 +34,7 @@ Ownership areas: provider compatibility, Electron packaging/update infrastructur
 
 ## Required upstream intake process
 
-Configure this at WP01/WP02 import, before public alpha. It is not live monitoring today: this repository has no imported application, configured remote watcher or running update agent.
+Configure this at WP01/WP02 import, before public alpha. Verify configuration and the first successful read-only intake before making an operational monitoring claim.
 
 Use `origin` for our repository and `upstream` for official T3. Preserve upstream ancestry/remote-tracking refs and protect published `main`. Candidate batches go through `integration/upstream-<sha>` and a reviewable PR. The default is frequent **reviewed upstream merges**, keeping the shared runtime close to upstream. Keep studio changes additive and avoid broad formatting/renaming of preserved files. Do not overwrite our branch with a Sync Fork action or publish upstream binaries through our feed.
 
@@ -50,7 +50,7 @@ Persist last successful check time, last reviewed SHA, adopted/backported revisi
 
 ### Explicit decisions and evidence
 
-At WP01 create `docs/upstream/manifest.json`, an intake ledger and `docs/PATCHES.md`. Record exact upstream/downstream SHAs, license digest/notices, resolved dependency/SBOM hashes, schema/protocol versions, supported platforms, ownership and acceptance evidence. The researched target revision is not marked adopted before the import/build gate passes.
+The [baseline manifest](upstream/manifest.json) records the upstream and downstream revisions, source license and lockfile digests. The [intake and patch ledger](PATCHES.md) records the first upstream comparison. Populate resolved production graphs, native and SBOM digests, supported targets and named maintainers as their gates pass. The baseline is imported for evaluation.
 
 Each commit/PR/advisory gets an owner, affected components, local applicability, prerequisites and one decision: `adopt`, `backport`, `defer` or `not-applicable`. Keep reasons, mitigation, review date/blocker, downstream commit and test evidence. A hidden UI feature is not evidence that its vulnerable code is unreachable. Not-applicable decisions require route/capability evidence.
 
@@ -79,7 +79,7 @@ Checked 12 November 2026: the cached researched baseline and [current upstream L
 | Provider CLIs/models/services | Separate licenses, terms, account/credit/commercial rights; MIT does not convey subscriptions or resale rights |
 | Brands/proprietary assets | Use our own cleared identity/assets; copyright permission does not imply endorsement, trademark rights or access to private prompts/code |
 
-Verify notices in source **and shipped installer/ASAR/worker/container contents**, with bundled third-party notices and an About/licenses surface. New/changed licenses block adoption until reviewed. Preserve source/license evidence for every adopted revision and evaluate later releases individually. The current Apache planning root is not a claim that T3 code becomes Apache-only. This is a compliance process, not a blanket legal warranty.
+Verify notices in source and in shipped installer, ASAR, worker and container contents. Provide bundled third-party notices and an About/licenses surface. New or changed licenses block adoption until reviewed. Preserve source and license evidence for every adopted revision and evaluate later releases individually.
 
 Maintenance references: [GitHub repository advisories](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/about-repository-security-advisories) and [repository security configuration](https://docs.github.com/en/code-security/getting-started/quickstart-for-securing-your-repository). Verify applicable account/plan features during remote setup.
 
@@ -88,3 +88,5 @@ Maintenance references: [GitHub repository advisories](https://docs.github.com/e
 The [service map](SERVICES.md) records the benefit and WP owner for each retained/adapted/replaced T3 surface. WP02 accepts isolated development packaging and upstream-schema fixtures without waiting for later Studio data. WP07 then supplies populated-data upgrade/restore integration evidence; E1 signing/promotion and that restore evidence remain mandatory before public activation. Do not add reverse dependency edges or mark those later results passed early.
 
 Signed distribution metadata must carry expiry, monotonic generation and key/version revocation; an old valid signature alone is insufficient. Test revoked publisher key, stale offline metadata and rollback. Publish an independently authenticated trust-root recovery procedure (for example a separately verified release channel/manual reinstall with authenticated new key) and revoke compromised keys without a permanent signature bypass. Local content inspection/edit/installed export stays usable when affected execution trust expires. WP39/53 apply the same policy to extensions and provider-route qualification; changed binaries/runtime/tool descriptors invalidate affected qualification receipts.
+
+WP01 records the clean upstream ancestry, collisions between both trees, reviewed hook/environment behavior, a public path-and-hash manifest, staged dependencies and native module provenance. WP02 qualifies the installer on a clean Windows user with synthetic T3 state. The [execution and release decisions](plans/2026-11-18-execution-and-release-decisions.md) define each acceptance receipt.

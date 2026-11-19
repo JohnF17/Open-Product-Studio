@@ -1,0 +1,18 @@
+{
+  "upstreamRepository": "https://github.com/pingdotgg/t3code.git",
+  "upstreamSha": "7d71f852a8edd298ffde67c295760c286a71a27c",
+  "upstreamParent": "34e7b6601ba735b979d5484347a185b8f2cde0d6",
+  "upstreamTree": "36c257eed595d33dfec796c03e04cac4b5b801b0",
+  "planningParent": "978587fc31d3c75d3f2fe1781de3c07b3a896f64",
+  "integrationCommit": "8d14fde6896b3636915e38849416e1fedbec4b6c",
+  "state": "source-imported",
+  "sourceLicenseSha256": "935d8f2af0c703f9c39517ee57cc4930b19d02d533be930b63f0e82f93614b43",
+  "rootLockSha256": "14583f92987020ef8700ace21b4df5a3f8222d515ffa3dd10596369e3cf3abb4",
+  "node": "26.12.1",
+  "pnpm": "12.14.0",
+  "targetUnderTest": "windows-x64",
+  "stagedProductionGraphs": [],
+  "verifiedPackagedNativeArtifacts": [],
+  "acceptedDistributionTargets": [],
+  "maintainers": {"primary": null, "backup": null}
+}

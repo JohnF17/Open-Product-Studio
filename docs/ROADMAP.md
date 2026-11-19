@@ -1,6 +1,6 @@
 # Open Product Studio: canonical engineering roadmap
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement work packages task-by-task. Keep the checkbox evidence in each package current.
+> **For agentic workers:** Implement work packages individually using the repository instructions, dependency contracts and independent reviewer assigned to the package. Keep the checkbox evidence in each package current.
 
 **Goal:** Build one downloadable, open-source business studio that researches choices, creates useful digital products and supports their launch, delivery and improvement using explicitly selected AI connections.
 
@@ -10,7 +10,7 @@
 
 **Spec:** [Service decisions](SERVICES.md), [project experience](PROJECT-EXPERIENCE.md), [Payments](PAYMENTS.md), [payment provider decisions](plans/2026-11-13-payment-provider-decisions.md), [Product](PRODUCT.md), [architecture](ARCHITECTURE.md), [recommendations](RECOMMENDATIONS.md), [platform boundaries](PLATFORM-BOUNDARIES.md), [security](SECURITY-MODEL.md), [upstream ownership](UPSTREAM.md), [CI](CI.md) and [launch](LAUNCH.md).
 
-**Status:** Revision 4, 13 November 2026, with additive [first-result and service-flow decisions](plans/2026-11-13-first-result-and-service-flows.md) and [payment lifecycle decisions](PAYMENTS.md). This is design and implementation planning. No application source has been imported, packaged or released. The earlier [twenty-task plan](plans/2026-11-12-open-product-studio.md) is superseded as an execution sequence. Dates below identify research/design, not delivery promises.
+**Status:** Revision 5, 18 November 2026, with additive [first-result and service-flow decisions](plans/2026-11-13-first-result-and-service-flows.md) and [payment lifecycle decisions](PAYMENTS.md). The [execution and release decisions](plans/2026-11-18-execution-and-release-decisions.md) govern fork intake, Windows qualification, hosted command durability and launch evidence. WP01 is in progress. The first downstream import is commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. The baseline receipt records build and packaging results as verified. The earlier [twenty-task plan](plans/2026-11-12-open-product-studio.md) is superseded as an execution sequence. Dates below identify research/design, not delivery promises.
 
 ## Authority and traceability
 
@@ -18,7 +18,7 @@ Approved architecture/decision records govern implementation; the capability/wor
 
 Use immutable module IDs `mod.*`, capability IDs `cap.*`, work-package IDs `WP01` onward and external prerequisite IDs `E1` onward. Renames retain aliases. A capability has one owning work package and activation milestone; a larger feature may need several capabilities. Registry presence means discoverable design, not a shipped implementation. Public marketing must match the enabled build and tested platform.
 
-The [work-package register](roadmap/work-packages.json) and [execution contracts](WORK-PACKAGES.md) carry dependencies, exact file seams, interfaces, acceptance checks, owners and reviewers. There are **66 planned work packages and 111 owned capabilities**. The [304-row coverage register](FEATURE-COVERAGE.md) preserves the original 286-row census plus 15 owner-requested harness/council/Dot requirements and three original service/proof-bundle/scenario requirements; its [machine-readable coverage](roadmap/feature-coverage.json) maps each row forward and each package back. Unknown private agent prompts are not invented requirements. No package is implemented.
+The [work-package register](roadmap/work-packages.json) and [execution contracts](WORK-PACKAGES.md) carry dependencies, exact file seams, interfaces, acceptance checks, owners and reviewers. There are **66 planned work packages and 111 owned capabilities**. The [304-row coverage register](FEATURE-COVERAGE.md) preserves the original 286-row census plus 15 owner-requested harness/council/Dot requirements and three original service/proof-bundle/scenario requirements; its [machine-readable coverage](roadmap/feature-coverage.json) maps each row forward and each package back. All 66 packages await independent acceptance. Each package records the build and evidence needed to activate its capabilities.
 
 ## Global constraints
 
@@ -136,7 +136,7 @@ The [agent harness](AGENT-HARNESS.md) is a mandatory shared foundation. `AgentDe
 
 Councils are bounded harness workflows with isolated first positions, explicit review/quorum and preserved dissent. A later [single Dot](PROACTIVE-DOT.md) uses the same memory/event/host/authority model. Proactive research and private drafts precede external-action policies; channel signatures and incoming messages cannot impersonate owner approval.
 
-Use a modular monolith on each execution host. `packages/studio-contracts/src/<context>.ts` owns validated wire/data schemas; `packages/studio-domain/src/contexts/<context>.ts` owns pure invariants and ports; `apps/server/src/studio/repositories/<context>.ts` implements persistence. UI lives in `apps/web/src/features/studio/`; bundled declarative workflows live in `modules/`. These are proposed paths until source import.
+Use a modular monolith on each execution host. `packages/studio-contracts/src/<context>.ts` owns validated wire/data schemas; `packages/studio-domain/src/contexts/<context>.ts` owns pure invariants and ports; `apps/server/src/studio/repositories/<context>.ts` implements local SQLite persistence. WP33 owns equivalent scoped cloud read/command ports in `apps/cloud/convex/studio/` for admitted project contexts. WP34 checks the transfer coverage matrix. WP36 runs the shared harness against the durable cloud job journal. UI lives in `apps/web/src/features/studio/`; bundled declarative workflows live in `modules/`. These are proposed paths until source import.
 
 | Context | Sole write ownership | Consumers |
 | --- | --- | --- |
@@ -247,3 +247,5 @@ WP02 accepts isolated development packaging/upstream-schema fixtures first; WP07
 Dependency corrections: WP22 no longer requires WP20 for every campaign; creator-backed inputs still require its rights/approval contract. WP27 consumes reviewed product/offer ports directly; WP22 applies to campaign-derived listing input and WP20 to creator-backed rights. WP31 uses WP14's revisioned content foundation and manual observations; WP26, WP29 and WP30 are conditional campaign/order/delivery input adapters. WP32 can therefore accept manual feedback with M4B disabled. E3 is retained but inapplicable to WP20 hypothetical local arithmetic; E2/E3 apply to WP31 only for the affected external/financial input. No creator, email, commerce or feedback scope is removed.
 
 SERVICES and PROJECT-EXPERIENCE assign transfer custody, authenticated lapse/exit, current deletion journals, exact connector account routing, first-activation operations, qualification expiry, navigation-aware authenticated browser safety and exported-document accessibility to existing packages. R2/Composio and extra infrastructure remain conditional choices. These are future runtime/independent-review requirements, not implemented guarantees; all 66 packages, 111 capabilities and 304 coverage rows remain in scope.
+
+The register’s `allowsDependencyOn` partial order constrains cross-milestone edges. It describes permitted dependencies. Each user journey needs only its actual packages, enabled adapters and applicable external gates. WP05 and WP06 test early qualification/custody ports in isolation. Their driver and transfer integrations have later evidence producers. WP34 additionally selects custody tests per participating capability through `conditionalProducers`. The [execution and release decisions](plans/2026-11-18-execution-and-release-decisions.md) specify the evidence for each affected milestone.

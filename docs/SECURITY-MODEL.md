@@ -1,6 +1,6 @@
 # Security model and release gates
 
-Status: requirements, not a completed security audit. No application exists yet.
+This document defines requirements. Each released build needs its own security evidence.
 
 ## Assets and trust boundaries
 

@@ -2,7 +2,7 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**Status: research and design complete enough for implementation planning; application not implemented.** This repository currently contains the proposed design, build plan, contribution rules, and a documentation check. It is not an installable product yet.
+**Development has started.** The pinned T3 Code desktop, web and server source is in this repository. The first work package establishes a reproducible Windows baseline. The Studio dashboard and guided product workflows are planned. See the [baseline record](docs/BASELINE.md) for the build and launch evidence.
 
 Open Product Studio is a planned downloadable Electron application, built as a substantially adapted downstream fork of T3 Code. It is an open-source workspace for researching a buyer's problem, creating a digital product, and preparing its launch. The complete workspace includes research, strategy, product creation, creator partnerships, contacts, launch campaigns, media, publishing, feedback, exports and guidance. All modules appear in the first dashboard; explicit engineering milestones govern which actions are available.
 
@@ -44,7 +44,7 @@ We sell no income guarantee. AI can help make a product; usefulness, distributio
 
 ## Proposed stack
 
-Preserve T3 Code's Electron, React, TypeScript, Vite, TanStack Router, Tailwind, existing UI primitives, Node/Effect services, authenticated RPC, provider contracts and SQLite execution platform. Add RHF/Zod business forms and restrained animations through compatible components. Optional cloud business accounts prefer Clerk with the official Convex integration; Convex remains the hosted authority and first private storage/coordination service. Local use needs no Studio sign-in. The first milestone verifies the pinned fork, isolated application identity and packaged desktop build; no fork code has been imported yet.
+The fork brings Electron, React, TypeScript, Vite, TanStack Router, Tailwind, Node/Effect services, authenticated RPC, provider contracts and SQLite. Studio will add React Hook Form and Zod for business forms, plus accessible motion. The optional hosted service plans to use Clerk for sign-in and Convex for durable business data. Desktop cloud sign-in has its own qualification gate. Local projects will work without a Studio account.
 
 ## Start here
 
@@ -77,4 +77,4 @@ Useful bug reports, accessibility feedback, documentation, and reviewed contribu
 
 ## License
 
-The original material currently in this repository is licensed under [Apache-2.0](LICENSE). The planned fork retains T3 Code's MIT copyright and permission notice for upstream code; see [the license plan](docs/UPSTREAM.md). Third-party tools, services, model weights, and future dependencies have their own licenses and terms. The working project name is descriptive; domain and trademark clearance have not been completed.
+T3 Code retains its [MIT license](LICENSE). The original Studio planning files and checks retain their [Apache-2.0 license](LICENSES/Studio-Apache-2.0.txt). The [license scope](LICENSES/README.md) identifies the imported materials and third-party notices.

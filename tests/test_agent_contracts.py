@@ -15,6 +15,17 @@ class AgentContractPolicyTests(unittest.TestCase):
         self.register = json.loads((ROOT / 'docs/roadmap/work-packages.json').read_text(encoding='utf-8'))
         self.contracts = json.loads((ROOT / 'docs/roadmap/agent-contracts.json').read_text(encoding='utf-8'))
 
+    def test_channel_provider_role_and_quorum_mutations_fail(self):
+        for fn in (lambda c: c['dot'].update(channels=[]),
+                   lambda c: c['dot']['channels'][-1].update(providerIdentity='another.example'),
+                   lambda c: c['dot']['channels'].pop(),
+                   lambda c: c['definitions'].pop(),
+                   lambda c: c['council'].update(maxChallengeRounds=999),
+                   lambda c: c['council'].update(minimumSubstantivePositions=1)):
+            candidate = copy.deepcopy(self.contracts)
+            fn(candidate)
+            self.assertTrue(policy.check(self.register,candidate))
+
     def test_current_design_contracts_are_consistent(self):
         self.assertEqual(policy.check(self.register, self.contracts), [])
 

@@ -1,12 +1,12 @@
 # Dependency-ordered implementation contracts
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Read the [canonical roadmap](ROADMAP.md) and relevant specs before implementation.
+> **For agentic workers:** Implement one work package at a time and record its evidence. Read the [canonical roadmap](ROADMAP.md) and relevant specs before implementation.
 
-Design only; all 66 packages are unimplemented. Machine-readable source: [work-packages.json](roadmap/work-packages.json). Paths below are proposed additions or pinned upstream seams. Check the source at import; do not fabricate existing files or test results. A maintainer must assign real people to owner/reviewer roles.
+WP01 is in progress at the first downstream import commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. All 66 packages await independent acceptance. Consult build receipts for implementation progress. Machine-readable source: [work-packages.json](roadmap/work-packages.json). Paths below are proposed additions or pinned upstream seams. Check the source at import; do not fabricate existing files or test results. A maintainer must assign real people to owner/reviewer roles.
 
 ## Common execution and review contract
 
-Run the named failing regression/contract fixtures first, implement the smallest coherent deliverable, then run targeted tests and affected upstream checks. Add actual pnpm studio:test/studio:e2e scripts only alongside their suites. The pinned root uses vp test run; inspect its current flags before composing filtered commands. Package gates also require build:desktop/dist:desktop:win:x64/release:smoke as applicable. No application command has been run for this planning repository.
+Run the named failing regression/contract fixtures first, implement the smallest coherent deliverable, then run targeted tests and affected upstream checks. Add actual pnpm studio:test/studio:e2e scripts only alongside their suites. The pinned root uses vp test run; inspect its current flags before composing filtered commands. Package gates also require build:desktop/dist:desktop:win:x64/release:smoke as applicable. The baseline and package receipts record the actual commands and outcomes for each build.
 
 Keep static types/lint, authorization, recovery, accessibility, performance and privacy checks inside the affected package. Tests use fake providers and synthetic events; trusted live checks require separate account/budget evidence. Commit the reviewed files and acceptance evidence; do not push, deploy or release merely because a local task passes.
 
@@ -16,7 +16,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 ## WP01: Import and reproduce the pinned upstream baseline
 
-**Milestone:** M0A. **Dependencies:** none. **Status:** planned.
+**Milestone:** M0A. **Dependencies:** none. **Status:** in-progress.
 
 **Owner:** platform maintainer. **Independent acceptance:** independent platform reviewer. **External gates:** none beyond global policy.
 
@@ -38,9 +38,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Establish the upstream manifest, patch/decision ledger and primary/backup ownership from docs/UPSTREAM.md; configure daily read-only intake and weekly reviewed integration before public alpha. Record source/dependency/advisory failures and deferred fixes.
 
+- Verify complete upstream ancestry at the pinned SHA and its parent. Retain a hashed allowlist of the original public planning snapshot. Resolve the six overlapping paths by ownership, preserving upstream MIT notices and the downstream Apache scope. Create a downstream baseline whose ancestry includes the upstream pin.
+
+- Review setup hooks and inherited workflows before running them. Use explicitly isolated fixture state and disable seeding. Record Node/pnpm, lock digest, native build prerequisites, both packager production resolutions and notices. Review allowed paths in the staged and extracted deliverables, including the origin/digest of retained upstream media.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP01. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5, A6: **component**, producer WP01. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -88,6 +94,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - A synthetic evidence-order walk accepts WP02 component evidence before WP07 exists but rejects public activation of the affected build without populated-data restore and signing evidence. No reverse dependency may conceal an acceptance cycle.
 
+- Install the exact unsigned x64 development artifact under a clean Windows user or VM. Record installer, native and ASAR hashes, local authenticated engine and offline window startup, persisted synthetic state on relaunch and independent uninstall beside a synthetic T3 profile. Record updater and telemetry behavior, paths with spaces/Unicode, native load, PTY and unsupported target combinations.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A5, A6: **component**, producer WP02. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -97,6 +105,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A4: **integration**, producer WP02, WP07. Populated Studio upgrade/restore after WP07; not an input to WP03.
 
 - A4: **public-release**, producer WP02. Signed beta-to-stable promotion, E1/E7.
+
+- A7: **component**, producer WP02. Verify packaging manifest, isolated data paths, offline entry point and test profile identifiers on generated fixture metadata.
+
+- A7: **integration**, producer WP02. Desktop maintainer exercises the installed artifact with an empty profile and a separate synthetic upgrade fixture.
 
 **Execution steps:**
 
@@ -138,9 +150,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Workspace, BusinessProject, BillingOrganization, provider connection, execution host, sender and merchant are separate typed references. Two projects with overlapping display names cannot share private notes, defaults, callbacks or authority through navigation state.
 
+- For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A7: **component**, producer WP03. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -162,7 +178,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.execution.durable`.
 
-**Files:** `apps/server/src/studio/commands.ts`, `apps/server/src/studio/commit.ts`, `apps/server/src/studio/runtime-bridge.ts`, `apps/server/src/studio/commit.test.ts`, `apps/server/src/orchestration-v2/EventSink.ts`, `apps/server/src/orchestration-v2/EffectWorker.ts`.
+**Files:** `apps/server/src/studio/commands.ts`, `apps/server/src/studio/commit.ts`, `apps/server/src/studio/runtime-bridge.ts`, `apps/server/src/studio/commit.test.ts`, `apps/server/src/orchestration-v2/EventSink.ts`, `apps/server/src/orchestration-v2/EffectWorker.ts`, `packages/studio-contracts/src/digests.ts`, `apps/server/src/studio/effect-recovery.integration.test.ts`.
 
 **Consumes:** CommandEnvelope {commandId, projectId, capabilityId, expectedRevision, inputRefs, payload}; authenticated actor/environment and Eligibility.
 
@@ -178,9 +194,21 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Non-Git BusinessProject can create/edit and use a separately controlled execution workspace; benchmark dispatch-critical FULL durability.
 
+- Persist the logical effect, operation ID, replay class, provider idempotency key/expiry or lookup route and attempt before external dispatch. A re-entered handler reads the durable state before touching the provider. Operations with ambiguous acceptance remain Unknown and fenced until reconciled.
+
+- Run the retained worker across interruptions before dispatch, after provider acceptance, after private blob upload and after commit before acknowledgement. Restart twice and account for each external effect, artifact adoption, settlement and next intent. Test a replay-safe read, an idempotent call and a billed operation with an unknown outcome.
+
+- Version each approval, command and manifest digest by purpose and schema. Cross-runtime golden vectors bind the scoped command, ordered inputs, model options, price and recipient to identical canonical bytes. Verify original provider-signed bytes separately.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP04. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5, A7: **component**, producer WP04. Exercise this contract on isolated synthetic inputs.
+
+- A6: **component**, producer WP04. Exercise a fake effect journal at each transition with an idempotent sink, a reconcilable sink and an unknown-result sink.
+
+- A6: **integration**, producer WP04. Use the pinned worker and synthetic provider, exercise its normal claim, retry and settlement paths, and inspect committed receipts.
 
 **Execution steps:**
 
@@ -218,11 +246,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Beginner Supervised defaults and supported advanced modes remain distinct from business grants.
 
-- Revalidate WP53 qualification identity on queued dispatch as well as requested model/options; preserve the unavailable selection while changed binaries or scopes await requalification.
+- Queued dispatch calls an injected qualification check with the selected executable, scopes, model and options. Preserve the selection after the check expires or rejects it.
 
 **Evidence phase / producer (all not-run):**
 
-- A1, A2, A3, A4, A5: **component**, producer WP05. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+- A1, A2, A3, A4: **component**, producer WP05. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5: **component**, producer WP05. Exercise trusted, changed and unknown identities using a fixture qualification port.
+
+- A5: **integration**, producer WP05, WP53. Requalify a changed binary on Windows and reject dispatch against the previous qualification before resuming.
 
 **Execution steps:**
 
@@ -264,11 +296,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Nested-run cost views declare whether parent totals include children. Aggregate each stable operation/attempt and charge receipt once; do not sum inclusive parent estimates with the same child charges. Repeated delivery/reconciliation must not double settle, and unresolved attribution or currency/period differences remain explicit unknowns.
 
-- Transfer/Stop fences new dispatch and inventories queued native work, active attempts, remote schedules, sessions and Unknown results. Cancellation intent and expiry never clear an unresolved resource fence or prove provider termination; use the WP34 custody barrier when changing host.
+- Transfer and Stop fence dispatch and inventory queued work, attempts, schedules, sessions and Unknown outcomes. The custody port retains each fence until a verified cancellation, adoption or reconciliation receipt arrives.
 
 **Evidence phase / producer (all not-run):**
 
-- A1, A2, A3, A4, A5, A6, A7: **component**, producer WP06. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+- A1, A2, A3, A4, A5, A6: **component**, producer WP06. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A7: **component**, producer WP06. Exercise Stop, late results and a simulated host change with a fixture custodian.
+
+- A7: **integration**, producer WP06, WP34. Move an active operation between fenced hosts and reconcile late results under the original operation ID. Applies to host transfer.
 
 **Execution steps:**
 
@@ -314,9 +350,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Produce populated Studio upgrade/restore integration evidence for WP02 after component fixtures; a public release still rejects missing or incompatible data/asset recovery evidence.
 
+- Verify schema/purpose and byte hash for each immutable artifact and versioned manifest. Exercise equivalent key ordering, reordered steps, distinct Unicode strings, unsafe numbers, unsupported schema and interrupted copy. An external edit creates a new revision.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8: **component**, producer WP07. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A9: **component**, producer WP07. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -390,7 +430,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.tools.broker`.
 
-**Files:** `apps/server/src/studio/capabilities.ts`, `apps/server/src/studio/tools/files.ts`, `apps/server/src/studio/tools/fetch.ts`, `apps/server/src/studio/security.test.ts`, `packages/studio-contracts/src/connector.ts`.
+**Files:** `apps/server/src/studio/capabilities.ts`, `apps/server/src/studio/tools/files.ts`, `apps/server/src/studio/tools/fetch.ts`, `apps/server/src/studio/security.test.ts`, `packages/studio-contracts/src/connector.ts`, `packages/studio-contracts/src/connectors/mailbox-ingress.ts`.
 
 **Consumes:** WorkflowGrant, BudgetReservation, connector scopes and approved project roots.
 
@@ -412,9 +452,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Test two accounts/workspaces with overlapping remote IDs, a valid B signature carrying A metadata, stale callback state, wrong-account reconnect, test/live mismatch, revoked subscription and delayed event after reassignment. No event or OAuth redirect can select authority from the active UI project.
 
+- Supply a shared inbound mailbox port with per-account/environment cursors, deduplication, gap/backfill state, bounded attachments, subscription revocation and original-byte event verification. Test independent streams with overlapping provider IDs and distinct grants.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7: **component**, producer WP09. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A8: **component**, producer WP09. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -441,6 +485,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Bounded question plan, source permissions, selected web-capable connection and imported source refs.
 
 **Produces:** EvidencePack {sources, claims, support, contradictions, gaps, freshness, rights, provenance}.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -504,9 +554,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Manual progress and user-requested check-ins need no CRM, mailbox, calendar account or Dot. Converting eligible steps into M3 task/campaign records requires an explicit choice; advice and checklists never activate reminders, external actions or persistent wakes. Activity targets are hypotheses, not income or reply guarantees.
 
+- A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A11: **component**, producer WP11. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -534,6 +588,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Separately enabled official API/fixed free/explicit free-router capabilities with destinations, receipts and cost policy.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
 **Acceptance and failure behavior:**
 
 - Keys remain in secure local custody; no copying consumer CLI tokens or implied resale rights.
@@ -548,7 +606,11 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Evidence phase / producer (all not-run):**
 
-- A1, A2, A3, A4, A5: **component**, producer WP12. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+- A1, A2, A4, A5: **component**, producer WP12. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A3: **component**, producer WP12. Exercise the protocol and quota fixtures using synthetic connections and local keys scoped to the fixture.
+
+- A3: **integration**, producer WP12. Qualify the exact advertised adapter/model/account and action on a separately authorized, bounded trusted connection. An offline fixture run satisfies only the component requirement.
 
 **Execution steps:**
 
@@ -575,6 +637,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Reviewed local runtime adapter, model identity/license, hardware profile and bounded job policy.
 
 **Produces:** LocalModelCompatibility {runtime, modelRevision, hardware, tools, limits, privacyDestinations}.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E7: Claiming support for the additional device, OS or platform after its release and maintenance matrix passes.
 
 **Acceptance and failure behavior:**
 
@@ -658,6 +726,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Complete editable guide, workbook, template kit, curriculum and action-plan artifacts with family-specific acceptance. ProductConfiguration {family, subtype, depth, locale, sourceRefs, reviewPolicy}; coaching-offer/program draft without a promise of human coaching.
 
+**External gate applicability:**
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Each family completes an original end-to-end example, not merely a registered schema.
@@ -707,6 +779,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** ArtifactVersion, source/claim support and rights records.
 
 **Produces:** ReviewRecord with correctness/usability/specificity/originality/completeness decisions and revision requests.
+
+**External gate applicability:**
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -770,13 +846,19 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - The M2 assistive-technology first-result journey includes unavailable-action explanation, quota/failure recovery, exact action review and outside-app reopening with M3 disabled; focus survives failure and partial work remains exportable.
 
+- Record a build-keyed first-result pilot with a declared cohort, hardware, device and eligibility; score source-supported recommendation or abstention, independent edits, readable export and successful external reopen. Record time, abandonment and assistance by stage.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A6, A7, A8, A9, A10: **component**, producer WP17. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
+- A1, A6, A7, A8, A9, A10: **integration**, producer WP17. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
+
 - A2, A3, A4, A5: **component**, producer WP17. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
-- A1, A6, A7, A8, A9, A10: **integration**, producer WP17. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
+- A11: **component**, producer WP17. Exercise the pilot instrumentation on a synthetic walkthrough. Record setup, generation, edit and reopen intervals, interventions, abandonment and the capability profile.
+
+- A11: **integration**, producer WP17. Run the accessible guided sample journey with campaign, merchant and cloud modules disabled. Include keyboard and screen-reader use.
 
 **Execution steps:**
 
@@ -803,6 +885,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Authorized CSV/manual/provider imports with provenance, workspace/project visibility and consent/suppression scope.
 
 **Produces:** Contact/Organization identity, per-project relationship, board/card/task/filter view and safe CSV export.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
 
 **Acceptance and failure behavior:**
 
@@ -847,6 +933,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Authorized source/media, creator profile/contact identity and analysis/quotation/transformation/redistribution permissions.
 
 **Produces:** CreatorFitEvidence and TranscriptAsset {mediaHash, duration, language, segments, toolModelRevision, corrections, provenance}. CreatorAnalysis {sourceRevision, inspectedCounts, observedFields, inferredThemesAudienceVoice, gaps, corrections}.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -1056,6 +1148,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** ImageJob state, effective identity, asset/provenance/rights metadata and reconciled cost receipt.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Quote/reserve/dispatch/reconcile distinguish rejected, failed-charged, pending and successful jobs.
@@ -1105,6 +1203,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Reviewed script/assets, voice/likeness permissions, exact model/duration/resolution, expiring quote and budget.
 
 **Produces:** VideoJob with async polling/webhook policy, asset QA, provider retention and charge receipt.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -1156,6 +1260,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** SenderReadiness; inbox cursor/history-gap state; message/thread/reply/bounce/complaint/unsubscribe projections.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
 **Acceptance and failure behavior:**
 
 - Initial sync/cursor/backfill/dedup/reorder fixtures; exact account/provider IDs and thread correlation.
@@ -1170,6 +1278,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.
 
+- Consume the shared mailbox ingress port for authorized campaign senders. Scope contact/campaign suppression to this context. Test identical remote mailbox IDs under distinct campaign and personal grants.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP25. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1177,6 +1287,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A5, A6: **component**, producer WP25. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A5, A6: **integration**, producer WP25. Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66.
+
+- A7: **component**, producer WP25. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -1203,6 +1315,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** CampaignVersion, exact recipient payloads, fresh InboxState, SenderReadiness and bound approval.
 
 **Produces:** PreparedAction; sent/accepted/delivered/failed/Unknown receipts; resumable bounded sequence state.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
 
 **Acceptance and failure behavior:**
 
@@ -1249,6 +1365,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - WP22: Publication consumes a Studio campaign/listing draft. Require accepted campaign/version contract for that input; a reviewed direct offer may be supplied independently.
 
 - WP20: A creator partnership supplies the publication rights or approvals. Missing or withdrawn creator permission blocks the creator-backed publication, not a separately owned direct product.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
 
 **Acceptance and failure behavior:**
 
@@ -1310,6 +1432,14 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** PublicationVersion; prepare/dispatch/reconcile receipt with remote IDs and artifact hashes.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Dry-run exact listing/payload/assets, changed revision invalidates approval.
@@ -1353,6 +1483,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** External merchant authority, signed events/durable history and product-to-offer mapping.
 
 **Produces:** OrderProjection with bound merchant/account/environment, exact offer, currency/gross/tax/discount/fees/refund/dispute/payment/fulfillment status, provider IDs and reconciliation completeness.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
 
 **Acceptance and failure behavior:**
 
@@ -1401,6 +1537,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** PublicationVersion, verified OrderProjection and destination-native buyer access contract.
 
 **Produces:** BuyerAccessProjection and delivery receipt bound to exact artifact/course/membership version.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
 
 **Acceptance and failure behavior:**
 
@@ -1546,11 +1688,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.connections.account`.
 
-**Files:** `apps/cloud/convex/schema.ts`, `apps/cloud/convex/workspaces.ts`, `apps/cloud/convex/auth.ts`, `apps/cloud/convex/workspaces.test.ts`, `apps/web/src/features/studio/account/AccountPage.tsx`.
+**Files:** `apps/cloud/convex/schema.ts`, `apps/cloud/convex/workspaces.ts`, `apps/cloud/convex/auth.ts`, `apps/cloud/convex/workspaces.test.ts`, `apps/web/src/features/studio/account/AccountPage.tsx`, `apps/cloud/convex/studio/commands.ts`, `apps/cloud/convex/studio/reads.ts`, `apps/cloud/convex/studio/artifacts.ts`, `apps/cloud/convex/auth.config.ts`, `apps/desktop/src/studio/cloud-auth.ts`.
 
 **Consumes:** Reviewed Clerk/Convex official integration for optional hosted identity, stable issuer/subject mapping and local/export identity semantics; vendor-neutral domain ports.
 
-**Produces:** CloudWorkspace, member/role/session policy, BillingOrganization membership and owned asset/control-plane records.
+**Produces:** CloudWorkspace, member/role/session policy, BillingOrganization membership and owned asset/control-plane records. Hosted domain reads, revision-checked commands and private asset manifests on the current ownership epoch.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
 
 **Acceptance and failure behavior:**
 
@@ -1574,6 +1720,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Use existing Convex private storage/indexes and coordination through ports; do not add a second database or scheduler. Clerk Billing is not enabled: the direct billing adapter and Studio service-unit ledger remain the sole WP35 service-billing authorities.
 
+- Use the web Clerk integration for hosted web sign-in. Qualify the packaged system-browser path with authorization code + S256 PKCE, state/nonce and a single-use loopback callback. The desktop public client requests OIDC identity, stores refresh credentials in the OS vault and supplies only a narrowly scoped authenticated main-process interface to the renderer. Pin the dedicated ID-token audience/issuer and verification configuration in the reviewed deployment manifest.
+
+- For each accepted project context, expose scoped Convex queries and an authenticated typed command mutation that enforces membership, parent ownership, current epoch, expected revision and command digest. Atomically record owned revision, event, idempotent receipt and any new execution intent. Keep unsupported schema versions read-only or block handover with an explicit reason.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A3, A5, A6, A7, A10: **component**, producer WP33. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1581,6 +1731,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A2, A4, A8, A9: **component**, producer WP33. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A2, A4, A8, A9: **integration**, producer WP33. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
+
+- A11, A12: **component**, producer WP33. Exercise this contract on isolated synthetic inputs.
+
+- A11: **integration**, producer WP33. Use a packaged desktop and separately authorized Clerk/Convex environment. Reject wrong audience/issuer, callback replay, revoked membership, expired session and cross-tenant IDs. Exercise refresh rotation, logout and revocation latency against the documented bound. Keep local access available offline.
 
 **Execution steps:**
 
@@ -1602,7 +1756,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.connections.transfer`.
 
-**Files:** `apps/server/src/studio/transfers.ts`, `apps/server/src/studio/transfers.test.ts`, `apps/cloud/convex/transfers.ts`, `apps/web/src/features/studio/account/TransferReview.tsx`.
+**Files:** `apps/server/src/studio/transfers.ts`, `apps/server/src/studio/transfers.test.ts`, `apps/cloud/convex/transfers.ts`, `apps/web/src/features/studio/account/TransferReview.tsx`, `apps/cloud/convex/studio/ownership.ts`, `apps/cloud/convex/studio/transfer.integration.test.ts`.
 
 **Consumes:** SnapshotManifest, compatible schemas, cloud/local ownership locks and authenticated scope.
 
@@ -1632,13 +1786,19 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Create cloud-only revision/assets, lapse entitlement and recover them locally without a new purchase. During outage show last verified cache time and missing bytes; an explicit offline content fork has a new ID and no inherited approvals, money or external operations. Reconnection cannot auto-merge authority; test missing asset and retention deadline recovery independently.
 
+- Transfer a populated fixture, verify a cloud revision-checked edit with the desktop closed, deny the obsolete local writer, transfer back, and verify manifest/version identity. Map local and hosted command/read interfaces for every admitted context. Activate basic transfer with campaign and Dot disabled.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11: **component**, producer WP34. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A1, A2, A3, A4, A5, A6, A7, A9, A10, A11: **integration**, producer WP34. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
 
-- A8: **integration**, producer WP34, WP26, WP28, WP60, WP62. Run with each enabled external-action adapter; Dot scenario applies only when WP60/channel capabilities activate. Earlier transfer uses synthetic operation fixtures and qualified currently enabled adapters, not a dependency on all later channels.
+- A8: **integration**, producer WP34. Basic ownership transfer uses synthetic remote operations. For each participating capability repeat custody and late-result tests on its actual scoped adapter and host. Conditional producers: cap.campaigns.send → WP26, cap.publishing.publish → WP28, cap.dot.identity → WP60, cap.dot.mail → WP62, cap.dot.browser → WP63, cap.dot.phone → WP65.
+
+- A12: **component**, producer WP34. Verify epoch, manifest and revision checks using deterministic in-memory repositories before running custody transfer across real hosts.
+
+- A12: **integration**, producer WP33, WP34. Exercise the staged cloud repository, two devices, verified manifests and fenced epochs.
 
 **Execution steps:**
 
@@ -1702,6 +1862,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Accept component ledger/checkout fixtures before WP36/WP37 integration; E4 public-paid activation remains closed until measured WP37 economics, operations and required commercial approval. Evidence-order tests must never mark those later producers passed to unblock development.
 
+- Before checkout, finance approves separate purchase-consumption and discretionary refund terms, mandatory rights, evidence retention, failed-original-tender support and closure treatment. Rehearse a refund inside and outside the adopted policy, a failed refund and overlapping spends with a frozen lot.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A4, A5, A7, A8, A10, A11, A12, A13: **component**, producer WP35. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1715,6 +1877,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A6: **public-release**, producer WP37. Commercial approval and operations before live paid activation.
 
 - A15: **public-release**, producer WP37. Later E4 evidence stays pending during component acceptance.
+
+- A16: **component**, producer WP35. Simulate partial use and a failed original-tender refund under separate consumption and refund policies. Preserve the finance case and frozen-unit reconciliation.
+
+- A16: **public-release**, producer WP35. Record actual operator/provider policy for the offered region and test each applicable exception against ledger and processor receipts.
 
 **Execution steps:**
 
@@ -1730,17 +1896,17 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 ## WP36: Isolated hosted API job workers
 
-**Milestone:** M5B. **Dependencies:** WP34, WP35, WP09. **Status:** planned.
+**Milestone:** M5B. **Dependencies:** WP34, WP35, WP09, WP12. **Status:** planned.
 
 **Owner:** worker/platform maintainer. **Independent acceptance:** independent isolation/security reviewer. **External gates:** E2, E4.
 
 **Capabilities:** `cap.connections.cloud`.
 
-**Files:** `apps/worker/src/studio/jobs.ts`, `apps/worker/src/studio/isolation.ts`, `apps/worker/src/studio/jobs.test.ts`, `apps/cloud/convex/jobs.ts`.
+**Files:** `apps/worker/src/studio/jobs.ts`, `apps/worker/src/studio/isolation.ts`, `apps/worker/src/studio/jobs.test.ts`, `apps/cloud/convex/jobs.ts`, `apps/cloud/convex/studio/run-journal.ts`, `apps/worker/src/studio/harness-host.ts`, `apps/worker/src/studio/recovery.integration.test.ts`.
 
-**Consumes:** Fenced cloud project authority, reserved service budget, exact model policy and scoped job grants.
+**Consumes:** Fenced cloud project authority, reserved service budget, exact model policy and scoped job grants. Reuse the WP12 official API protocol and its conformance fixtures with independent commercial credentials, model permissions and hosted qualification.
 
-**Produces:** Hosted BusinessRun mapped to isolated worker/API execution with metered receipts and artifact finalization.
+**Produces:** Hosted BusinessRun mapped to isolated worker/API execution with metered receipts and artifact finalization. The retained harness runs on the isolated worker. Convex transactions own job checkpoints, fence generations, effect and usage receipts and idempotent adoption.
 
 **External gate applicability:**
 
@@ -1766,6 +1932,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Component workers use fixtures and pre-build E4 decisions; only separately authorized capped non-public pilots may use real accounts/budgets. Public paid dispatch remains disabled until WP37/E4 activation evidence; a successful synthetic worker is not an available service.
 
+- Use the same versioned harness, reply/tool contracts and native adapter semantics as local execution. A scoped worker obtains a time-bounded lease with a generation fence. Persist a reconstructible native checkpoint, effect/outbox cursor, provider lookup information, artifact manifest and accounting receipt outside worker-local storage before acknowledging each durable transition.
+
+- Delete worker-local storage after admission, provider acceptance and upload before manifest in separate runs. Race two worker generations, revoke a seat or change payer, then deliver a late receipt and hand back the project. Recover one current revision and at most one settlement. Keep an unqueryable outcome Unknown and block conflicting redispatch.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A4, A5, A6: **component**, producer WP36. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1775,6 +1945,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A3, A7: **integration**, producer WP36. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
 
 - A8: **public-release**, producer WP37. Public paid dispatch requires accepted operational/economic evidence.
+
+- A9: **component**, producer WP36. Exercise this contract on isolated synthetic inputs.
+
+- A10: **component**, producer WP36. Drop an in-memory worker cache and replay the durable journal for competing lease generations, duplicate receipts and a missing staged artifact.
+
+- A10: **integration**, producer WP12, WP34, WP35, WP36. Use a qualified isolated worker and the same fixture run plan on desktop and cloud. Compare grant checks, artifacts, model identity, child attribution and terminal state.
 
 **Execution steps:**
 
@@ -1802,6 +1978,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Runbooks, retention/backup/restore policy, abuse controls, observability and bounded support/economic model.
 
+**External gate applicability:**
+
+- E4: Paid service decisions and bounded pilot before offering live checkout/execution, with finance and operating approval for the exact service.
+
 **Acceptance and failure behavior:**
 
 - Restore/incident/revocation and provider outage exercises; unknown jobs and accounts reconciled before resume.
@@ -1828,6 +2008,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - After WP36 selects a host, publish one reproducible minimal operator recipe for deploy/backup/restore/export/shutdown and measured limits. Cloudflare is optional DNS/TLS/static edge; Node/API/native workers stay isolated on a qualified host. Reuse Convex storage/outbox/coordination; private R2 only after an explicit measured size/egress/retention gate and migration/access/restore evidence. Record representative asset-size distribution, retained bytes, egress and restore latency/cost against operator-approved thresholds; accept R2 only if the existing storage port cannot meet those measured limits or materially improves the approved cost budget, with one manifest authority.
 
+- Rehearse exit with zero new purchases, pending refunds/disputes, long-held unused units, provider or processor closure and independent merchant delivery. Name the reserve/support owner and reconcile processor cash, service lots and worker settlement separately.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12: **component**, producer WP37. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
@@ -1835,6 +2017,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12: **integration**, producer WP37. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
 
 - A2, A4, A5, A7, A9, A10, A11, A12: **public-release**, producer WP37. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A13: **component**, producer WP37. Exercise the shutdown projection with synthetic pack lots, pending refunds, outstanding reservations, retention deadlines and zero sales.
+
+- A13: **public-release**, producer WP37. Finance and operations sign off actual shutdown cost and refund-support readiness at E4.
 
 **Execution steps:**
 
@@ -1862,6 +2048,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** One-use pairing challenge, revocable device grant and responsive dashboard control of chosen execution host.
 
+**External gate applicability:**
+
+- E7: Claiming support for the additional device, OS or platform after its release and maintenance matrix passes.
+
 **Acceptance and failure behavior:**
 
 - Replay/expiry/revoke/lost-device/compromised-relay and cross-project grant tests; independent protocol review.
@@ -1874,9 +2064,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Paired-device auth is distinct from Clerk hosted identity and local engine auth. A cloud sign-in callback cannot create a device grant; a device grant cannot assign payer/merchant authority. Test switching project/host while callbacks arrive and preserve account-free paired local control.
 
+- Initially qualify directly reachable paired hosts over an authenticated user-managed LAN or VPN with TLS terminating at the selected host and explicit pinned peer identity. Test sleep and reconnect, lost-device revocation, expired grants, incompatible version and cross-project denials. Any public relay/off-network claim needs separate transport and operator qualification.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5: **component**, producer WP38. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A6: **component**, producer WP38. Check peer, TLS identity, transport profile, expiry and revocation against fixture device grants before network pairing tests.
+
+- A6: **integration**, producer WP38. Use two independently identified devices, a reachable host, and an intercepted/untrusted transport fixture.
 
 **Execution steps:**
 
@@ -1950,6 +2146,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** SandboxGrant with bounded CPU/memory/time/disk/network and no ambient host/credential authority.
 
+**External gate applicability:**
+
+- E7: Claiming support for the additional device, OS or platform after its release and maintenance matrix passes.
+
 **Acceptance and failure behavior:**
 
 - Adversarial process escape/file/network/IPC/dependency fixtures on each advertised OS.
@@ -1991,6 +2191,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Reviewed product intent, licensed inputs, isolated build lane and typed artifact/export contracts.
 
 **Produces:** Small calculator/assessment/interactive-tool artifacts with inspectable source, bounded build and safe static package.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -2074,6 +2280,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** LeadSearchPlan, FilterSet, EnrichmentOrder {fields, source, price, verificationTime, status, coverage}; safe import/export receipts.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Company/person geography, industry/keywords/title/seniority/department/headcount/revenue/technology/funding/hiring/intent fields are enabled only when supported.
@@ -2114,6 +2326,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Unified inbox filters/folders, correctable AI categories, notifications and approved CC/BCC/attachment reply actions.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
 **Acceptance and failure behavior:**
 
 - Threaded reply preserves provider references; recipient/CC/BCC/attachments/link changes invalidate approval; file types/bytes/malware surface bounded.
@@ -2153,6 +2369,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Provider-supported domain/mailbox admin API, account ownership/transfer rules and concrete purchase price approval.
 
 **Produces:** ProvisioningRequest and readiness/ramp/capacity projections; BYO mailbox, personas, signatures and sender assignments.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
 
 **Acceptance and failure behavior:**
 
@@ -2202,6 +2424,14 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Capability-checked store catalog/metadata/CTA/redirects; multimedia/reading/quiz/drip/progress/resource policies and learner analytics projections.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Each lesson/quiz/attachment/drip/progress API has separate fixture; unsupported controls are visibly unavailable.
@@ -2243,6 +2473,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Merchant-authoritative event history, E3 country/entity/tax/refund duties and tested administrative API scopes.
 
 **Produces:** Prepared refund/plan/discount/trial actions; invoice/tax/fee/affiliate/share/payout projections and accounting export.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
 
 **Acceptance and failure behavior:**
 
@@ -2296,6 +2532,14 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** ClientPortalGrant, onboarding checklist, proposal/presentation resources, e-sign/invoice status and downloadable reporting.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Client cannot access another client/project/private notes; resource/attachment access rechecks parent and membership.
@@ -2339,6 +2583,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Scoped project/client roles, task ownership, supported calendar connector and timezone/privacy preferences.
 
 **Produces:** List/board/calendar task views, recurring tasks, reminders, workload summaries and approved booking handoff.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
 
 **Acceptance and failure behavior:**
 
@@ -2388,6 +2636,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** Connected chat/resource/annotation/fast-reply/tag views, call/event links and provider-specific audio/video/screenshare capabilities.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - No availability claim from coming-soon marketing; chat/calls/screenshare each need working API/participant acceptance.
@@ -2435,6 +2689,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Typed capability broker, scoped API/device/tenant identity, reviewed connector/extension contracts and durable execution.
 
 **Produces:** Versioned external API/MCP surface, signed-event intake and bounded declarative trigger/action workflows with observable receipts.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
 
 **Acceptance and failure behavior:**
 
@@ -2518,7 +2776,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.harness.scopedtools`.
 
-**Files:** `apps/server/src/studio/harness/policy.ts`, `apps/server/src/studio/harness/tool-catalog.ts`, `apps/server/src/studio/harness/tool-scope.contract.test.ts`, `apps/server/src/mcp/McpToolAccess.ts`.
+**Files:** `apps/server/src/studio/harness/policy.ts`, `apps/server/src/studio/harness/tool-catalog.ts`, `apps/server/src/studio/harness/tool-scope.contract.test.ts`, `apps/server/src/mcp/McpToolAccess.ts`, `apps/server/src/studio/harness/qualify-windows.ts`, `apps/server/src/studio/harness/qualification-fixtures.test.ts`.
 
 **Consumes:** Authenticated invocation context, native MCP tool registry, definition ceiling, project/epoch/grant and provider enforcement capabilities.
 
@@ -2540,6 +2798,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Change CLI binary/native descriptor while model ID stays the same and replay queued work: old constrained-lane qualification cannot apply. Test revoked publisher key/version, stale offline trust and authenticated trust-root recovery without disabling signatures; unobservable enforcement changes cannot support a constrained-lane claim.
 
+- The first Windows driver spike records executable/launch chain, instance/account/model/options, effective identity visibility, native tool and child permissions and containment per action. Qualify broker-only actions only when native routes can be disabled. A supervised action requires an enforceable pre-action stop on every participating route. Otherwise expose the capability as unavailable with the saved selection intact.
+
+- Bundle a versioned local requalification procedure with fixture provenance. A changed digest invalidates only its affected lanes. Inspect supported settings and run deterministic local denial fixtures offline. If the evidence cannot requalify the action, show the remaining check and quote any external probe before requesting authorization. Test an unaffected qualified route, editing and export while the changed route waits.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5: **component**, producer WP53. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -2547,6 +2809,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A6, A7: **component**, producer WP53. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A6, A7: **integration**, producer WP53. Qualify currently enabled native routes at M0C; executable extension/key scenarios remain synthetic until the affected WP39/40 lane activates, then repeat on its real distribution boundary.
+
+- A8: **component**, producer WP53. Evaluate a fixture Windows driver profile with changed executable, changed built-in tools and missing permission enforcement. Preserve exact selection and express affected operation eligibility.
+
+- A8: **integration**, producer WP53. Use pinned versions, real Windows process containment, observable restrictions and bounded authorized provider calls only where indispensable.
+
+- A9: **component**, producer WP53. Exercise this contract on isolated synthetic inputs.
 
 **Execution steps:**
 
@@ -2894,7 +3162,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 ## WP62: AgentMail personal correspondence channel
 
-**Milestone:** M9B. **Dependencies:** WP61, WP25, WP53. **Status:** planned.
+**Milestone:** M9B. **Dependencies:** WP61, WP09, WP53. **Status:** planned.
 
 **Owner:** personal-mail connector maintainer. **Independent acceptance:** independent privacy/messaging reviewer. **External gates:** E2, E6.
 
@@ -2902,9 +3170,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Files:** `apps/server/src/studio/dot/connectors/agentmail.ts`, `apps/server/src/studio/dot/connectors/agentmail.contract.test.ts`, `apps/web/src/features/studio/dot/MailConnection.tsx`, `docs/DOT-COMPATIBILITY.md`.
 
-**Consumes:** Explicit privacy/account/region acceptance, scoped AgentMail inbox/key, exact message/attachment/signature versions and owner grant.
+**Consumes:** Explicit privacy/account/region acceptance, scoped AgentMail inbox/key, exact message/attachment/signature versions and owner grant. Consume the WP09 inbound mailbox port directly with a personal grant.
 
 **Produces:** PersonalMailboxPort with verified Svix ingress or supported polling subscription, backfill, local drafts and approved outbound receipts.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -2922,6 +3196,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Exercise a webhook storm, stale/revoked account and pending remote send with browser/phone disabled; inbound costs and remote schedules remain bounded and visible. Connection/event routing uses WP09 bindings, not message-supplied project IDs.
 
+- With contacts and campaign capabilities disabled, ingest expected correspondence, backfill a missed message and save an unsent private reply. Reject sender impersonation and route every outbound or remotely saved draft through explicit channel approval.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A7: **component**, producer WP62. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -2929,6 +3205,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A5, A6: **component**, producer WP62. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A5, A6: **integration**, producer WP62. Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66.
+
+- A8: **component**, producer WP62. Replay delayed and duplicate mailbox events from fixture accounts with all campaign capability grants absent.
+
+- A8: **integration**, producer WP62. Qualify the approved AgentMail inbox with independent mailbox stop/revocation and check its provider receipts.
 
 **Execution steps:**
 
@@ -2955,6 +3235,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Reviewed upstream profile/context provision path, explicit Dot profile/account binding and browser control generation.
 
 **Produces:** Owned browser lease, isolated anonymous/authenticated contexts, private login/takeover and checkpoint/reconciliation receipts.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E7: Claiming support for the additional device, OS or platform after its release and maintenance matrix passes.
 
 **Acceptance and failure behavior:**
 
@@ -3012,6 +3298,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Produces:** ReachReadPort returning bounded provenance-labeled evidence; no posting/messaging/login authority.
 
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
+
 **Acceptance and failure behavior:**
 
 - Installed skill is not proof executable/channels work; test only enabled channels and actual content versus metadata/snippets.
@@ -3051,6 +3343,14 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Owner-selected agentphone.ai API, verified account and number/country capabilities, consent/disclosure/recording policy and bounded charges.
 
 **Produces:** PersonalPhonePort with per-operation voice/SMS readiness, signed event/identity mapping and confirmed/unknown call/message receipts.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E3: Actual merchant sales, delivery or financial claims for the selected seller, territory and product.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 
@@ -3103,6 +3403,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 **Consumes:** Previously accepted channels, owner-authenticated standing policy schema, provider-held work inventory and tested recovery.
 
 **Produces:** Optional recurring correspondence/browser policies with explicit recipients/action/data/cost/time/expiry plus global kill/recovery controls.
+
+**External gate applicability:**
+
+- E2: Live activation with the exact connector account, environment, rights, current quotas and bounded support/cost profile.
+
+- E6: Use or redistribution of the affected third-party content, creator/client data or specialist output under verified permissions and review.
 
 **Acceptance and failure behavior:**
 

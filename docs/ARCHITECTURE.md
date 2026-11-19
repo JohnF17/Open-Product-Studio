@@ -1,6 +1,6 @@
 # Downstream T3 Code architecture
 
-Revision 3, 2026-11-12. Supersedes the separate Vite/HTTP-SSE engine design. [Product](PRODUCT.md), [fork evidence](research/fork-strategy.md), [upstream integration](UPSTREAM.md) and the [canonical roadmap](ROADMAP.md) travel with this document. The earlier twenty-task plan is a historical decomposition. Application code has not been imported or built yet.
+Revision 3, 2026-11-12. Supersedes the separate Vite/HTTP-SSE engine design. [Product](PRODUCT.md), [fork evidence](research/fork-strategy.md), [upstream integration](UPSTREAM.md) and the [canonical roadmap](ROADMAP.md) travel with this document. The earlier twenty-task plan is a historical decomposition. Baseline intake and package acceptance are recorded separately for each implementation revision.
 
 ## Decision and baseline
 
@@ -113,3 +113,5 @@ Prefer hosted/system-browser sign-in and a separately qualified desktop bridge w
 WP34 extends transfer with an external-operation inventory/custody barrier: queued runs, remote schedules, leases, Unknown results and account generations must have one custodian, confirmed cancellation or reconciliation before conflicting destination dispatch. Preserve IDs/fences for late receipts; reauthorize credentials separately. Cloud exit offers authenticated retained-current-data export/handback without a renewal purchase or funded AI job; an outage exposes cache age and missing bytes, and an explicit offline fork receives a new ID. Never resurrect the old local writer on lapse.
 
 WP07 managed restore consults current deletion/revocation state outside the old snapshot before rebuilding retrieval or dispatch. An unmanaged archive without that journal is historical content-only recovery with review and inactive authority. This scopes earlier tombstone requirements; integrity alone cannot reveal later deletions.
+
+See the [execution and release decisions](plans/2026-11-18-execution-and-release-decisions.md) for operation-specific replay after interrupted provider calls, shared command/manifest digest vectors, the hosted journal and single-writer project mutations. Each retained worker handler consults the durable logical operation before contacting its provider on retry.

@@ -27,6 +27,10 @@ def check(register, data):
         return output
 
     tools, replies, definitions = index('tools'), index('replyContracts'), index('definitions')
+    required_roles = {'agent.researcher', 'agent.planner', 'agent.creator-analyst', 'agent.maker-editor',
+                      'agent.reviewer', 'agent.council-synthesizer', 'agent.dot'}
+    if not required_roles <= set(definitions):
+        errors.append('Missing a required Studio agent definition')
     authority = data.get('authority', {})
     required_authority = dict(definitionIsGrant=False, callerAuthority='server-derived',
                               nativeRoutesRequireQualification=True, modelPolicy='exact-owner-selection',
@@ -63,14 +67,35 @@ def check(register, data):
     if council.get('silentMemberReplacement') is not False or council.get('milestone') not in milestones:
         errors.append('Invalid council replacement/milestone policy')
     positions, minimum = council.get('defaultPositions'), council.get('minimumSubstantivePositions')
-    if type(positions) is not int or type(minimum) is not int or not 1 <= minimum <= positions:
+    if (type(positions) is not int or type(minimum) is not int or positions != 3 or minimum != 2
+            or type(council.get('maxChallengeRounds')) is not int or council['maxChallengeRounds'] != 1):
         errors.append('Invalid council quorum')
     dot = data.get('dot', {})
-    if dot.get('enabled') is not False or dot.get('instancesPerOwner') != 1 or dot.get('initialExternalActions') != []:
+    if dot.get('enabled') is not False or type(dot.get('instancesPerOwner')) is not int or dot['instancesPerOwner'] != 1 or dot.get('initialExternalActions') != []:
         errors.append('Design must retain one disabled Dot with no initial external actions')
-    for channel in dot.get('channels', []):
-        if channel.get('enabled') is not False or channel.get('milestone') not in milestones:
+    expected = {'agentmail': 'M9B', 'browser': 'M9B', 'agent-reach': 'M9B', 'agentphone': 'M9C'}
+    channels = dot.get('channels')
+    if not isinstance(channels, list) or any(not isinstance(c, dict) for c in channels):
+        return errors + ['Dot channels must be a list of channel records']
+    ids = [c.get('id') for c in channels]
+    if any(not isinstance(i, str) for i in ids) or sorted(ids) != sorted(expected):
+        errors.append('Dot must declare each planned channel exactly once')
+    for channel in channels:
+        channel_id = channel.get('id')
+        milestone = channel.get('milestone')
+        if (not isinstance(channel_id, str) or not isinstance(milestone, str)
+                or channel.get('enabled') is not False or milestone not in milestones
+                or milestone != expected.get(channel_id)):
             errors.append('Invalid/activated design channel')
+        if channel_id == 'agentphone':
+            owner_selection = {
+                'providerIdentity': 'agentphone.ai',
+                'providerUrl': 'https://agentphone.ai',
+                'selectionStatus': 'owner-selected',
+                'accountValidation': 'pending',
+            }
+            if any(channel.get(k) != value for k, value in owner_selection.items()):
+                errors.append('AgentPhone provider selection differs from the owner decision')
     return errors
 
 

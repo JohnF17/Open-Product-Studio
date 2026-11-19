@@ -12,7 +12,7 @@ Complete available public mirror transcript bodies were recovered for the four r
 | 2 / Nov 8 | [jDgMGSAP0PQ](https://www.youtube.com/watch?v=jDgMGSAP0PQ) | 454 rows; 17,546 words; final row 97:04 | Mirror omits most native-language testimonial speech near 15:58-18:28; alternate video ID is not substituted |
 | 3 / Nov 9 | [wfSFaxHuU7Q](https://www.youtube.com/watch?v=wfSFaxHuU7Q) | 435 rows; 17,086 words; final row 90:03 | Earlier Agent Reach English auto-caption-derived text also preserved; its wrapper has no timestamps |
 | 4 / Nov 10 | [6TZs6Ctq8LE](https://www.youtube.com/watch?v=6TZs6Ctq8LE) | 408 rows; 15,136 words; final row 93:36 | Sparse/missing demo text around 67 minutes, unreliable speaker labels and compressed refund speech |
-| 5 / Nov 15 | [SFZYaN7TEX8](https://www.youtube.com/watch?v=SFZYaN7TEX8) | No episode transcript | Upcoming Nov 15 at 18:00 UTC / 21:00 Nairobi on the research date; trailer excluded |
+| 5 / Nov 15 | [SFZYaN7TEX8](https://www.youtube.com/watch?v=SFZYaN7TEX8) | No episode transcript | Upcoming Nov 15 at 18:00 UTC on the research date; trailer excluded |
 
 Public mirror sources: [Episode 1](https://sozai.app/transcript/start-side-hustle-together-live/), [Episode 2](https://sozai.app/transcript/ai-side-hustle-makes-11290-month-live/), [Episode 3](https://sozai.app/transcript/build-373-day-side-hustle-live/), [Episode 4](https://sozai.app/transcript/easiest-way-make-money-online-beginners-live/). Generated chapter offsets were rejected as exact navigation evidence; some extend beyond their recordings. Export intervals are coarse/overlapping and rounded endpoints differ from official durations by one or two seconds.
 

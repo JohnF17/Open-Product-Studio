@@ -1,6 +1,6 @@
 # T3 Code architecture research for an original local-AI digital-product studio
 
-Research date: 2026-11-12 (Africa/Nairobi). Research only; no application implementation, child agents, paid model calls, PRs, or changes to the installed application.
+Research date: 2026-11-12. Research only; no application implementation, child agents, paid model calls, PRs, or changes to the installed application.
 
 ## 1. Findings that should guide the product
 

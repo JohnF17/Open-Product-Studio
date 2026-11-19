@@ -1,6 +1,6 @@
 # Contributing
 
-This project is currently a design repository. App implementation has not started. Read [the product proposal](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [security model](docs/SECURITY-MODEL.md), and [build plan](docs/plans/2026-11-12-open-product-studio.md) before proposing work.
+For current scope, read [the product proposal](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [security model](docs/SECURITY-MODEL.md), [canonical roadmap](docs/ROADMAP.md) and [work packages](docs/WORK-PACKAGES.md) before proposing work.
 
 ## Scope and evidence
 
@@ -34,8 +34,17 @@ GitHub branch rules, required status checks, CODEOWNERS and security contacts mu
 
 ## Commits and licensing
 
-Use clear imperative commit messages. Sign off commits with `git commit -s` to certify [Developer Certificate of Origin 1.1](https://developercertificate.org/). Contributions are under the repository's Apache-2.0 license unless a file states otherwise. No CLA is proposed for the initial project. Do not add invented contributor identities or legal claims.
+Use clear imperative commit messages. Sign off commits with `git commit -s` to certify [Developer Certificate of Origin 1.1](https://developercertificate.org/). Use the applicable terms in the [license scope map](LICENSES/README.md). Upstream-derived source carries its MIT and third-party notices. Original Studio planning documents and planning checks retain their Apache-2.0 license. No CLA is proposed for the initial project. Do not add invented contributor identities or legal claims.
 
 ## Local validation today
 
-`python scripts/check_docs.py` validates required project documents, local Markdown targets, and absence of restricted research asset types. The documentation workflow runs this same check. Runtime, security, browser, and model-quality checks described in [CI.md](docs/CI.md) are future gates and must be implemented alongside the corresponding code.
+`python scripts/check_docs.py` validates required project documents, local Markdown targets, and absence of restricted research asset types. Run the complete planning gate from the repository root:
+
+```sh
+python -m unittest discover -s tests -v
+python scripts/check_docs.py
+python scripts/check_roadmap.py
+python scripts/check_agents.py
+```
+
+Runtime, security, browser, and model-quality checks described in [CI.md](docs/CI.md) are future gates and must be implemented alongside the corresponding code.

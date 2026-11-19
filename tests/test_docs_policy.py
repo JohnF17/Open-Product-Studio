@@ -2,6 +2,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -54,6 +55,48 @@ class DocumentationPolicyTests(unittest.TestCase):
             self.fixture(root)
             (root / 'workbook.pdf').write_bytes(b'fixture')
             self.assertTrue(any('workbook.pdf' in error for error in policy.check(root)))
+
+    def test_pinned_media_requires_matching_path_and_content(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.fixture(root)
+            asset = root / 'notice.mp3'
+            asset.write_bytes(b'sound')
+            oid = hashlib.sha1(b'blob 5' + bytes([0]) + b'sound').hexdigest()
+            with patch.dict(policy.PINNED_MEDIA, {'notice.mp3':oid}):
+                self.assertEqual(policy.check(root), [])
+                asset.write_bytes(b'changed')
+                self.assertTrue(policy.check(root))
+                asset.unlink()
+                (root / 'new.mp3').write_bytes(b'sound')
+                self.assertTrue(policy.check(root))
+
+    def test_pinned_markdown_edits_and_private_links_are_checked(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.fixture(root)
+            doc = root/'old.md'
+            original = b'[Old](gone.md)'
+            doc.write_bytes(original)
+            oid = hashlib.sha1(b'blob 14' + bytes([0]) + original).hexdigest()
+            with patch.object(policy,'public_paths',return_value=([doc], {'old.md':oid})):
+                self.assertEqual(policy.check(root), [])
+                doc.write_text('[Edited](gone.md)')
+                self.assertTrue(policy.check(root))
+            (root/'private-research').mkdir()
+            (root/'private-research'/'notes.txt').write_text('fixture')
+            doc.write_text('[Source](private-research/notes.txt)')
+            self.assertTrue(policy.check(root))
+
+    def test_tracked_private_candidate_rejected_without_opening(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.fixture(root)
+            candidate = root/'private-research'/'secret.txt'
+            with patch.object(policy,'public_paths',return_value=([candidate],{})):
+                self.assertTrue(policy.check(root))
 
     def test_generated_directories_are_ignored(self):
         with tempfile.TemporaryDirectory() as tmp:
