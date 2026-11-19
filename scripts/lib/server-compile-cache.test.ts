@@ -6,6 +6,70 @@ import * as NodeURL from "node:url";
 import { expect, it } from "vite-plus/test";
 import { cacheKey, seedPreparedCache } from "./server-compile-cache.ts";
 
+it.each(["win32", "darwin", "linux"])(
+  "selects required and optional prepared cache blobs for %s",
+  async (platform) => {
+    const { spawnSync } = await import("node:child_process");
+    const root = NodeFS.mkdtempSync(NodePath.join(NodeOS.tmpdir(), "studio-cache-selection-"));
+    try {
+      const dist = NodePath.join(root, "server.asar/apps/server/dist");
+      NodeFS.mkdirSync(dist, { recursive: true });
+      NodeFS.writeFileSync(
+        NodePath.join(dist, "binCli-fixture.mjs"),
+        'import "./tiny.mjs"; import "./large.mjs";',
+      );
+      NodeFS.writeFileSync(NodePath.join(dist, "server-fixture.mjs"), "export const ready = true;");
+      NodeFS.writeFileSync(NodePath.join(dist, "tiny.mjs"), "export const n = 1;");
+      NodeFS.writeFileSync(
+        NodePath.join(dist, "large.mjs"),
+        Array.from({ length: 3000 }, (_, i) => `export const n${i} = ${i};`).join("\n"),
+      );
+      const helper = new URL("./server-compile-cache.ts", import.meta.url).href;
+      const generate = (target: string) =>
+        spawnSync(
+          process.execPath,
+          [
+            "--input-type=module",
+            "-e",
+            `import { generatePreparedServerCache } from ${JSON.stringify(helper)};
+           Object.defineProperty(process, "platform", { value: ${JSON.stringify(target)} });
+           await generatePreparedServerCache(${JSON.stringify(root)});`,
+          ],
+          {
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              NODE_COMPILE_CACHE: undefined,
+              NODE_DISABLE_COMPILE_CACHE: undefined,
+            },
+          },
+        );
+      // A Windows retry over a previously unfiltered staged payload must drop excluded blobs too.
+      if (platform === "win32") {
+        const previous = generate("linux");
+        expect(previous.status, previous.stderr).toBe(0);
+      }
+      const run = generate(platform);
+      expect(run.status, run.stderr).toBe(0);
+      const prepared = NodePath.join(root, "server-compile-cache");
+      const { entries } = JSON.parse(
+        NodeFS.readFileSync(NodePath.join(prepared, "manifest.json"), "utf8"),
+      ) as {
+        entries: Array<{ module: string; file: string }>;
+      };
+      const names = entries.map((entry) => NodePath.basename(entry.module)).sort();
+      const expected = ["binCli-fixture.mjs", "server-fixture.mjs", "large.mjs"];
+      if (platform !== "win32") expected.push("tiny.mjs");
+      expect(names).toEqual(expected.sort());
+      expect(NodeFS.readdirSync(prepared).sort()).toEqual(
+        ["manifest.json", ...entries.map((entry) => entry.file)].sort(),
+      );
+    } finally {
+      NodeFS.rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
 it.each([
   { platform: "freebsd", hostArch: "x64", arch: 1, reason: "unsupported target freebsd" },
   { platform: "linux", hostArch: "x64", arch: 3, reason: "unexecutable target linux/arm64" },
