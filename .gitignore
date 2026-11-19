@@ -50,6 +50,8 @@ node_modules/
 # pnpm content-addressable store; never belongs in the repo.
 .pnpm-store/
 
+/packages/ssh/.ssh-launcher-test-*/
+
 # Studio local data and development files
 node_modules/
 dist/
