@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { once } = require("node:events");
 const { createRequire } = require("node:module");
 const { setTimeout: wait } = require("node:timers/promises");
 
@@ -68,6 +69,70 @@ for (const dir of sentinels) {
 const project = "Windows package draft";
 const note = "Account-free packaged startup saved this synthetic draft.";
 const runs = [];
+
+function readShutdownSpans(startedMs) {
+  const trace = path.join(env.STUDIO_HOME, "userdata", "logs", "desktop.trace.ndjson");
+  if (!fs.existsSync(trace)) return [];
+  const spans = [];
+  for (const line of fs.readFileSync(trace, "utf8").split("\n")) {
+    if (!/desktop\.(lifecycle|shutdown)\./.test(line)) continue;
+    try {
+      const { name, endTimeUnixNano, durationMs } = JSON.parse(line);
+      if (/^desktop\.(lifecycle|shutdown)\./.test(name) && Number(endTimeUnixNano) / 1e6 >= startedMs) {
+        spans.push({ name, endTimeUnixNano, durationMs });
+      }
+    } catch {
+      // The failing process may have been interrupted during the last write.
+    }
+  }
+  return spans.slice(-20);
+}
+
+async function closeAndObserve(app, observation) {
+  const child = app.process();
+  const started = Date.now();
+  const timer = new AbortController();
+  const exit =
+    child.exitCode === null && child.signalCode === null
+      ? once(child, "exit")
+      : Promise.resolve([child.exitCode, child.signalCode]);
+  const observedExit = exit.then(([code, signal]) => {
+    Object.assign(observation, { exitCode: code, signal, osExitMs: Date.now() - started });
+    assert.ok(code === 0 && signal === null, `Electron exited with code ${code}, signal ${signal}.`);
+  });
+  const close = app.close().then(
+    () => {
+      observation.driverCloseMs = Date.now() - started;
+    },
+    (error) => {
+      observation.driverError = error.name;
+      throw error;
+    },
+  );
+  try {
+    await Promise.race([
+      Promise.all([close, observedExit]),
+      wait(60000, undefined, { signal: timer.signal }).then(() => {
+        observation.timedOut = true;
+        throw new Error("Studio did not complete both Playwright close and OS exit within 60 seconds.");
+      }),
+    ]);
+  } catch (error) {
+    observation.shutdownError = error.name;
+    if (child.exitCode === null && child.signalCode === null) {
+      try {
+        observation.forcedCleanup = child.kill("SIGKILL");
+      } catch (cleanupError) {
+        throw new AggregateError([error, cleanupError], "Graceful shutdown and cleanup failed.");
+      }
+    }
+    throw error;
+  } finally {
+    timer.abort();
+    observation.observedMs = Date.now() - started;
+  }
+}
+
 async function launch(index) {
   const app = await electron.launch({
     executablePath: executable,
@@ -83,6 +148,8 @@ async function launch(index) {
       "--proxy-bypass-list=localhost;127.0.0.1;[::1]",
     ],
   });
+  const observation = { candidate, index, pid: app.process().pid, startedMs: Date.now() };
+  const errors = [];
   try {
     const page = await app.firstWindow({ timeout: 120000 });
     const identity = await app.evaluate(({ app }) => ({
@@ -132,8 +199,12 @@ async function launch(index) {
         animations: "disabled",
       });
     }
-    runs.push({ ...identity, url: page.url() });
+    const { protocol, host, pathname } = new URL(page.url());
+    runs.push({ ...identity, url: `${protocol}//${host}${pathname}` });
+    observation.uiChecksPassed = true;
   } catch (e) {
+    errors.push(e);
+    observation.uiError = e.name;
     await Promise.allSettled(
       app
         .windows()
@@ -144,22 +215,26 @@ async function launch(index) {
           }),
         ),
     );
-    for (const page of app.windows())
-      console.error(
-        await page
-          .locator("body")
-          .innerText({ timeout: 3000 })
-          .catch(() => "<no text>"),
-      );
-    throw e;
-  } finally {
-    const cp = app.process();
-    await Promise.race([app.close().catch(() => {}), wait(15000, undefined, { ref: false })]);
-    if (cp.exitCode === null && !cp.signalCode) {
-      cp.kill("SIGKILL");
-      throw Error("Packaged Electron failed to exit cleanly.");
-    }
   }
+  try {
+    await closeAndObserve(app, observation);
+  } catch (e) {
+    errors.push(e);
+  }
+  try {
+    observation.shutdownSpans = readShutdownSpans(observation.startedMs);
+  } catch (e) {
+    observation.traceReadError = e.name;
+  }
+  try {
+    fs.writeFileSync(
+      path.join(output, `windows-launch-${index}.json`),
+      JSON.stringify(observation, null, 2),
+    );
+  } catch (e) {
+    errors.push(e);
+  }
+  if (errors.length) throw new AggregateError(errors, `Packaged launch ${index + 1} failed.`);
 }
 (async () => {
   await launch(0);
