@@ -47,6 +47,7 @@ import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
 import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
+import { ProjectTour } from "./ProjectTour";
 
 export interface StudioAgentRequest {
   workspaceId: string;
@@ -443,6 +444,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
             onChange={(e) => editor.update({ title: e.target.value })}
           />
         </div>
+        <ProjectTour key={draft.id} workspaceId={draft.workspaceId} projectId={draft.id} category={draft.category} />
         {route.length > 1 && (
           <div className="ops-progress">
             <label>
