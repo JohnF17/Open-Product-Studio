@@ -5,8 +5,10 @@ import {
   encodeComposerContextFragment,
 } from "@t3tools/shared/composerContextClipboard";
 import { threadContextRecord } from "@t3tools/shared/composerContextReferences";
-import { describe, expect, it } from "vite-plus/test";
+import { formatHostedThreadLink } from "@t3tools/shared/threadLinks";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
+import { shareLinkOrigin } from "../hostedPairing";
 import { importPastedComposerText } from "./composerInlineTokenPaste";
 
 const thread = {
@@ -28,6 +30,52 @@ const importAll =
   };
 
 describe("importPastedComposerText", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it.each(["", "https://hosted.studio.example.test"])(
+    "round-trips browser thread links with hosted origin %j",
+    (hosted) => {
+      vi.stubGlobal("window", { location: new URL("http://127.0.0.1:7319/workspace") });
+      vi.stubEnv("VITE_HOSTED_APP_URL", hosted);
+      const target = threadChipCopyTarget(thread, "Browser thread", shareLinkOrigin());
+      const imported: Array<ComposerContextClipboardFragment> = [];
+      const pasted = importPastedComposerText(
+        clipboard({
+          "text/plain": target.value,
+          [COMPOSER_CONTEXT_CLIPBOARD_MIME]: encodeComposerContextFragment(target.fragment!)!,
+        }),
+        importAll(imported),
+      );
+      expect(pasted).toBe(chip("Browser thread"));
+      expect(imported[0]?.records).toEqual(target.fragment!.records);
+      const labeled = formatHostedThreadLink(thread, "From Markdown", shareLinkOrigin());
+      expect(importPastedComposerText(clipboard({ "text/plain": labeled }), importAll([]))).toBe(
+        chip("From Markdown"),
+      );
+    },
+  );
+
+  it("leaves foreign links untouched even with matching thread clipboard metadata", () => {
+    vi.stubGlobal("window", { location: new URL("http://127.0.0.1:7319/workspace") });
+    vi.stubEnv("VITE_HOSTED_APP_URL", "https://studio.example.test");
+    const other = threadChipCopyTarget(thread, "Other", "https://studio.example.test.other.test");
+    const pasted = [other.value, "http://127.0.0.1:7320/threads/env-1/thread-1"].join(" ");
+    const imported: Array<ComposerContextClipboardFragment> = [];
+    expect(
+      importPastedComposerText(
+        clipboard({
+          "text/plain": pasted,
+          [COMPOSER_CONTEXT_CLIPBOARD_MIME]: encodeComposerContextFragment(other.fragment!)!,
+        }),
+        importAll(imported),
+      ),
+    ).toBe(pasted);
+    expect(imported).toEqual([]);
+  });
+
   it("pastes a copied thread link back as the chip it was copied from", () => {
     const target = threadChipCopyTarget(thread, "Fix the login flow");
     const imported: Array<ComposerContextClipboardFragment> = [];

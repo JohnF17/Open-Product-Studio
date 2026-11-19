@@ -214,6 +214,28 @@ describe("thread links", () => {
 });
 
 describe("hosted thread links", () => {
+  it("resolves scoped web origins without reading threads from other sites, ports, or code", () => {
+    const thread = ref("env.1", "thread:a/b");
+    const origins = ["http://[::1]:7319", "https://studio.example.test"];
+    const localLink = hostedThreadLink(thread, origins[0]);
+    const hostedLink = hostedThreadLink(thread, origins[1]);
+    const other = hostedThreadLink(ref("other", "foreign"), "https://other.example.test");
+    const otherPort = localLink.replace(":7319", ":7320");
+    const markdown = [
+      localLink,
+      `[Studio](${hostedLink})`,
+      `<${other}>`,
+      `[other](${otherPort})`,
+      "`https://studio.example.test/threads/code/literal`",
+    ].join(" ");
+    expect(parseThreadLinkHref(hostedLink)).toBeNull();
+    expect(parseThreadLinkHref(localLink, origins)).toEqual(thread);
+    expect(parseThreadLinkHref(other, origins)).toBeNull();
+    expect(parseThreadLinkHref(otherPort, origins)).toBeNull();
+    expect(threadLinkRefs(markdown, local, origins)).toEqual([thread]);
+    expect(threadLinkRefs(markdown, local)).toEqual([]);
+  });
+
   it("escapes every id character a sentence or path could claim, and reads it back", () => {
     const thread = ref("env.1", "thread:delegated/mcp%3A1.");
     const link = hostedThreadLink(thread);

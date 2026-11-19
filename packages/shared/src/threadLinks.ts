@@ -14,10 +14,10 @@ const THREAD_PREFIXES = [
   "https://app.t3.codes/threads/",
 ];
 const HOSTED_SEGMENT = "[A-Za-z0-9_%-]+";
-const THREAD_ORIGINS = THREAD_PREFIXES.map((prefix) =>
-  prefix.replace(/[.*+?${}()|[\]\\/]/g, "\\$&"),
-).join("|");
-const HOSTED_LINK = `(?:${THREAD_ORIGINS})${HOSTED_SEGMENT}/${HOSTED_SEGMENT}`;
+// The scanner recognizes web URL shapes. The parser checks their exact origin before a title or
+// thread record can be read. This also supports IPv6 loopback and non-default ports.
+const THREAD_BASE = String.raw`(?:open-product-studio(?:-dev)?:\/\/threads\/|https?:\/\/[^\s/?#<>()]+\/threads\/)`;
+const HOSTED_LINK = `${THREAD_BASE}${HOSTED_SEGMENT}/${HOSTED_SEGMENT}`;
 const THREAD_HREF = String.raw`t3-thread:\/\/v[12]\/`;
 // A label stops at any bracket, so a run of unclosed brackets is scanned once, not once per bracket.
 const LABEL = String.raw`[^[\]\n]*`;
@@ -78,9 +78,16 @@ function parseHostedThreadLink(path: string): ThreadLink | null {
  * The ids as written. Thread ids can hold percent escapes of their own, so they are not decoded,
  * except in a hosted link, which escapes them itself.
  */
-export function parseThreadLinkHref(href: string): ThreadLink | null {
+export function parseThreadLinkHref(
+  href: string,
+  trustedWebOrigins: readonly string[] = [],
+): ThreadLink | null {
   const prefix = THREAD_PREFIXES.find((candidate) => href.startsWith(candidate));
   if (prefix) return parseHostedThreadLink(href.slice(prefix.length));
+  for (const origin of trustedWebOrigins) {
+    const webPrefix = `${origin}/threads/`;
+    if (href.startsWith(webPrefix)) return parseHostedThreadLink(href.slice(webPrefix.length));
+  }
   if (href.startsWith(V1_PREFIX)) {
     const threadId = Option.getOrNull(decodeThreadId(href.slice(V1_PREFIX.length)));
     return threadId === null ? null : { environmentId: null, threadId };
@@ -164,10 +171,14 @@ export function formatHostedThreadLink(
   return cleaned ? `[${cleaned}](${href})` : href;
 }
 
-export function hasThreadLinks(markdown: string): boolean {
+export function hasThreadLinks(
+  markdown: string,
+  trustedWebOrigins: readonly string[] = [],
+): boolean {
   return (
     markdown.includes(`${THREAD_LINK_PROTOCOL}://v`) ||
-    THREAD_PREFIXES.some((prefix) => markdown.includes(prefix))
+    THREAD_PREFIXES.some((prefix) => markdown.includes(prefix)) ||
+    trustedWebOrigins.some((origin) => markdown.includes(`${origin}/threads/`))
   );
 }
 
@@ -175,6 +186,7 @@ export function hasThreadLinks(markdown: string): boolean {
 export function threadLinkRefs(
   markdown: string,
   messageEnvironmentId: EnvironmentId,
+  trustedWebOrigins: readonly string[] = [],
 ): ReadonlyArray<ScopedThreadRef> {
   const refs = new Map<string, ScopedThreadRef>();
   // Hermes' matchAll yields matches without `groups`; exec keeps them.
@@ -182,7 +194,7 @@ export function threadLinkRefs(
   for (let match = pattern.exec(markdown); match !== null; match = pattern.exec(markdown)) {
     const href =
       match.groups?.angleHref ?? match.groups?.href ?? match.groups?.autolink ?? match.groups?.bare;
-    const link = href === undefined ? null : parseThreadLinkHref(href);
+    const link = href === undefined ? null : parseThreadLinkHref(href, trustedWebOrigins);
     if (link === null) continue;
     for (const ref of threadLinkCandidates(link, messageEnvironmentId)) {
       refs.set(`${ref.environmentId}/${ref.threadId}`, ref);
@@ -195,14 +207,15 @@ export function threadLinkRefs(
 export function replaceThreadLinks(
   markdown: string,
   replace: (link: ThreadLink, label: string | undefined) => string | undefined,
+  trustedWebOrigins: readonly string[] = [],
 ): string {
-  if (!hasThreadLinks(markdown)) return markdown;
+  if (!hasThreadLinks(markdown, trustedWebOrigins)) return markdown;
   return markdown.replace(THREAD_LINK_OUTSIDE_CODE, (source, ...args) => {
     const groups = args.at(-1) as Partial<
       Record<"angleHref" | "href" | "autolink" | "bare" | "label", string>
     >;
     const href = groups.angleHref ?? groups.href ?? groups.autolink ?? groups.bare;
-    const link = href === undefined ? null : parseThreadLinkHref(href);
+    const link = href === undefined ? null : parseThreadLinkHref(href, trustedWebOrigins);
     return (link && replace(link, groups.label)) ?? source;
   });
 }
