@@ -43,7 +43,10 @@ const configuredClerkCliOAuthClientId = repoEnv.VITE_CLERK_CLI_OAUTH_CLIENT_ID?.
 const configuredRelayTracingUrl = repoEnv.VITE_RELAY_OTLP_TRACES_URL?.trim() || "";
 const configuredRelayTracingDataset = repoEnv.VITE_RELAY_OTLP_TRACES_DATASET?.trim() || "";
 const configuredRelayTracingToken = repoEnv.VITE_RELAY_OTLP_TRACES_TOKEN?.trim() || "";
-const configuredHostedAppChannel = process.env.VITE_HOSTED_APP_CHANNEL?.trim() || "";
+const configuredHostedAppChannel =
+  repoEnv.STUDIO_ENABLE_HOSTED_CONNECTIONS === "1"
+    ? process.env.VITE_HOSTED_APP_CHANNEL?.trim() || ""
+    : "";
 const configuredReleaseChannel =
   process.env.T3CODE_BUILT_DEV === "1" ? "dev" : process.env.VITE_RELEASE_CHANNEL?.trim() || "";
 const configuredDesktopUpdateRepository = process.env.STUDIO_RELEASE_REPOSITORY?.trim() || "";

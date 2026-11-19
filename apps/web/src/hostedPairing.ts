@@ -1,4 +1,5 @@
-import { DEFAULT_HOSTED_APP_URL } from "@t3tools/shared/connectAuth";
+import { STUDIO_APP_ORIGIN } from "@t3tools/shared/promptLinks";
+import { parseUrl } from "@t3tools/shared/url";
 
 import { getPairingTokenFromUrl, setPairingTokenOnUrl } from "@t3tools/shared/remote";
 
@@ -10,8 +11,27 @@ export interface HostedPairingRequest {
 
 export type HostedAppChannel = "latest" | "nightly";
 
-export function configuredHostedAppUrl(): string {
-  return import.meta.env.VITE_HOSTED_APP_URL?.trim() || DEFAULT_HOSTED_APP_URL;
+export function configuredHostedAppUrl(): string | null {
+  const url = parseUrl(import.meta.env.VITE_HOSTED_APP_URL?.trim() || "");
+  if (!url || url.username || url.password || url.pathname !== "/" || url.search || url.hash)
+    return null;
+  return url.protocol === "https:" ||
+    (url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname))
+    ? url.origin
+    : null;
+}
+
+/** Copy links for this app unless this build explicitly targets a hosted Studio deployment. */
+export function shareLinkOrigin(
+  currentHref = typeof window !== "undefined" ? window.location.href : "",
+): string {
+  const hosted = configuredHostedAppUrl();
+  if (hosted) return hosted;
+  const current = parseUrl(currentHref);
+  if (current?.protocol === "http:" || current?.protocol === "https:") return current.origin;
+  return current?.protocol === "open-product-studio-dev:"
+    ? "open-product-studio-dev://app"
+    : STUDIO_APP_ORIGIN;
 }
 
 function configuredBackendUrl(): string {
@@ -23,16 +43,9 @@ function configuredHostedAppChannel(): HostedAppChannel | null {
   return channel === "latest" || channel === "nightly" ? channel : null;
 }
 
-function originFromUrl(value: string): string | null {
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-}
-
 export function isHostedStaticApp(url?: URL): boolean {
-  if (configuredBackendUrl()) {
+  const hostedOrigin = configuredHostedAppUrl();
+  if (!hostedOrigin || configuredBackendUrl()) {
     return false;
   }
 
@@ -44,8 +57,7 @@ export function isHostedStaticApp(url?: URL): boolean {
     return false;
   }
 
-  const hostedOrigin = originFromUrl(configuredHostedAppUrl());
-  return hostedOrigin !== null && (url ?? new URL(window.location.href)).origin === hostedOrigin;
+  return (url ?? new URL(window.location.href)).origin === hostedOrigin;
 }
 
 export function readHostedPairingRequest(url: URL = new URL(window.location.href)) {
@@ -72,8 +84,10 @@ export function buildHostedPairingUrl(input: {
   readonly host: string;
   readonly token: string;
   readonly label?: string | null;
-}): string {
-  const url = new URL("/pair", configuredHostedAppUrl());
+}): string | null {
+  const origin = configuredHostedAppUrl();
+  if (!origin) return null;
+  const url = new URL("/pair", origin);
   url.searchParams.set("host", input.host);
 
   const label = input.label?.trim();
@@ -86,8 +100,10 @@ export function buildHostedPairingUrl(input: {
 
 export function buildHostedChannelSelectionUrl(input: {
   readonly channel: HostedAppChannel;
-}): string {
-  const url = new URL("/__t3code/channel", configuredHostedAppUrl());
+}): string | null {
+  const origin = configuredHostedAppUrl();
+  if (!origin) return null;
+  const url = new URL("/__t3code/channel", origin);
   url.searchParams.set("channel", input.channel);
   return url.toString();
 }
