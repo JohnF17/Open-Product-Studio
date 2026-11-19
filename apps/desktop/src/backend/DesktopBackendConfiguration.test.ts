@@ -311,6 +311,10 @@ describe("DesktopBackendConfiguration", () => {
             ),
           ),
         ),
+        Effect.provideService(HostProcess.Environment, {
+          t3code_home: "sentinel",
+          Vite_Dev_Server_Url: "https://another.example.test",
+        }),
       );
 
       assert.equal(
@@ -319,6 +323,8 @@ describe("DesktopBackendConfiguration", () => {
       );
       assert.equal(config.env.ELECTRON_RUN_AS_NODE, "1");
       assert.isUndefined(config.env.T3CODE_HOME);
+      assert.propertyVal(config.env, "t3code_home", undefined);
+      assert.propertyVal(config.env, "Vite_Dev_Server_Url", undefined);
       assert.equal(config.bootstrap.t3Home, baseDir);
       assert.includeMembers([...config.args], ["--base-dir", baseDir]);
       assert.isUndefined(config.env.T3CODE_CLI_PATH);

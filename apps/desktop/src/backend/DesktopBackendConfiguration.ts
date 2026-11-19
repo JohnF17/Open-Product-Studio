@@ -556,6 +556,31 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       ...buildObservabilityFragment(input.observabilitySettings),
     };
 
+    const env: Record<string, string | undefined> = {
+      ...backendChildEnvPatch(),
+      ...(environment.isPackaged
+        ? {
+            VITE_DEV_SERVER_URL: undefined,
+            T3CODE_TRACE_FILE: undefined,
+            T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: undefined,
+          }
+        : {}),
+      ELECTRON_RUN_AS_NODE: "1",
+      T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
+      // An unrelated T3 installation may have exported its own home into this process.
+      T3CODE_HOME: undefined,
+      T3CODE_CLI_PATH: Option.getOrUndefined(input.cliPath),
+      [DESKTOP_HOST_SCOPE_ENV]: input.hostScope,
+    };
+    if (environment.platform === "win32") {
+      // Node's child environment merge deletes exact object keys. Windows treats Path,
+      // PATH and other case variants as one variable, including variables we removed.
+      for (const name of Object.keys(yield* HostProcess.Environment)) {
+        const canonical = name.toUpperCase();
+        if (name !== canonical && Object.hasOwn(env, canonical)) env[name] = undefined;
+      }
+    }
+
     return {
       executablePath: process.execPath,
       // Packaged builds have a separate cache; --require prevents cache settings leaking to provider subprocesses.
@@ -568,22 +593,7 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       ],
       entryPath: environment.backendEntryPath,
       cwd: environment.backendCwd,
-      env: {
-        ...backendChildEnvPatch(),
-        ...(environment.isPackaged
-          ? {
-              VITE_DEV_SERVER_URL: undefined,
-              T3CODE_TRACE_FILE: undefined,
-              T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: undefined,
-            }
-          : {}),
-        ELECTRON_RUN_AS_NODE: "1",
-        T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
-        // An unrelated T3 installation may have exported its own home into this process.
-        T3CODE_HOME: undefined,
-        T3CODE_CLI_PATH: Option.getOrUndefined(input.cliPath),
-        [DESKTOP_HOST_SCOPE_ENV]: input.hostScope,
-      },
+      env,
       extendEnv: true,
       bootstrap,
       bootstrapDelivery: "fd3",

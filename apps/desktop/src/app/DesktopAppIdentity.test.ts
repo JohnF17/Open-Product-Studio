@@ -161,7 +161,7 @@ describe("DesktopAppIdentity", () => {
         );
       }),
       {
-        environment: { env: { VITE_DEV_SERVER_URL: "http://localhost:5173" } },
+        environment: { isPackaged: false, env: { VITE_DEV_SERVER_URL: "http://localhost:5173" } },
       },
     ),
   );
@@ -174,7 +174,7 @@ describe("DesktopAppIdentity", () => {
     },
     {
       stage: "Dev",
-      environment: { env: { VITE_DEV_SERVER_URL: "http://localhost:5173" } },
+      environment: { isPackaged: false, env: { VITE_DEV_SERVER_URL: "http://localhost:5173" } },
     },
   ])("uses a valid native User-Agent product name for $stage", ({ stage, environment }) => {
     const calls: ElectronAppCalls = {
