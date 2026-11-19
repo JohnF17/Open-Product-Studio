@@ -2,9 +2,10 @@ import * as Schema from "effect/Schema";
 
 import { randomUUID } from "../../lib/randomUUID";
 import { isVideoCueList, type VideoCue } from "./videoCues";
+import { type AffiliateDraft, affiliateSheets, createAffiliateDraft, isAffiliateDraft } from "./affiliateDraft";
 
 export type WorkingCategory = "clipper" | "replica" | "day-trader";
-export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
+export type Category = "blank" | "digital-product" | "video" | "affiliate-storefront" | WorkingCategory;
 export const styleNames = ["kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"] as const;
 export type VideoStyle = (typeof styleNames)[number];
 
@@ -20,6 +21,7 @@ export interface StudioDraft {
   title: string;
   fields: Record<string, string>;
   videoCues?: VideoCue[];
+  affiliate?: AffiliateDraft;
   tools: string[];
 }
 
@@ -54,6 +56,11 @@ export const categories: ReadonlyArray<{ id: Category; label: string; descriptio
     label: "Day Trader",
     description: "Plan an offline practice session and keep a decision journal.",
   },
+  {
+    id: "affiliate-storefront",
+    label: "Affiliate Storefront",
+    description: "Shortlist products and build a page with your affiliate links.",
+  },
 ];
 
 export const stages = {
@@ -73,6 +80,7 @@ export const stages = {
   clipper: ["source", "moments", "edit", "review", "export", "publish"],
   replica: ["reference", "brief", "design", "export", "prototype"],
   "day-trader": ["practice-data", "rules", "replay", "journal", "export"],
+  "affiliate-storefront": Object.keys(affiliateSheets),
 } as const satisfies Record<Category, readonly string[]>;
 
 export function draftStages(category: Category): readonly string[] {
@@ -91,6 +99,7 @@ export function createDraft(workspaceId: string, category: Category): StudioDraf
     style: "kinetic-type",
     title: "",
     fields: category === "digital-product" ? { format: "Ebook" } : {},
+    ...(category === "affiliate-storefront" ? { affiliate: createAffiliateDraft() } : {}),
     tools: [],
   };
 }
@@ -105,6 +114,7 @@ export function projectName(draft: StudioDraft): string {
       clipper: "Untitled clip",
       replica: "Untitled design",
       "day-trader": "Untitled practice study",
+      "affiliate-storefront": "Untitled storefront",
     }[draft.category]
   );
 }
@@ -132,6 +142,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     !Array.isArray(d.fields) &&
     Object.values(d.fields).every((v) => typeof v === "string") &&
     (d.videoCues === undefined || (d.category === "video" && isVideoCueList(d.videoCues))) &&
+    (d.category === "affiliate-storefront" ? isAffiliateDraft(d.affiliate) : d.affiliate === undefined) &&
     Array.isArray(d.tools) &&
     d.tools.every((t) => typeof t === "string")
   );
@@ -219,7 +230,7 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
   });
 }
 
-type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "style" | "tools" | "stage" | "category">;
+type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "affiliate" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 
 /** One writer per open project. Coalesce keystrokes while the previous transaction commits. */

@@ -8,11 +8,12 @@ import {
   stages,
 } from "./drafts";
 import { catalog, draftExport, selectedTools, starterOptions, styleNames } from "./guide";
+import { createAffiliateCandidate, publicAffiliatePage, updateAffiliateDraft } from "./affiliateDraft";
 
 describe("Studio working drafts", () => {
-  it("starts six schema-1 project types with independent identities", () => {
+  it("starts seven schema-1 project types with independent identities", () => {
     const drafts = categories.map(({ id }) => createDraft("one", id));
-    expect(new Set(drafts.map(({ id }) => id)).size).toBe(6);
+    expect(new Set(drafts.map(({ id }) => id)).size).toBe(7);
     expect(drafts.map(({ stage }) => stage)).toEqual([
       "notes",
       "format",
@@ -20,6 +21,7 @@ describe("Studio working drafts", () => {
       "source",
       "reference",
       "practice-data",
+      "discover",
     ]);
     expect(drafts.every((draft) => isStudioDraft(draft, "one"))).toBe(true);
     const video = createDraft("one", "video");
@@ -30,10 +32,48 @@ describe("Studio working drafts", () => {
     expect(stages.video.at(-1)).toBe("publish");
   });
 
+  it("keeps Affiliate storefront data and sheet routes scoped to that category", () => {
+    const draft = createDraft("one", "affiliate-storefront");
+    expect(stages["affiliate-storefront"]).toEqual([
+      "discover", "compare", "links", "design", "review", "export",
+    ]);
+    expect(draft.affiliate?.candidates).toEqual([]);
+    expect(isStudioDraft({ ...draft, affiliate: { ...draft.affiliate, candidates: [null] } }, "one")).toBe(false);
+    const video = createDraft("one", "video");
+    expect(isStudioDraft(video, "one")).toBe(true);
+    expect(isStudioDraft({ ...video, affiliate: draft.affiliate }, "one")).toBe(false);
+  });
+
+  it("keeps approval through changes to private notes and resets it after a public edit", () => {
+    const draft = createDraft("one", "affiliate-storefront");
+    const first = {
+      ...createAffiliateCandidate("first"),
+      pinned: true,
+      listing: { name: "Field notebook", description: "", href: "https://merchant.example/one" },
+    };
+    const second = {
+      ...createAffiliateCandidate("second"),
+      pinned: true,
+      listing: { name: "Refill", description: "", href: "https://merchant.example/two" },
+    };
+    const approved = { ...draft.affiliate!, candidates: [first, second], reviewed: true };
+    expect(publicAffiliatePage(approved).products).toEqual([first.listing, second.listing]);
+    const editedNotes = updateAffiliateDraft(approved, {
+      candidates: [{ ...first, evidenceNotes: "Private evidence" }, second],
+    });
+    expect(editedNotes.reviewed).toBe(true);
+    expect(updateAffiliateDraft(editedNotes, { candidates: [first, { ...second, pinned: false }] }).reviewed).toBe(false);
+    expect(draftExport({ ...draft, affiliate: editedNotes }, "draft")).toMatchObject({
+      kind: "private-working-draft",
+      affiliate: { reviewed: false, candidates: [{ evidenceNotes: "Private evidence" }, second] },
+    });
+  });
+
   it("keeps working draft routes aligned with the catalog", () => {
     expect(stages.clipper).toEqual(catalog.clipperStages.map(({ id }) => id));
     expect(stages.replica).toEqual(catalog.replicaStages.map(({ id }) => id));
     expect(stages["day-trader"]).toEqual(catalog.dayTraderStages.map(({ id }) => id));
+    expect(stages["affiliate-storefront"]).toEqual(catalog.affiliateStorefrontStages.map(({ id }) => id));
   });
 
   it("reopens the original video styles and the stick-figure style in schema 1", () => {

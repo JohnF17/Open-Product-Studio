@@ -62,7 +62,7 @@ it.each(workingDraftCases)(
     const textbox = (name: string) => screen.getByRole("textbox", { name, exact: true });
 
     await expect.element(button(/^Day Trader/)).toBeVisible();
-    expect(container.querySelectorAll(".ops-choices button")).toHaveLength(6);
+    expect(container.querySelectorAll(".ops-choices button")).toHaveLength(7);
     const workspace = container.querySelector(".ops-workspace")!;
     expect(workspace.scrollWidth).toBeLessThanOrEqual(workspace.clientWidth);
     await button(new RegExp("^" + category)).click();

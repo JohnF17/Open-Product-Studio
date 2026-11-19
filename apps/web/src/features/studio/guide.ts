@@ -18,6 +18,7 @@ export const catalog = JSON.parse(catalogText) as {
   clipperStages: readonly { id: string }[];
   replicaStages: readonly { id: string }[];
   dayTraderStages: readonly { id: string }[];
+  affiliateStorefrontStages: readonly { id: string }[];
 };
 
 export { styleNames } from "./drafts";
@@ -141,7 +142,8 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
         return value?.trim() ? [[key, key === "observation" ? value.trim() : value]] : [];
       }))
     : draft.fields;
-  const kind = draft.category === "replica" && !isBrief ? "private-working-draft" : guide?.kind;
+  const isPrivate = (draft.category === "replica" && !isBrief) || draft.category === "affiliate-storefront";
+  const kind = isPrivate ? "private-working-draft" : guide?.kind;
   return {
     schema: "studio-working-draft/1",
     category: draft.category,
@@ -149,6 +151,9 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
     stage: draft.stage,
     fields,
     ...(kind ? { kind, content: "authored-notes" } : {}),
+    ...(draft.category === "affiliate-storefront" && draft.affiliate
+      ? { affiliate: { ...draft.affiliate, reviewed: false } }
+      : {}),
     ...(draft.category === "video"
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
@@ -163,17 +168,18 @@ export function exportDraft(draft: StudioDraft, mode?: ExportMode) {
   const blob = new Blob([JSON.stringify(draftExport(draft, mode), null, 2)], {
     type: "application/json",
   });
+  const suffix = draft.category === "affiliate-storefront" || (draft.category === "replica" && mode === "draft")
+    ? " - private draft.json"
+    : draft.category === "replica" ? " - brief.json" : ".json";
+  downloadStudioFile(blob, projectName(draft), suffix);
+}
+
+export function downloadStudioFile(blob: Blob, title: string, suffix: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  const suffix = draft.category === "replica"
-    ? mode === "draft" ? " - private draft.json" : " - brief.json"
-    : ".json";
-  link.download =
-    (projectName(draft)
-      .replace(/[^\p{L}\p{N} _-]+/gu, " ")
-      .trim()
-      .slice(0, 80) || "Studio draft") + suffix;
+  const filename = title.replace(/[^\p{L}\p{N} _-]+/gu, " ").trim().slice(0, 80);
+  link.download = (filename || "Studio draft") + suffix;
   document.body.append(link);
   link.click();
   link.remove();

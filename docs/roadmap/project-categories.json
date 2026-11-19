@@ -12,7 +12,8 @@
     "video": {"label": "Video", "sourceRequired": false, "entry": "video-builder"},
     "clipper": {"label": "Clipper", "sourceRequired": false, "entry": "clipper-builder"},
     "replica": {"label": "Replica", "sourceRequired": false, "entry": "replica-builder"},
-    "day-trader": {"label": "Day Trader", "sourceRequired": false, "entry": "day-trader-builder"}
+    "day-trader": {"label": "Day Trader", "sourceRequired": false, "entry": "day-trader-builder"},
+    "affiliate-storefront": {"label": "Affiliate Storefront", "sourceRequired": false, "entry": "affiliate-storefront-builder"}
   },
   "videoStages": [
     {"id": "style", "label": "Choose a style", "owner": "WP08", "capability": "cap.dashboard.workspace", "optional": false},
@@ -47,6 +48,14 @@
     {"id": "journal", "label": "Review the decision journal with its dataset and rule revisions", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
     {"id": "export", "label": "Export the reviewed practice journal locally", "owner": "WP17", "capability": "cap.library.export", "optional": false}
   ],
+  "affiliateStorefrontStages": [
+    {"id": "discover", "label": "Collect candidates from user notes, merchant listings or authorized program catalogs", "owner": "WP10", "capability": "cap.evidence.import", "optional": false},
+    {"id": "compare", "label": "Compare fit, price, terms and limitations against dated evidence", "owner": "WP11", "capability": "cap.strategy.opportunity", "optional": false},
+    {"id": "links", "label": "Pair each merchant destination with its program link, relationship and visible disclosure", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "design", "label": "Arrange product cards for the selected storefront handoff", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "review", "label": "Check the exact draft for supported claims, permitted assets, link destination and disclosure placement", "owner": "WP16", "capability": "cap.product.qa", "optional": false},
+    {"id": "export", "label": "Save the reviewed storefront or implementation handoff locally", "owner": "WP17", "capability": "cap.library.export", "optional": false}
+  ],
   "designBuilderPolicy": {
     "clipper": {
       "editAuthority": "studio-project-variant",
@@ -70,6 +79,14 @@
       "network": "disabled",
       "liveOrders": "disabled",
       "financialTransactions": "disabled"
+    },
+    "affiliate-storefront": {
+      "candidateSources": ["manual-notes", "merchant-listing-reference", "authorized-program-catalog"],
+      "comparison": "dated-source-per-claim-with-unknowns",
+      "disclosure": "record-relationship-and-display-next-to-referral-link",
+      "destinations": ["shopify-hosted-external-links-handoff", "downloadable-static-storefront", "chosen-stack-handoff"],
+      "commissionEvidence": "authorized-program-statement-separate-from-merchant-orders",
+      "publication": "outside-builder"
     }
   },
   "stackEntries": {
