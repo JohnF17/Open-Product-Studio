@@ -101,3 +101,8 @@ jobs:
           src/hostedPairing.test.ts src/components/settings/pairingUrls.test.ts
           src/components/settings/ConnectionsSettings.logic.test.ts src/components/desktopUpdate.logic.test.ts
           src/components/composerInlineTokenPaste.test.ts
+      - name: Check state migration and worktree cleanup in disposable directories
+        working-directory: apps/server
+        run: |
+          vp test run --maxWorkers=1 scripts/migrate-dev-db.test.ts
+          vp test run --maxWorkers=1 src/storageCleanup.test.ts -t 'a custom worktrees folder'

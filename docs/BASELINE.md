@@ -22,7 +22,7 @@ Build the candidate with Node 26.13.1 and pnpm 12.14.0 against the new frozen lo
 
 The Studio runner supplies a dedicated engine directory to the desktop and its child server. A linked worktree uses its own `.t3/studio`. In a regular checkout the default is `~/.open-product-studio/dev`. Set `OPEN_PRODUCT_STUDIO_DEV_HOME` in a regular checkout, or pass `--home-dir` to choose a directory explicitly. Worktree setup leaves other checkouts' environment files alone. Database seeding requires an explicit `--seed` and takes its source from the Studio development directory.
 
-The focused Windows bootstrap suite ran under a synthetic profile with the current lockfile and Node 26.13.1. It passed 45 tests and skipped the Unix file-symlink case. Coverage includes the upstream runner's port/binding checks, Studio directory selection, explicit seeding, size limits and configuration-file precedence.
+The focused Windows bootstrap suite ran under a synthetic profile with the current lockfile and Node 26.13.1. At `3c5d16edb7`, 46 bootstrap and public-configuration tests passed, and one Unix file-symlink case was skipped. Separate suites passed five home-selection tests, 33 pairing tests, eight updater-link tests and both selected worktree cleanup scenarios. Cleanup reported a native Windows path for the removed or retained worktree. The migration suite passed all 12 cases at `481c9a6c0c`; a repeat at `3c5d16edb7` recorded 11 passes and a 120-second timeout. The hosted runtime workflow repeats the migration and cleanup checks on disposable runners.
 
 ## Initial Windows qualification
 
@@ -30,4 +30,4 @@ The [initial manifest](upstream/baseline-7d71f852.json) and [WP01 record](accept
 
 The desktop build entry point is `pnpm run build:desktop`. The x64 installer entry point is `pnpm run dist:desktop:win:x64`. The normal Windows packager preflight checks for Visual C++ x64 Spectre-mitigated libraries. The upstream release pipeline also supports `T3CODE_DESKTOP_REUSE_RESOURCE_MONITOR=true` with a genuine prebuilt resource monitor at the expected architecture-specific path. The baseline built that input from the pin. Each remaining native dependency, packaged graph and installed-app smoke test still needs its own evidence.
 
-WP02 will isolate the app identity, vault, data directories, update feed and telemetry. The first downloadable Studio build requires a synthetic Windows install, account-free launch, restart and uninstall. See the [desktop contract](WORK-PACKAGES.md).
+WP02 has source and fixture evidence for app identity, engine and renderer paths, update settings, CLI boundaries and telemetry. An unsigned packaged app at `3dd629697edf` reached its project chooser. The local packaged smoke run exited during shutdown before the second launch. Installer lifecycle and signing have their own release gates. [WP02 receipt](acceptance/WP02.md), [desktop contract](WORK-PACKAGES.md).
