@@ -18,6 +18,12 @@ The import reconciles 2,006 upstream commits and 4,154 changed paths since the f
 
 Build the candidate with Node 26.13.1 and pnpm 12.14.0 against the new frozen lockfile. At this merge, the development runner defaults to seeding a new worktree database from a small existing T3 database, and the worktree setup helper links environment files from the main checkout. Use a disposable OS profile with synthetic home and environment during qualification. The upstream server state root, OS identity, updater, credential namespaces and cloud defaults still require independent Studio isolation before distribution. The earlier Windows dependency installation, source smoke test, installer-build results and native artifact hashes below describe the original pin. The current Windows installer and release gates require fresh evidence.
 
+## Studio development startup
+
+The Studio runner supplies a dedicated engine directory to the desktop and its child server. A linked worktree uses its own `.t3/studio`. In a regular checkout the default is `~/.open-product-studio/dev`. Set `OPEN_PRODUCT_STUDIO_DEV_HOME` in a regular checkout, or pass `--home-dir` to choose a directory explicitly. Worktree setup leaves other checkouts' environment files alone. Database seeding requires an explicit `--seed` and takes its source from the Studio development directory.
+
+The focused Windows bootstrap suite ran under a synthetic profile with the current lockfile and Node 26.13.1. It passed 45 tests and skipped the Unix file-symlink case. Coverage includes the upstream runner's port/binding checks, Studio directory selection, explicit seeding, size limits and configuration-file precedence.
+
 ## Initial Windows qualification
 
 The [initial manifest](upstream/baseline-7d71f852.json) and [WP01 record](acceptance/WP01.md) preserve the original build evidence. The initial baseline specified Node 26.12.1 and pnpm 12.14.0. Build against the frozen root lockfile in a separate checkout. Use a disposable Windows user or VM with synthetic home, AppData, CLI state and engine state. Upstream development helpers can seed from an existing T3 installation, link environment files or migrate Chromium state. An existing everyday T3 profile is unsuitable for this baseline.

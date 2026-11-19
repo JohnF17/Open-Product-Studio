@@ -445,13 +445,15 @@ describe("t3 pair", () => {
           `gitdir: ${NodePath.join(root, "repo", ".git", "worktrees", "worktree")}\n`,
         );
         const sharedHome = NodePath.join(root, "shared");
-        yield* persistServerRuntimeState({
-          path: NodePath.join(sharedHome, "userdata", "server-runtime.json"),
-          state: yield* makePersistedServerRuntimeState({
-            config: { host: "127.0.0.1", devUrl: undefined },
-            port: Number(new URL(origin).port),
-          }),
-        });
+        for (const otherHome of [sharedHome, NodePath.join(worktree, ".t3")]) {
+          yield* persistServerRuntimeState({
+            path: NodePath.join(otherHome, "userdata", "server-runtime.json"),
+            state: yield* makePersistedServerRuntimeState({
+              config: { host: "127.0.0.1", devUrl: undefined },
+              port: Number(new URL(origin).port),
+            }),
+          });
+        }
 
         const error = yield* provideCliTestLayers(
           runCli(["pair"]).pipe(
