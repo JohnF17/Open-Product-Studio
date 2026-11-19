@@ -13,6 +13,52 @@ function jsonFile(data: unknown) {
   return new File([JSON.stringify(data)], "backup.json", { type: "application/json" });
 }
 
+it("restores archived text from the Replica export sheet's private download", async () => {
+  const scope = randomUUID();
+  const original = createDraft(scope, "replica");
+  original.stage = "export";
+  original.fields = { interfaceSketch: "A single card", characterSecrets: "Private character notes" };
+  const source = await importProjectBackup(new File([projectBackupBlob(original)], "original.json"), scope);
+  await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
+  await screen.getByRole("button", { name: /Untitled design/ }).click();
+  await screen.getByText("Private backup", { exact: true }).click();
+  const urls = vi.spyOn(URL, "createObjectURL");
+  const clicks = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  try {
+    await screen.getByRole("button", { name: "Download private draft", exact: true }).click();
+    const file = new File([urls.mock.calls.at(-1)![0] as Blob], "private.json");
+    const copy = await importProjectBackup(file, scope);
+    expect(copy.id).not.toBe(source.id);
+    expect(copy.archivedFields).toEqual({ characterSecrets: "Private character notes" });
+    expect(copy.fields).toEqual({ interfaceSketch: "A single card" });
+  } finally {
+    clicks.mockRestore();
+    urls.mockRestore();
+  }
+});
+
+it("downloads the complete oversized archive and displays its restore limit", async () => {
+  const scope = randomUUID();
+  const source = createDraft(scope, "video");
+  source.title = "Archive test";
+  source.fields.script = "x".repeat(PROJECT_BACKUP_MAX_BYTES + 1);
+  await saveDraft(source, 0);
+  await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
+  await screen.getByRole("button", { name: /^Archive test/ }).click();
+  const urls = vi.spyOn(URL, "createObjectURL");
+  const clicks = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  try {
+    await screen.getByRole("button", { name: "Download private backup", exact: true }).click();
+    const archive = urls.mock.calls.at(-1)![0] as Blob;
+    expect(archive.size).toBeGreaterThan(PROJECT_BACKUP_MAX_BYTES);
+    expect(JSON.parse(await archive.text()).fields.script.length).toBe(source.fields.script.length);
+    await expect.element(screen.getByRole("alert")).toHaveTextContent(/32 MiB restore limit/);
+  } finally {
+    clicks.mockRestore();
+    urls.mockRestore();
+  }
+});
+
 const cue = {
   id: "cue-1",
   timestamp: "still drafting",
@@ -160,6 +206,10 @@ it("keeps extra authored strings inert across private and legacy backup round tr
   source.fields = {
     notes: "  Original notes\r\n",
     earlySceneNotes: "  Keep the previous transitions\r\n",
+    imageCreditsAndPermissions: "Licensed by the illustrator",
+    characterSecrets: "Fictional backstory",
+    thirdPartyGrants: "Community funding ideas",
+    publishApprovalStatus: "discard-authority",
     approvalNotes: "Ask the illustrator about the cover.",
     tokenBudget: "A chapter about budgeting for inference.",
     pronunciationHints: "",
@@ -171,6 +221,9 @@ it("keeps extra authored strings inert across private and legacy backup round tr
   };
   const expected = {
     earlySceneNotes: source.fields.earlySceneNotes,
+    imageCreditsAndPermissions: source.fields.imageCreditsAndPermissions,
+    characterSecrets: source.fields.characterSecrets,
+    thirdPartyGrants: source.fields.thirdPartyGrants,
     approvalNotes: source.fields.approvalNotes,
     tokenBudget: source.fields.tokenBudget,
     pronunciationHints: "",

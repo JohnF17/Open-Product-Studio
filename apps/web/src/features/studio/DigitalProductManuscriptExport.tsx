@@ -6,10 +6,11 @@ import {
   setDigitalProductApproval,
   writeDigitalProductField,
 } from "./digitalProductExport";
-import { downloadStudioFile, exportDraft } from "./guide";
+import { downloadStudioFile } from "./guide";
 import "./digitalProductExport.css";
 
-export function DigitalProductManuscriptExport({ draft, editor }: {
+export function DigitalProductManuscriptExport({ draft, editor, saveBackup }: {
+  saveBackup: () => void;
   draft: StudioDraft;
   editor: DraftEditor;
 }) {
@@ -85,7 +86,7 @@ export function DigitalProductManuscriptExport({ draft, editor }: {
       <button
         type="button"
         className="ops-link"
-        onClick={() => exportDraft(editor.snapshot().draft, "draft")}
+        onClick={saveBackup}
       >
         <ArrowDownToLine size={16} /> Download private draft
       </button>

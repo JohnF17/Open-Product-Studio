@@ -150,7 +150,7 @@ it.each(workingDraftCases)(
         await screen.getByText("Private backup", { exact: true }).click();
         await button("Download private draft").click();
         const backup = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
-        expect(backup.kind).toBe("private-working-draft");
+        expect(backup.schema).toBe("studio-project-backup/1");
         expect(Object.values(backup.fields)).toEqual(expect.arrayContaining([sheets[0][1], "Analysis only"]));
       }
     } finally {

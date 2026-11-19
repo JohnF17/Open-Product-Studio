@@ -590,7 +590,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
                 inert
                 aria-hidden="true"
               >
-                <Step stage={motion.from} draft={draft} editor={editor} writeField={writeField} />
+                <Step stage={motion.from} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} />
               </div>
             )}
             <div
@@ -601,7 +601,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
               }}
               ref={activePanel}
             >
-              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} />
+              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} />
               {onAskAgent && researchStep && (
                 <details className="ops-reference ops-agent-context">
                   <summary>Ask AI to research products</summary>
@@ -708,6 +708,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
 }
 
 type StepProps = {
+  saveBackup: () => void;
   stage: string;
   draft: StudioDraft;
   editor: DraftEditor;
@@ -761,7 +762,7 @@ function Field({
   );
 }
 
-function Step({ stage, draft, editor, writeField }: StepProps) {
+function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
   if (draft.category === "affiliate-storefront" && draft.affiliate && isAffiliateStage(stage)) {
     return <AffiliateStorefrontSheet stage={stage} affiliate={draft.affiliate} editor={editor} />;
   }
@@ -772,7 +773,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
           title="Review and export your manuscript"
           detail="Readers will see the public title, format and manuscript text. Your brief, outline and project notes stay in your private draft."
         />
-        <DigitalProductManuscriptExport draft={draft} editor={editor} />
+        <DigitalProductManuscriptExport draft={draft} editor={editor} saveBackup={saveBackup} />
       </>
     );
   }
@@ -837,7 +838,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
           </details>
         )}
         {stage === "export" && (draft.category === "replica" ? (
-          <ReplicaHandoff draft={draft} />
+          <ReplicaHandoff draft={draft} saveBackup={saveBackup} />
         ) : (
           <button className="ops-button ops-primary" onClick={() => exportDraft(draft)}>
             <ArrowDownToLine size={16} /> {guide.download}
@@ -1185,7 +1186,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
   );
 }
 
-function ReplicaHandoff({ draft }: { draft: StudioDraft }) {
+function ReplicaHandoff({ draft, saveBackup }: { draft: StudioDraft; saveBackup: () => void }) {
   const [approvedNote, setApprovedNote] = useState<string | null>(null);
   const observation = draft.fields.observation?.trim();
   const includeNote = !!observation && approvedNote === observation;
@@ -1210,7 +1211,7 @@ function ReplicaHandoff({ draft }: { draft: StudioDraft }) {
       <details className="ops-reference">
         <summary>Private backup</summary>
         <p>Includes all source locations, permission notes and working fields.</p>
-        <button className="ops-link" onClick={() => exportDraft(draft, "draft")}>Download private draft</button>
+        <button className="ops-link" onClick={saveBackup}>Download private draft</button>
       </details>
     </>
   );

@@ -83,24 +83,19 @@ export class ProjectBackupConfirmation extends ProjectBackupError {
   }
 }
 
+// These exact names identify state that must never transfer authority. Unknown
+// strings live only in the inert archive, including authored notes about security.
 const reservedFields = new Set([
-  "__proto__",
-  "prototype",
-  "constructor",
-  "connection",
-  "restoredcopy",
-  "shareobservation",
-  "reviewed",
+  "__proto__", "prototype", "constructor", "connection", "restoredcopy", "shareobservation",
+  "reviewed", "approved", "approval", "approvals", "digitalproductapproval", "publishapproval",
+  "publishapprovalstatus", "grant", "grants", "permissiongrant", "permissions", "permission",
+  "auth", "authorization", "oauth", "credentials", "credential", "apikey", "providerapikey",
+  "token", "accesstoken", "refreshtoken", "providerrefreshtoken", "providertoken", "oauthtoken",
+  "secret", "clientsecret", "password", "passkey", "privatekey", "cookie", "sessioncookie",
 ]);
 
-// Unknown strings are retained as inert private content. Reserved and recognizable
-// authority or credential keys are dropped even from that archive.
 function canArchiveField(key: string): boolean {
-  if (reservedFields.has(key.toLowerCase())) return false;
-  const words = key.replace(/([A-Z])([A-Z][a-z])/g, "$1 $2").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[^a-z0-9]+/gi, " ").trim().toLowerCase();
-  // A token budget or approval note is authored material. Match a credential or
-  // permission field at the end of its name, rather than any mention in a label.
-  return !/\b(?:auth|authentication|authorization|oauth|authority|approved|approvals?|grants?|credentials?|permissions?|api ?keys?|tokens?|secrets?|passwords?|passkeys?|cookies?|private ?keys?)(?: value)?$/.test(words);
+  return key !== "__proto__" && !reservedFields.has(key.replace(/[-_ ]/g, "").toLowerCase());
 }
 
 function copyFields(value: unknown, category: Category, archived: unknown) {

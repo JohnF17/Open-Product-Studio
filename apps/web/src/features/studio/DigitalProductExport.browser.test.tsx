@@ -109,8 +109,8 @@ it("reopens an approved version, exports only reader content, and clears approva
 
     await button("Download private draft").click();
     const backup = (await file)!;
-    expect(backup.name).toBe("Internal study - private draft.json");
-    expect(JSON.parse(await backup.text())).toMatchObject({ title: "Internal study", fields: legacy.fields });
+    expect(backup.name).toBe("Internal study - private backup.json");
+    expect(JSON.parse(await backup.text())).toMatchObject({ title: "Internal study", fields: { draft: manuscript, brief: legacy.fields.brief }, archivedFields: { unrelated: legacy.fields.unrelated } });
   } finally {
     document.removeEventListener("click", captureDownload);
   }
