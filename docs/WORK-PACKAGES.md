@@ -376,7 +376,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 ## WP08: Dashboard, all module routes and accessible guidance
 
-**Milestone:** M0B. **Dependencies:** WP03, WP05, WP06, WP07. **Status:** planned.
+**Milestone:** M0B. **Dependencies:** WP03, WP05, WP06, WP07. **Status:** in-progress.
 
 **Owner:** frontend/accessibility maintainer. **Independent acceptance:** novice UX and accessibility reviewer. **External gates:** none beyond global policy.
 

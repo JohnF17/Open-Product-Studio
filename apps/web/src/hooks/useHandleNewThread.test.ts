@@ -288,6 +288,21 @@ describe.each([
     expect(testState.draftStore.setLogicalProjectDraftThreadId).not.toHaveBeenCalled();
   });
 
+  it("abandons a cancelled handoff even when the router stays on the same page", async () => {
+    testState.reset(draft);
+    const controller = new AbortController();
+    const opening = useNewThreadHandler()(
+      { environmentId: "environment-ssh", projectId: "project-remote" } as never,
+      { prompt: "Suggestions for the previous step", signal: controller.signal },
+    );
+    controller.abort();
+    testState.completeProjectFileRead(null);
+    await expect(opening).resolves.toBeNull();
+    expect(testState.router.navigate).not.toHaveBeenCalled();
+    expect(testState.draftStore.setLogicalProjectDraftThreadId).not.toHaveBeenCalled();
+    expect(testState.draftStore.setPrompt).not.toHaveBeenCalled();
+  });
+
   it("resolves to the draft another opener showed for the same project meanwhile", async () => {
     testState.reset(draft);
     const pendingOpen = useNewThreadHandler()(

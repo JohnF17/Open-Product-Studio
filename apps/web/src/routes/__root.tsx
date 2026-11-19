@@ -227,7 +227,7 @@ function RootRouteBranch() {
         </>
       ) : (
         <FirstRunGate
-          enabled={primaryEnvironmentAuthenticated}
+          enabled={primaryEnvironmentAuthenticated && !isElectron}
           hostedStatic={authGateState.status === "hosted-static"}
         >
           {appHosts}
@@ -384,7 +384,8 @@ function EventRouter({
         );
       useUiStateStore.getState().setProjectExpanded(bootstrapProjectKey, true);
 
-      if (readPathname() !== "/") {
+      // Desktop Home belongs to Studio. Explicit thread links still use the activation coordinator.
+      if (isElectron || readPathname() !== "/") {
         return;
       }
       if (skipInitialBootstrapNavigationRef.current) {
