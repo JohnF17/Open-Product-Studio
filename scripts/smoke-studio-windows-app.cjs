@@ -68,7 +68,71 @@ for (const dir of sentinels) {
 }
 const project = "Windows package draft";
 const note = "Account-free packaged startup saved this synthetic draft.";
+const categories = ["Blank", "Digital product", "Video", "Clipper", "Replica", "Day Trader"];
+const clipperProject = "Windows Clipper draft";
+const markIn = "00:12";
+const markOut = "00:29";
+const caption = "Keep both hands visible";
+const journalProject = "Windows practice journal";
+const journalNote = "I paused at the gap in the synthetic series.";
 const runs = [];
+
+function button(page, name) {
+  return page.getByRole("button", { name, exact: typeof name === "string" });
+}
+
+function textbox(page, name) {
+  return page.getByRole("textbox", { name, exact: true });
+}
+
+async function viewportScreenshot(page, name) {
+  await page.screenshot({ path: path.join(output, name), animations: "disabled", fullPage: false });
+}
+
+async function createGuidedDrafts(page, chooser) {
+  await button(chooser, "New project").click();
+  await button(chooser, /^Clipper\b/).click();
+  await textbox(page, "Project name").fill(clipperProject);
+  await textbox(page, "Reference recording").fill("Synthetic workshop walkthrough");
+  await button(page, "Next").click();
+  await textbox(page, "Mark in").fill(markIn);
+  await textbox(page, "Mark out").fill(markOut);
+  await button(page, "Next").click();
+  await textbox(page, "Caption text").fill(caption);
+  await button(page, "Callout").click();
+  await button(page, "Use this look").click();
+  await button(page, "Look saved").waitFor();
+  await button(page, "Projects").click();
+  await button(chooser, /^Windows Clipper draft\b/).waitFor();
+
+  await button(chooser, "New project").click();
+  await button(chooser, /^Day Trader\b/).click();
+  await textbox(page, "Project name").fill(journalProject);
+  await textbox(page, "Practice dataset reference").fill("Synthetic time series");
+  await page
+    .getByRole("combobox", { name: "Go to step", exact: true })
+    .selectOption({ label: "Journal" });
+  await textbox(page, "Journal notes").fill(journalNote);
+  await button(page, "Projects").click();
+  await button(chooser, /^Windows practice journal\b/).waitFor();
+}
+
+async function verifyGuidedDraftsAfterRestart(page, chooser) {
+  await button(chooser, /^Windows Clipper draft\b/).click();
+  assert.equal(await textbox(page, "Caption text").inputValue(), caption);
+  const callout = button(page, "Callout");
+  assert.equal(await callout.getAttribute("aria-pressed"), "true");
+  await button(page, "Look saved").waitFor();
+  await page.getByRole("group", { name: "Try a caption look", exact: true }).scrollIntoViewIfNeeded();
+  await viewportScreenshot(page, "packaged-clipper-restart.png");
+  await button(page, "Back").click();
+  assert.equal(await textbox(page, "Mark in").inputValue(), markIn);
+  assert.equal(await textbox(page, "Mark out").inputValue(), markOut);
+
+  await button(page, "Projects").click();
+  await button(chooser, /^Windows practice journal\b/).click();
+  assert.equal(await textbox(page, "Journal notes").inputValue(), journalNote);
+}
 
 function readShutdownSpans(startedMs) {
   const trace = path.join(env.STUDIO_HOME, "userdata", "logs", "desktop.trace.ndjson");
@@ -178,26 +242,30 @@ async function launch(index) {
     const win = await app.browserWindow(page);
     await win.evaluate((w) => w.setContentSize(1240, 830));
     assert.match(page.url(), /^open-product-studio:\/\/app\//);
+    page.setDefaultTimeout(15000);
     if (index === 0) {
       await chooser
         .getByRole("heading", { name: "New project", exact: true })
         .waitFor({ timeout: 60000 });
-      await page.screenshot({
-        path: path.join(output, "packaged-window.png"),
-        animations: "disabled",
-      });
-      await chooser.getByRole("button", { name: /^Blank\b/ }).click();
+      const cards = chooser.locator(".ops-choices");
+      await cards.waitFor();
+      assert.equal(await cards.getByRole("button").count(), categories.length);
+      for (const category of categories) {
+        await button(cards, new RegExp("^" + category + "\\b")).waitFor();
+      }
+      await viewportScreenshot(page, "packaged-window.png");
+      await button(chooser, /^Blank\b/).click();
       await page.getByLabel("Project name", { exact: true }).fill(project);
       await page.getByLabel("Project notes", { exact: true }).fill(note);
-      await page.getByRole("button", { name: "Projects", exact: true }).click();
-      await page.getByRole("button", { name: new RegExp(project) }).waitFor({ timeout: 30000 });
+      await button(page, "Projects").click();
+      await button(chooser, /^Windows package draft\b/).waitFor({ timeout: 30000 });
+      await createGuidedDrafts(page, chooser);
     } else {
-      await page.getByRole("button", { name: new RegExp(project) }).click({ timeout: 60000 });
+      await button(chooser, /^Windows package draft\b/).click({ timeout: 60000 });
       assert.equal(await page.getByLabel("Project notes", { exact: true }).inputValue(), note);
-      await page.screenshot({
-        path: path.join(output, "packaged-restart.png"),
-        animations: "disabled",
-      });
+      await viewportScreenshot(page, "packaged-restart.png");
+      await button(page, "Projects").click();
+      await verifyGuidedDraftsAfterRestart(page, chooser);
     }
     const { protocol, host, pathname } = new URL(page.url());
     runs.push({ ...identity, url: `${protocol}//${host}${pathname}` });
@@ -254,14 +322,19 @@ async function launch(index) {
       {
         candidate,
         embeddedCommit: manifest.t3codeCommitHash,
+        platform: process.platform,
+        scope: "Unsigned installed Electron desktop using a synthetic profile and drafts",
         runs,
         checks: [
           "packaged Electron startup",
           "Studio scheme and user/session roots",
-          "blank project edit",
-          "persistence across independent processes",
+          "six-category project chooser",
+          "Blank notes restored across independent processes",
+          "Clipper time marks, caption and saved Callout look restored across independent processes",
+          "Day Trader journal restored across independent processes",
           "legacy fixture sentinels unchanged",
         ],
+        screenshots: ["packaged-window.png", "packaged-restart.png", "packaged-clipper-restart.png"],
       },
       null,
       2,
