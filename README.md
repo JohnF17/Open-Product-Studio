@@ -4,7 +4,13 @@ Turn a useful idea into a product people can use. Keep the files, choose the mod
 
 **The Windows desktop baseline builds and opens.** We built the pinned T3 Code desktop, web and server from source and opened a fixture conversation in Electron. The Studio dashboard and guided product workflows are planned. See the [baseline record](docs/BASELINE.md) and [verified window](docs/acceptance/WP01/windows-source-smoke.png).
 
-Open Product Studio is a planned downloadable Electron application, built as a substantially adapted downstream fork of T3 Code. It is an open-source workspace for researching a buyer's problem, creating a digital product, and preparing its launch. The complete workspace includes research, strategy, product creation, creator partnerships, contacts, launch campaigns, media, publishing, feedback, exports and guidance. All modules appear in the first dashboard; explicit engineering milestones govern which actions are available.
+Open Product Studio is a planned downloadable Electron workspace for making and publishing things with your own AI tools. New Project offers three starting points:
+
+- **Blank** opens a workspace where you can bring existing material or pick a guided workflow later.
+- **Digital product** guides you from an idea through research, creation and export of an ebook, workbook or another supported product.
+- **Video** starts a production of its own. Choose a style, see which tools it needs, develop an idea with the builder, and take it through script, scenes, review and export. An eligible connected social account adds an optional publishing step.
+
+Projects share the T3-derived desktop shell, model selection, library and job history. Engineering milestones govern when each action becomes available. The [project experience](docs/PROJECT-EXPERIENCE.md) describes the planned creation flow.
 
 The intended experience is simple: let AI investigate the web and recommend choices at every stage, accept or change those choices, review the result, and export or deliberately publish your work. "Recommend and do safe work" handles bounded research and reversible drafting under your chosen budget. A guided first project teaches the interface while you use it. You can always skip the tour.
 
@@ -23,7 +29,7 @@ Free provider allowances are useful for experiments. They are finite, change ove
 
 ## What we are building
 
-The first complete production milestone proves this workflow inside the full registered dashboard:
+The first complete Digital product milestone takes a creator through this workflow:
 
 1. Describe a specific buyer and problem.
 2. Collect sources and separate evidence from assumptions.

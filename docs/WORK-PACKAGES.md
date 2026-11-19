@@ -130,11 +130,11 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.project.create`, `cap.modules.registry`.
 
-**Files:** `packages/studio-contracts/src/project.ts`, `packages/studio-contracts/src/capability.ts`, `packages/studio-domain/src/eligibility.ts`, `packages/studio-domain/src/eligibility.test.ts`, `modules/catalog.json`.
+**Files:** `packages/studio-contracts/src/project.ts`, `packages/studio-contracts/src/capability.ts`, `packages/studio-domain/src/eligibility.ts`, `packages/studio-domain/src/eligibility.test.ts`, `modules/catalog.json`, `docs/roadmap/project-categories.json`.
 
 **Consumes:** ProductIdentity and canonical roadmap capability IDs.
 
-**Produces:** BusinessProject; RevisionRef; CapabilityManifest; evaluateEligibility(actor, project, capability): Eligibility with typed blockers.
+**Produces:** BusinessProject; RevisionRef; CapabilityManifest; evaluateEligibility(actor, project, capability): Eligibility with typed blockers. Versioned category, starter and style references with project-scoped state.
 
 **Acceptance and failure behavior:**
 
@@ -152,11 +152,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.
 
+- Persist the starter category (blank, digital-product or video) separately from formats, style versions, module capabilities and entitlements. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A7: **component**, producer WP03. Exercise this contract on isolated synthetic inputs.
+
+- A8: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -406,9 +410,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.
 
+- From New project present Blank, Digital product and Video as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Show each future action and its milestone even when the category can already be selected.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A11: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -454,11 +462,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Supply a shared inbound mailbox port with per-account/environment cursors, deduplication, gap/backfill state, bounded attachments, subscription revocation and original-byte event verification. Test independent streams with overlapping provider IDs and distinct grants.
 
+- Run the style preparation checklist through the project capability broker. Verify selected host, approved source and version, stage the approved changes, and persist per-tool receipts for retry or undo. Reopening after a partial setup rechecks the actual host and account. Missing optional components leave supported paths usable. A preflight never provisions a credential or enables a publisher.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7: **component**, producer WP09. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A8: **component**, producer WP09. Exercise this contract on isolated synthetic inputs.
+
+- A9: **component**, producer WP09. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -556,11 +568,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.
 
+- A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A11: **component**, producer WP11. Exercise this contract on isolated synthetic inputs.
+
+- A12: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -696,9 +712,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Historical versions/claim links remain inspectable; stale evidence flags affected sections.
 
+- Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A5: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -1190,7 +1210,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - [ ] Activate capability only in a build carrying all applicable component, integration and public-release evidence; update register status and release notes honestly.
 
-## WP24: Bounded video-generation connector
+## WP24: Standalone video studio, local rendering and bounded provider jobs
 
 **Milestone:** M4A. **Dependencies:** WP06, WP09, WP17. **Status:** planned.
 
@@ -1198,11 +1218,11 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Capabilities:** `cap.media.video`.
 
-**Files:** `apps/server/src/studio/connectors/video.ts`, `apps/server/src/studio/connectors/video.contract.test.ts`, `apps/web/src/features/studio/media/VideoJobs.tsx`.
+**Files:** `apps/server/src/studio/connectors/video.ts`, `apps/server/src/studio/connectors/video.contract.test.ts`, `apps/web/src/features/studio/media/VideoJobs.tsx`, `packages/studio-contracts/src/videoProject.ts`, `apps/web/src/features/studio/media/VideoBuilder.tsx`.
 
-**Consumes:** Reviewed script/assets, voice/likeness permissions, exact model/duration/resolution, expiring quote and budget.
+**Consumes:** A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget.
 
-**Produces:** VideoJob with async polling/webhook policy, asset QA, provider retention and charge receipt.
+**Produces:** Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts.
 
 **External gate applicability:**
 
@@ -1212,7 +1232,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Acceptance and failure behavior:**
 
-- Independent video entitlement/scopes and duration pricing; image support never certifies video support.
+- Check video entitlements, scopes and duration pricing independently on each paid route. An offline render with supplied media and narration can finish without a paid account, an image provider or a document project.
 
 - Async completion, timeout/revoke/unknown/cancel/failed-charge and duplicate-event fixtures.
 
@@ -1220,11 +1240,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Provider download/retention/egress bounds and explicit always-on receiver if required.
 
-- Only a downloaded, inspectable final video passing asset QA may be labeled completed video; a script/storyboard, prepared preview, provider terminal text or unknown job outcome cannot satisfy that result. Include actual route/entitlement, failed/retried charges and unknown costs.
+- Complete a video only after an inspectable final file passes asset QA. Use a locally rendered file or download the provider output. Label script, storyboard, preview and unknown outcomes individually. Include the actual route, entitlement where relevant, failed and retried charges and unknown costs.
 
-- Before first activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.
+- Before first external connector activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.
 
-- Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.
+- For external routes prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.
+
+- Start a standalone 30-second project from a blank brief. Pin one of the catalog styles, inspect and explicitly prepare its required tools, approve the script and storyboard, edit a scene, preview, render and review. Reopen the editable project and play the exported video with captions and credits outside Studio. Exercise the bundled local route with document, merchant, social and paid model connections absent; accept a separately quoted narration route only when requested.
+
+- Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware.
 
 **Evidence phase / producer (all not-run):**
 
@@ -1233,6 +1257,12 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A6, A7: **component**, producer WP24. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
 
 - A6, A7: **integration**, producer WP24. Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66.
+
+- A8: **component**, producer WP24. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A8: **integration**, producer WP24, WP03, WP08, WP11, WP53, WP17. Witness a real end-to-end M4A Video project on the exact renderer build. Record applicable permissions, rights, account/charge receipts, export and reopen evidence.
+
+- A9: **component**, producer WP24. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 
@@ -1356,9 +1386,9 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Files:** `docs/DESTINATION-COMPATIBILITY.md`, `packages/studio-contracts/src/distribution.ts`, `apps/server/src/studio/connectors/destination.contract.test.ts`.
 
-**Consumes:** E2/E3 selected official vendor/API/sandbox, approved publication/customer-access responsibilities and artifacts.
+**Consumes:** Reviewed artifacts and a proposed official destination operation. Merchant sales route requires selected E2/E3 vendor, seller and customer-access responsibilities. Social posting requires independently qualified API, account and scopes.
 
-**Produces:** DestinationCapabilityMatrix plus MerchantConnection readiness for account/entity/mode, listing, checkout, events, downloads, courses, memberships, refunds and reconciliation.
+**Produces:** DestinationCapabilityMatrix plus MerchantConnection readiness for account/entity/mode, listing, checkout, events, downloads, courses, memberships, refunds and reconciliation. SocialDestination readiness is independently scoped to provider, account, format, upload/post operation and visibility.
 
 **Conditional input dependencies (not universal prerequisites):**
 
@@ -1396,6 +1426,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.
 
+- Qualify a social destination against its official upload, processing and publish APIs for one named platform, account type, scope set and allowed audience. Verify media limits, review or app approval requirements, auth refresh/revocation and source rights. Keep local export available when the route is unsupported. A qualified social-only account can publish without a store, payment rail or buyer record.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A4, A5, A6, A7, A8, A9: **component**, producer WP27. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1405,6 +1437,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A3: **integration**, producer WP27. Affected implementation/account/build evidence; synthetic component fixtures alone do not activate it.
 
 - A10, A11: **integration**, producer WP27. Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66.
+
+- A12: **component**, producer WP27. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A12: **integration**, producer WP27. Verify the official adapter and account-specific scope/limits with authorized provider evidence before exposing social dispatch.
 
 **Execution steps:**
 
@@ -1428,9 +1464,9 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Files:** `apps/server/src/studio/connectors/publication.ts`, `apps/server/src/studio/publications.ts`, `apps/server/src/studio/publications.test.ts`, `apps/web/src/features/studio/publishing/PublishReview.tsx`.
 
-**Consumes:** Reviewed exact ArtifactVersion, destination capability, listing/page draft and bound action approval.
+**Consumes:** Reviewed exact artifact revision, destination capability and bound action approval. Merchant listing and social post use distinct destination identities and action payloads.
 
-**Produces:** PublicationVersion; prepare/dispatch/reconcile receipt with remote IDs and artifact hashes.
+**Produces:** PublicationVersion; prepare/dispatch/reconcile receipt with remote IDs and artifact hashes. SocialPostReceipt distinguishes upload, processing, accepted post, published and unknown outcomes.
 
 **External gate applicability:**
 
@@ -1450,13 +1486,19 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Generated media dependencies apply only when selected; listing success does not mean payment or delivery.
 
-- Preview merchant identity, provider account/mode, offer/artifact version, allowlisted price/currency/tax behavior, buyer license/refund/support/delivery terms and checkout destination; account/project/price changes invalidate approval.
+- For merchant operations, preview merchant identity, provider account/mode, offer/artifact version, allowlisted price/currency/tax behavior, buyer license/refund/support/delivery terms and checkout destination; account/project/price changes invalidate approval.
 
 - Test/live credentials, IDs, products and receipts cannot cross modes; unsupported product/file writes use a labeled manual export/setup/read-back receipt, never fabricated API publication.
+
+- Offer local download and manual handoff after export. A connected social post starts from a reviewed media revision; preview the exact account, caption, audience, visibility and supported timing, and bind approval to this payload. Revisions, account changes and permission loss invalidate dispatch. Distinguish upload, provider processing and verified publication with a remote ID/status. Reconcile unknown results before any retry and report each approved destination independently.
 
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6: **component**, producer WP28. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A7: **component**, producer WP28. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A7: **integration**, producer WP27, WP28. Verify the authorized social adapter against one account and confirm the provider post or publication status. A fixture or an accepted upload alone cannot establish publication. Conditional producers: cap.media.video → WP24.
 
 **Execution steps:**
 
@@ -2802,6 +2844,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Bundle a versioned local requalification procedure with fixture provenance. A changed digest invalidates only its affected lanes. Inspect supported settings and run deterministic local denial fixtures offline. If the evidence cannot requalify the action, show the remaining check and quote any external probe before requesting authorization. Test an unaffected qualified route, editing and export while the changed route waits.
 
+- Given a bundled style manifest, calculate readiness per project and host from required and optional renderer, skill, plugin and MCP capabilities. Show source, version, access, cost, already-ready items and missing prerequisites. A style selection can inspect local availability. Installing dependencies, using credentials, transmitting inputs or expanding a grant requires an explicit preparation decision. Cancellation, denial and partial preparation preserve the draft and record which additions can safely be undone. Shared installations outlive removal of a single project binding.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5: **component**, producer WP53. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -2815,6 +2859,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A8: **integration**, producer WP53. Use pinned versions, real Windows process containment, observable restrictions and bounded authorized provider calls only where indispensable.
 
 - A9: **component**, producer WP53. Exercise this contract on isolated synthetic inputs.
+
+- A10: **component**, producer WP53. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 **Execution steps:**
 

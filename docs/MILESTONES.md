@@ -4,6 +4,8 @@ This is one integrated product, implemented through explicit releases. All modul
 
 ## Three independent kinds of progress
 
+Blank, Digital product and Video are the initial project categories. Category selection determines the starting workspace and guide. M0's registry and dashboard expose the choices and their milestone information. M1 supplies eligible research and recommendations, M2 delivers the first complete document workflows, M4A qualifies standalone video rendering and export, and M4C qualifies publishing to each supported destination. A Video project can finish with a reviewed local export while social publishing is unavailable. [Project experience](PROJECT-EXPERIENCE.md) · [Category catalog](roadmap/project-categories.json)
+
 **Software availability:** `planned | available | disabled`. Track development separately as `not-started | in-progress | blocked | complete`. Development completion does not activate a feature in an installed version. `availableSince`, supported platform and feature version establish whether this installation has the capability.
 
 **Project progress:** `planned | available | in-progress | blocked | completed`. A shipped module becomes project-available when its inputs exist. Starting records an input revision. Blocking records a typed reason and prior state. Resolving restores that state. Completion requires acceptance checks and relevant approvals. Changed inputs reopen a new revision; preserve the historical result.
@@ -25,9 +27,9 @@ The [canonical roadmap](ROADMAP.md) owns gate details and the [work-package regi
 | M2 | Five complete document families, editing/QA, brand/library and exports | Complete examples per family; M3-disabled reviewed sample/export; manual-edit preservation, semantic accessibility in external readers and outside-app edit/read-back/restore |
 | M3 | Contacts before creator/partnership workflows, split scenarios, reusable job cards, bounded service jobs and launch/proof-bundle drafts | Rights/provenance, deduplication, zero/unknown scenario cases, revision/handoff distinctions, exact sample/recipient/unsent message and zero sends |
 | M3C | Councils, decision clinic and safe draft experiments | Independent initial barrier, reviewer/quorum, dissent/model identity and pooled budgets |
-| M4A | Image/video generation | Independent provider/cost/rights/reconciliation gates |
+| M4A | Image generation and standalone Video production | Reopen an editable project and play its reviewed export outside Studio; qualify local rendering, paid providers, rights and charges by route |
 | M4B | Inbox/sender lifecycle then approved sends | Fresh reply/suppression checks, safe schedules and unknown-outcome recovery |
-| M4C | Selected destination, listing, merchant projection and buyer fulfillment | Separate publication, order/refund, download/course/membership access fixtures |
+| M4C | Selected destinations for product listings or optional social posts, merchant projection and buyer fulfillment | Qualify account-specific social publishing, listing publication, order/refund and buyer access separately |
 | M4D | Manual feedback or independently accepted metrics adapters, experiments and proposed revisions | Missing-data semantics, M4B-disabled revision loop and input-specific adapter evidence |
 | M5A | Optional Clerk/Convex workspace and fenced project transfer/exit | Tenant isolation, compatible manifests, operation custody, authenticated retained-content handback and no dual writer on lapse |
 | M5B | Optional Studio subscriptions/seats, prepaid service units, API workers and operations | Payer-bound checkout/portal/paid-through lifecycle; concurrent refund/spend; semantic payment dedupe/disputes; worker isolation, fenced restore and measured economics |
@@ -65,7 +67,7 @@ Every manifest declares `id`, `version`, `capabilities[]`, `releaseMilestone`, `
 | Creators/partnerships | Audience/offer, permitted profiles | Explained partner shortlist, proposals, duties and relationship tasks | M3 |
 | Contacts | User imports, authorized discovery, correspondence | Deduplicated contact graph, stages, tasks and suppression state | M3 |
 | Launch/campaigns | Offer/product/brand/contact versions | Funnel plan, copy variants, sequence calendar and experiments | M3; execution M4B |
-| Media | Brand/product, own/licensed assets | Briefs and rights M2; generated variants/QA M4A | M2/M4A |
+| Media | Standalone Video brief or explicitly selected product revision, with owned/licensed inputs | Style and shot planning, media rights, final render QA and editable export | M2/M4A |
 | Publishing/delivery | Reviewed artifacts, connector, grant | Dry run, approved publication, merchant/access mappings and receipt | M4C |
 | Feedback | Manual notes or authorized channel imports | Linked findings, experiments and proposed revisions | M3/M4D |
 | Library/export | Artifacts, profiles, sources | Portable bundles, versions, backups and reusable inputs | Restore M0B; exports M2 |

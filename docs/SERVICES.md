@@ -12,6 +12,10 @@ Optional hosted work adds Clerk identity, Convex business state/private storage,
 
 ## Need, stage, authority, cost and exit
 
+A new Video project can use a built-in local style, supplied assets and recorded voice without a Studio cloud or social account. Each style lists its required and optional skills, MCP servers, plugins, renderers and provider connections. A recording can replace a paid narration connection where that style supports it. Additional software or model downloads disclose size, host and terms before preparation. A style can use a qualified built-in renderer at M4A. An executable third-party plugin remains subject to WP40's isolation gate.
+
+Offer social connections at the publish step. Start with one official destination whose account eligibility, scopes, media limits, upload lifecycle and result lookup have been demonstrated. Preview the exact account and visibility. Keep OAuth in the existing connection vault. A revoked connection leaves the rendered export available and a lost upload response triggers reconciliation before retry. A merchant account, campaign sender or connector aggregator is unnecessary for standalone video.
+
 Costs below identify who bears the obligation and what to measure, not current quotes or included allowances. Before enabling a service, record exact account/region/scopes, terms/version, data recipients, limits, operator/backup, support path and shutdown procedure. Price changes or exhausted allowances block/requote affected work; they never authorize another provider or an automatic purchase.
 
 | Service / need | Stage and decision | Authority and data | Cost owner / measured floor | Exit and failure behavior |

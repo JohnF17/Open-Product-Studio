@@ -33,6 +33,8 @@ Sources may include official documentation, permitted marketplace/product pages,
 
 ## Decisions covered
 
+The entry context includes category, style where selected, and the user's preferred level of guidance. In a new Video project with no topic, ask what audience or outcome the creator cares about, or offer a few starter directions and a custom choice. Explain why an idea suits the chosen style, the user's available assets, time and budget. A creator with a complete brief can enter it directly. Continue offering choices for hook, shot list, voice, pacing and caption treatment. A missing render tool may block a final render while the user continues writing or editing the storyboard. Preparing a style, accepting an idea and approving a public post each carry different authority.
+
 | Stage | AI can investigate and suggest | User-facing result |
 | --- | --- | --- |
 | Starting | Interests, existing material, reachable buyers, constraints | Scoped project directions, including an explicit “insufficient evidence” outcome |

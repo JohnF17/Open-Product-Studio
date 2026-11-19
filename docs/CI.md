@@ -2,6 +2,8 @@
 
 ## What works today
 
+The unit suite also checks the [project category catalog](roadmap/project-categories.json) against the canonical package and capability IDs. It exercises independent project entry points, a local starter video style, required versus optional tools, and a reviewed export before optional publishing. Run `python -B scripts/check_project_categories.py` for just the catalog check.
+
 `.github/workflows/docs.yml` is an actual read-only PR/push workflow. It uses a revision-pinned checkout action with persisted Git credentials disabled, no repository secrets, a five-minute timeout, and hosted ephemeral runners. It runs `python3 -m unittest discover -s tests -v`, `python3 scripts/check_docs.py`, `python3 scripts/check_roadmap.py` and `python3 scripts/check_agents.py` without installing dependencies.
 
 The structural check verifies required files and local Markdown targets, rejects private files in the public candidate, and restricts research and media assets. Five inherited media blobs have an explicit path and digest allowance. Required Studio documents and changed Markdown get link checks. The check recognizes ordinary inline Markdown links. Factual sourcing, remote links, anchors, secrets, provider terms and runtime security require separate review.

@@ -1,18 +1,26 @@
 # Integrated desktop product design
 
-Revision 3, 2026-11-13. Supersedes the browser-first design. The owner specified Electron desktop, a familiar T3 Code interface, a dashboard main experience, AI recommendations throughout, and the entire module system designed together. These are requirements, not optional future directions. Implementation and shipping remain staged; no application is implemented yet.
+Revised 19 November 2026. The desktop design retains the T3 Code shell and adds guided project builders and a shared dashboard. The pinned Windows desktop has built and opened a fixture conversation. The project categories and Studio workflows below are planned. [Desktop baseline](BASELINE.md)
 
 ## Product definition
 
 A downloadable Electron workspace that carries a person from "I do not know what to make" through research, a product, a creator partnership or direct launch, distribution, delivery and improvement. The AI investigates, synthesizes and proposes the next useful decisions throughout the journey. Beginners should not need to invent prompts or learn what every agent does. Experts can inspect the evidence, prompts, model selections, permissions, activity and artifacts.
 
-The first screen is the whole business workspace, not an empty chat. Its modules share a project model from day one. Software maturity controls which capabilities ship in a release; the customer's progress controls which tasks are ready within a project. Neither is disguised as a paid unlock.
+The workspace opens to the user's projects. **New project** offers three peer choices. The chosen category determines the starting builder, suggested decisions and primary artifact on Home. All three use the same BusinessProject, modules, connections, jobs and library. Each action shows its release availability and the prerequisites for this project.
+
+| Category | Starting experience | Example outcome |
+| --- | --- | --- |
+| **Blank** | Create a named workspace, collect notes and material, then choose an eligible workflow when ready. | A research workspace that later produces a video or document. |
+| **Digital product** | Start with an idea, supplied material or a recommendation. Choose a format and guide the reader toward a useful outcome. | An editable ebook, workbook, template kit, curriculum or action plan. |
+| **Video** | Start with a style or ask for a recommendation. Preview the required tools, prepare the chosen setup, then use a guided brief, storyboard and scene editor. | A standalone captioned explainer, product walkthrough or short with an optional social publication. |
+
+Styles and templates belong within a category. Future categories can add a starter flow and a primary artifact using the existing registry and shared services. A video can begin with a one-line idea and finish with a reviewed export. From an existing ebook, **Make a video from this** creates a linked Video draft with its own project ID. Copy only the selected, permitted pages or assets with their immutable revision and source attribution. Each project keeps its own edits, grants, jobs and receipts. A buyer, offer, ebook or campaign is optional for a Video project.
 
 ## Foundation and interface
 
 Maintain a downstream fork of pinned T3 Code. Preserve its desktop window, restrained appearance, sidebar, project navigation, command palette, keyboard conventions, resizable panels, settings, exact model picker and background activity. Replace the main chat route experience with project overview, next decisions, workflow status and editable artifacts. Keep conversation as a collapsible inspector and an optional full thread view. Do not rebuild a separate execution server or introduce a second incompatible model selector.
 
-The main overview contains: the chosen project/offer, a clear next-action area, recommendations awaiting decisions, a compact module-progress map, artifact preview, and budget/run status. It must say when a recommendation came from live research versus saved material or a demo fixture. Activity shows both understandable summaries and inspectable technical details.
+Home shows the chosen project and goal, the next useful action, decisions awaiting review, module progress, the current artifact preview and budget/run status. A recommendation identifies its evidence as live research, saved material or a demo fixture. Activity includes summaries and inspectable technical details.
 
 Dark and light themes inherit the fork's tokens. Business-specific accents and forms must fit the existing UI. Use existing primitives before adding new shadcn components; RHF/Zod forms are appropriate for domain inputs. Preserve typography/density preferences. Preserve the shell while making the new business views cohesive, beautiful and readable; no wholesale replacement of its component system is proposed. Bespoke work goes into dashboard composition and interactions, not discarding the UI the owner likes.
 
@@ -37,7 +45,7 @@ The first dashboard registers all modules below, with an explanation, inputs, ou
 - **Creators and partnerships:** permitted profile/content analysis, audience-fit hypotheses, partner shortlist, proposals, responsibilities and agreements tracked as user-supplied records.
 - **Contacts:** deduplicated people/organizations, relationship pipeline, tasks, correspondence references, consent/suppression and activity.
 - **Campaigns and launch:** reusable brand/product context; sales pages, funnels, emails, social/story sequences, video/ad scripts, FAQs and experiments.
-- **Media:** asset briefs, licensed/user-owned references, covers, images/video where connected providers support them, variants, provenance and quality review.
+- **Media:** style setup, storyboards, editable scene and audio timelines, licensed references, local or connected rendering, variants, provenance and quality review. Media supplies both the Video project's main deliverable and supporting assets in other categories.
 - **Publishing and delivery:** approved destination connectors, preview/dry run, explicit payload approval, publishing receipts and provider-backed delivery configuration.
 - **Feedback and improvement:** interviews, imported outcomes, complaints/refunds where authorized, experiment analysis, revision suggestions and source refresh.
 - **Library and exports:** product/artifact versions, brand/audience profiles, reusable templates, sources, portable bundles and backups.
@@ -48,13 +56,13 @@ See [MILESTONES.md](MILESTONES.md) for release availability and project progress
 
 ## Shared business graph
 
-One BusinessProject owns audience/problem/offer versions and links sources, claims, decisions, contacts, campaigns, artifact versions, publications, experiments and execution runs. A creator is a person/contact with profile evidence, not a duplicate identity. A campaign uses an approved offer and audience. A publication references exact artifact versions and destination. Feedback updates evidence and creates revision work; it does not silently rewrite published products.
+One BusinessProject owns its brief, decisions, artifact versions and execution runs. It can also own audience, problem and offer versions and link to sources, claims, contacts, campaigns, publications and experiments when the workflow needs them. A video brief can name a viewer, a topic and a takeaway without inventing a seller or an offer. A creator is a person/contact with profile evidence. A sales campaign uses an approved offer and audience. A publication references exact artifact versions and destination. Feedback creates revision work and preserves the version already published.
 
 Brand voice and customer context are shared, versioned inputs. Changing the promise or target audience invalidates dependent recommendations and marks affected drafts for review. Completed artifacts remain available even if an optional service expires or a connector is unavailable.
 
 ## Beginner journey
 
-Start with "Recommend a project for me," "I have an idea," "Use my material," or "Work with a creator." In the first path the AI still needs a budget and basic constraints, but it can suggest those constraints and explain their effect. Do not require a long onboarding interview before a useful example.
+Start with the category chooser. A person who is undecided can ask for a recommendation or open Blank. Within a guided project, “I have an idea,” “Use my material” and “Help me choose” are ways to fill the brief. Creator collaboration is available where relevant. A Video user gets a topic or style suggestion and a sample scene. A Digital product user gets a proposed reader outcome and sample section. Each suggestion remains editable.
 
 The dashboard makes the next decision small. Recommendations arrive as choices with evidence, tradeoffs and one suggested action. A beginner can accept recommendations repeatedly while the system creates private drafts, tracks progress and explains uncertainty. They can always edit or go back. No hidden prompt-writing prerequisite.
 

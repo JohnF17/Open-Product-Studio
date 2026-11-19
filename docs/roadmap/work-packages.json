@@ -481,10 +481,11 @@
         "packages/studio-contracts/src/capability.ts",
         "packages/studio-domain/src/eligibility.ts",
         "packages/studio-domain/src/eligibility.test.ts",
-        "modules/catalog.json"
+        "modules/catalog.json",
+        "docs/roadmap/project-categories.json"
       ],
       "consumes": "ProductIdentity and canonical roadmap capability IDs.",
-      "produces": "BusinessProject; RevisionRef; CapabilityManifest; evaluateEligibility(actor, project, capability): Eligibility with typed blockers.",
+      "produces": "BusinessProject; RevisionRef; CapabilityManifest; evaluateEligibility(actor, project, capability): Eligibility with typed blockers. Versioned category, starter and style references with project-scoped state.",
       "acceptance": [
         "Independent release/development/progress/entitlement states; available code differs from completed development.",
         "Direct RPC cannot dispatch planned capabilities, stale revisions or unauthorized projects.",
@@ -492,7 +493,8 @@
         "Evaluate conditionalDependencies and externalGateApplicability for the requested action, not every optional adapter in a package. Manual feedback, direct-product publication and hypothetical split calculations remain independent of email execution, creator records and operational merchant setup respectively.",
         "Separate component acceptance from integration/public-release activation evidence with producer, exact revision, applicable action, pending/passed state and independent reviewer. Component acceptance alone cannot make a capability available; reject missing or stale activation evidence through direct RPC.",
         "Workspace, BusinessProject, BillingOrganization, provider connection, execution host, sender and merchant are separate typed references. Two projects with overlapping display names cannot share private notes, defaults, callbacks or authority through navigation state.",
-        "For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence."
+        "For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.",
+        "Persist the starter category (blank, digital-product or video) separately from formats, style versions, module capabilities and entitlements. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants."
       ],
       "owner": "domain architect",
       "reviewer": "data/authorization reviewer",
@@ -565,6 +567,14 @@
           ],
           "state": "not-run",
           "scope": "Exercise this contract on isolated synthetic inputs."
+        },
+        {
+          "item": 8,
+          "phase": "component",
+          "producers": [
+            "WP03"
+          ],
+          "state": "not-run"
         }
       ]
     },
@@ -1029,7 +1039,8 @@
         "Switch A to B with unsaved edits, a pending approval and running work in A; preserve draft/focus/scroll per project, invalidate any retargeted action and apply late callbacks only to A by immutable run binding. Notifications deep-link to the owning project after access recheck; cross-project search is explicitly scoped.",
         "Exercise empty/example, loading/partial, stale/offline, denied/revoked, quota/Unknown, retry and recovered states without sign-in for local work. Distinct blocker/remediation text preserves keyboard focus and useful partial exports; no fake percent, completed action or automatic connection.",
         "Measure the motion/performance profile in PROJECT-EXPERIENCE.md on declared hardware: 120-200 ms local transitions, 250 ms maximum decorative transition, reduced-motion removal, batched streaming, virtualized lists and retained scroll. Record baseline startup/idle memory and reviewed regression budgets, not claimed measurements.",
-        "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback."
+        "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.",
+        "From New project present Blank, Digital product and Video as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Show each future action and its milestone even when the category can already be selected."
       ],
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
@@ -1127,6 +1138,14 @@
             "WP08"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 11,
+          "phase": "component",
+          "producers": [
+            "WP08"
+          ],
+          "state": "not-run"
         }
       ]
     },
@@ -1159,7 +1178,8 @@
         "ConnectorBinding is server-derived from authenticated actor/workspace and verified provider account: provider, externalAccountId, environment, allowed resources/scopes, credentialGeneration and revocation epoch. OAuth completion uses initiating actor/connection and short-lived one-use state with supported native/web flow; sign-in email is not account ownership.",
         "Route events by trusted endpoint/subscription/account binding and namespaced resource/event/effect keys; validate object-to-project/offer/buyer relationships and reject conflicting payload metadata. Separate billing, creator commerce and personal-channel secrets/replay stores even at one provider.",
         "Test two accounts/workspaces with overlapping remote IDs, a valid B signature carrying A metadata, stale callback state, wrong-account reconnect, test/live mismatch, revoked subscription and delayed event after reassignment. No event or OAuth redirect can select authority from the active UI project.",
-        "Supply a shared inbound mailbox port with per-account/environment cursors, deduplication, gap/backfill state, bounded attachments, subscription revocation and original-byte event verification. Test independent streams with overlapping provider IDs and distinct grants."
+        "Supply a shared inbound mailbox port with per-account/environment cursors, deduplication, gap/backfill state, bounded attachments, subscription revocation and original-byte event verification. Test independent streams with overlapping provider IDs and distinct grants.",
+        "Run the style preparation checklist through the project capability broker. Verify selected host, approved source and version, stage the approved changes, and persist per-tool receipts for retry or undo. Reopening after a partial setup rechecks the actual host and account. Missing optional components leave supported paths usable. A preflight never provisions a credential or enables a publisher."
       ],
       "owner": "security/tooling maintainer",
       "reviewer": "independent security reviewer",
@@ -1238,6 +1258,14 @@
           ],
           "state": "not-run",
           "scope": "Exercise this contract on isolated synthetic inputs."
+        },
+        {
+          "item": 9,
+          "phase": "component",
+          "producers": [
+            "WP09"
+          ],
+          "state": "not-run"
         }
       ]
     },
@@ -1378,7 +1406,8 @@
         "A backup is an alternative project route, never silent model fallback. Prefer an eligible first result; show later creator/service/media gates honestly. Revisioned answers stale dependent advice; the M2 product/export path requires no M3 contact, creator or campaign record.",
         "Offer an optional editable 30-day execution plan with weekly checkpoints, first-week steps, dependencies, time/budget assumptions and a user-adjustable activity target. It is revisioned recommendation data at M1, separate from the sellable action-plan product at M2; input changes stale dependent steps and unavailable capabilities keep their gates.",
         "Manual progress and user-requested check-ins need no CRM, mailbox, calendar account or Dot. Converting eligible steps into M3 task/campaign records requires an explicit choice; advice and checklists never activate reminders, external actions or persistent wakes. Activity targets are hypotheses, not income or reply guarantees.",
-        "A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation."
+        "A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.",
+        "A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision."
       ],
       "owner": "product/research maintainer",
       "reviewer": "independent domain and novice UX reviewer",
@@ -1499,6 +1528,14 @@
           ],
           "state": "not-run",
           "scope": "Exercise this contract on isolated synthetic inputs."
+        },
+        {
+          "item": 12,
+          "phase": "component",
+          "producers": [
+            "WP11"
+          ],
+          "state": "not-run"
         }
       ]
     },
@@ -1720,7 +1757,8 @@
         "Regenerate individual sections without discarding accepted manual edits; explicit conflict review.",
         "Provider success is distinct from complete artifact finalization; crash resumes only unfinished sections.",
         "Sandboxed HTML/Markdown/SVG/PDF preview fixtures block scripts, privileged links and network/file fetches.",
-        "Historical versions/claim links remain inspectable; stale evidence flags affected sections."
+        "Historical versions/claim links remain inspectable; stale evidence flags affected sections.",
+        "Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available."
       ],
       "owner": "content/data maintainer",
       "reviewer": "editorial and preview-security reviewer",
@@ -1776,6 +1814,14 @@
         },
         {
           "item": 4,
+          "phase": "component",
+          "producers": [
+            "WP14"
+          ],
+          "state": "not-run"
+        },
+        {
+          "item": 5,
           "phase": "component",
           "producers": [
             "WP14"
@@ -3083,7 +3129,7 @@
     },
     {
       "id": "WP24",
-      "title": "Bounded video-generation connector",
+      "title": "Standalone video studio, local rendering and bounded provider jobs",
       "milestone": "M4A",
       "dependencies": [
         "WP06",
@@ -3096,18 +3142,22 @@
       "files": [
         "apps/server/src/studio/connectors/video.ts",
         "apps/server/src/studio/connectors/video.contract.test.ts",
-        "apps/web/src/features/studio/media/VideoJobs.tsx"
+        "apps/web/src/features/studio/media/VideoJobs.tsx",
+        "packages/studio-contracts/src/videoProject.ts",
+        "apps/web/src/features/studio/media/VideoBuilder.tsx"
       ],
-      "consumes": "Reviewed script/assets, voice/likeness permissions, exact model/duration/resolution, expiring quote and budget.",
-      "produces": "VideoJob with async polling/webhook policy, asset QA, provider retention and charge receipt.",
+      "consumes": "A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget.",
+      "produces": "Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts.",
       "acceptance": [
-        "Independent video entitlement/scopes and duration pricing; image support never certifies video support.",
+        "Check video entitlements, scopes and duration pricing independently on each paid route. An offline render with supplied media and narration can finish without a paid account, an image provider or a document project.",
         "Async completion, timeout/revoke/unknown/cancel/failed-charge and duplicate-event fixtures.",
         "Audio/caption/readability/brand review plus licensed asset and synthetic provenance records.",
         "Provider download/retention/egress bounds and explicit always-on receiver if required.",
-        "Only a downloaded, inspectable final video passing asset QA may be labeled completed video; a script/storyboard, prepared preview, provider terminal text or unknown job outcome cannot satisfy that result. Include actual route/entitlement, failed/retried charges and unknown costs.",
-        "Before first activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.",
-        "Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery."
+        "Complete a video only after an inspectable final file passes asset QA. Use a locally rendered file or download the provider output. Label script, storyboard, preview and unknown outcomes individually. Include the actual route, entitlement where relevant, failed and retried charges and unknown costs.",
+        "Before first external connector activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.",
+        "For external routes prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.",
+        "Start a standalone 30-second project from a blank brief. Pin one of the catalog styles, inspect and explicitly prepare its required tools, approve the script and storyboard, edit a scene, preview, render and review. Reopen the editable project and play the exported video with captions and credits outside Studio. Exercise the bundled local route with document, merchant, social and paid model connections absent; accept a separately quoted narration route only when requested.",
+        "Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware."
       ],
       "owner": "media maintainer",
       "reviewer": "rights/cost/security reviewer",
@@ -3198,6 +3248,36 @@
           ],
           "state": "not-run",
           "scope": "Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66."
+        },
+        {
+          "item": 8,
+          "phase": "component",
+          "producers": [
+            "WP24"
+          ],
+          "state": "not-run"
+        },
+        {
+          "item": 8,
+          "phase": "integration",
+          "producers": [
+            "WP24",
+            "WP03",
+            "WP08",
+            "WP11",
+            "WP53",
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Witness a real end-to-end M4A Video project on the exact renderer build. Record applicable permissions, rights, account/charge receipts, export and reopen evidence."
+        },
+        {
+          "item": 9,
+          "phase": "component",
+          "producers": [
+            "WP24"
+          ],
+          "state": "not-run"
         }
       ],
       "externalGateApplicability": [
@@ -3470,8 +3550,8 @@
         "packages/studio-contracts/src/distribution.ts",
         "apps/server/src/studio/connectors/destination.contract.test.ts"
       ],
-      "consumes": "E2/E3 selected official vendor/API/sandbox, approved publication/customer-access responsibilities and artifacts.",
-      "produces": "DestinationCapabilityMatrix plus MerchantConnection readiness for account/entity/mode, listing, checkout, events, downloads, courses, memberships, refunds and reconciliation.",
+      "consumes": "Reviewed artifacts and a proposed official destination operation. Merchant sales route requires selected E2/E3 vendor, seller and customer-access responsibilities. Social posting requires independently qualified API, account and scopes.",
+      "produces": "DestinationCapabilityMatrix plus MerchantConnection readiness for account/entity/mode, listing, checkout, events, downloads, courses, memberships, refunds and reconciliation. SocialDestination readiness is independently scoped to provider, account, format, upload/post operation and visibility.",
       "acceptance": [
         "Choose actual supported vendor before adapter implementation; API access is not inferred from website UI.",
         "Record scopes/fees/country/entity/account requirements, event signatures, idempotency and sandbox limitations.",
@@ -3483,7 +3563,8 @@
         "Connect/platform/split flows stay disabled until a specific direct/destination/separate-charge model, fee payer, loss liability, country/region, onboarding and reversal contract passes independent E3 review; no custody or payout engine inferred.",
         "Run a direct-product destination test with reviewed artifacts and an approved offer/context, with creator and email capabilities disabled. A creator-backed launch still refuses missing rights/approval; merchant, publication and buyer-access gates remain intact.",
         "Before first activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.",
-        "Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery."
+        "Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.",
+        "Qualify a social destination against its official upload, processing and publish APIs for one named platform, account type, scope set and allowed audience. Verify media limits, review or app approval requirements, auth refresh/revocation and source rights. Keep local export available when the route is unsupported. A qualified social-only account can publish without a store, payment rail or buyer record."
       ],
       "owner": "distribution maintainer",
       "reviewer": "business/security reviewer",
@@ -3675,6 +3756,23 @@
           ],
           "state": "not-run",
           "scope": "Before this connector activates: actual operator/support readiness, bounded authorized provider shutdown/recovery evidence and ongoing-charge inventory; not deferred to WP37/WP66."
+        },
+        {
+          "item": 12,
+          "phase": "component",
+          "producers": [
+            "WP27"
+          ],
+          "state": "not-run"
+        },
+        {
+          "item": 12,
+          "phase": "integration",
+          "producers": [
+            "WP27"
+          ],
+          "state": "not-run",
+          "scope": "Verify the official adapter and account-specific scope/limits with authorized provider evidence before exposing social dispatch."
         }
       ],
       "externalGateApplicability": [
@@ -3704,15 +3802,16 @@
         "apps/server/src/studio/publications.test.ts",
         "apps/web/src/features/studio/publishing/PublishReview.tsx"
       ],
-      "consumes": "Reviewed exact ArtifactVersion, destination capability, listing/page draft and bound action approval.",
-      "produces": "PublicationVersion; prepare/dispatch/reconcile receipt with remote IDs and artifact hashes.",
+      "consumes": "Reviewed exact artifact revision, destination capability and bound action approval. Merchant listing and social post use distinct destination identities and action payloads.",
+      "produces": "PublicationVersion; prepare/dispatch/reconcile receipt with remote IDs and artifact hashes. SocialPostReceipt distinguishes upload, processing, accepted post, published and unknown outcomes.",
       "acceptance": [
         "Dry-run exact listing/payload/assets, changed revision invalidates approval.",
         "Unknown outcome and remote history reconciliation; no duplicate listing/upload on blind retry.",
         "Visibility/update/withdrawal scopes tested and no desktop engine exposed to buyers.",
         "Generated media dependencies apply only when selected; listing success does not mean payment or delivery.",
-        "Preview merchant identity, provider account/mode, offer/artifact version, allowlisted price/currency/tax behavior, buyer license/refund/support/delivery terms and checkout destination; account/project/price changes invalidate approval.",
-        "Test/live credentials, IDs, products and receipts cannot cross modes; unsupported product/file writes use a labeled manual export/setup/read-back receipt, never fabricated API publication."
+        "For merchant operations, preview merchant identity, provider account/mode, offer/artifact version, allowlisted price/currency/tax behavior, buyer license/refund/support/delivery terms and checkout destination; account/project/price changes invalidate approval.",
+        "Test/live credentials, IDs, products and receipts cannot cross modes; unsupported product/file writes use a labeled manual export/setup/read-back receipt, never fabricated API publication.",
+        "Offer local download and manual handoff after export. A connected social post starts from a reviewed media revision; preview the exact account, caption, audience, visibility and supported timing, and bind approval to this payload. Revisions, account changes and permission loss invalidate dispatch. Distinguish upload, provider processing and verified publication with a remote ID/status. Reconcile unknown results before any retry and report each approved destination independently."
       ],
       "owner": "distribution maintainer",
       "reviewer": "security/editorial reviewer",
@@ -3781,6 +3880,30 @@
             "WP28"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 7,
+          "phase": "component",
+          "producers": [
+            "WP28"
+          ],
+          "state": "not-run"
+        },
+        {
+          "item": 7,
+          "phase": "integration",
+          "producers": [
+            "WP27",
+            "WP28"
+          ],
+          "state": "not-run",
+          "scope": "Verify the authorized social adapter against one account and confirm the provider post or publication status. A fixture or an accepted upload alone cannot establish publication.",
+          "conditionalProducers": [
+            {
+              "capability": "cap.media.video",
+              "producer": "WP24"
+            }
+          ]
         }
       ],
       "externalGateApplicability": [
@@ -7251,7 +7374,8 @@
         "Distribution/extension trust records have signed expiry, revocation generation and rollback protection. Classify each lane as intentionally offline or dependent on current remote revocation. The proposed 24-hour maximum offline freshness applies only to grants/extensions whose accepted policy requires current remote revocation; missing/expired/rolled-back metadata blocks that scoped execution until authenticated refresh. Do not add a Studio sign-in or central heartbeat to core local execution or already-qualified user-owned CLI/API/local-model adapters; provider requirements and verified compromise responses still apply. Test stale-trust denial for the scoped extension alongside continued offline local-model work, editing and installed export.",
         "Change CLI binary/native descriptor while model ID stays the same and replay queued work: old constrained-lane qualification cannot apply. Test revoked publisher key/version, stale offline trust and authenticated trust-root recovery without disabling signatures; unobservable enforcement changes cannot support a constrained-lane claim.",
         "The first Windows driver spike records executable/launch chain, instance/account/model/options, effective identity visibility, native tool and child permissions and containment per action. Qualify broker-only actions only when native routes can be disabled. A supervised action requires an enforceable pre-action stop on every participating route. Otherwise expose the capability as unavailable with the saved selection intact.",
-        "Bundle a versioned local requalification procedure with fixture provenance. A changed digest invalidates only its affected lanes. Inspect supported settings and run deterministic local denial fixtures offline. If the evidence cannot requalify the action, show the remaining check and quote any external probe before requesting authorization. Test an unaffected qualified route, editing and export while the changed route waits."
+        "Bundle a versioned local requalification procedure with fixture provenance. A changed digest invalidates only its affected lanes. Inspect supported settings and run deterministic local denial fixtures offline. If the evidence cannot requalify the action, show the remaining check and quote any external probe before requesting authorization. Test an unaffected qualified route, editing and export while the changed route waits.",
+        "Given a bundled style manifest, calculate readiness per project and host from required and optional renderer, skill, plugin and MCP capabilities. Show source, version, access, cost, already-ready items and missing prerequisites. A style selection can inspect local availability. Installing dependencies, using credentials, transmitting inputs or expanding a grant requires an explicit preparation decision. Cancellation, denial and partial preparation preserve the draft and record which additions can safely be undone. Shared installations outlive removal of a single project binding."
       ],
       "owner": "harness/security maintainer",
       "reviewer": "independent authorization reviewer",
@@ -7364,6 +7488,14 @@
           ],
           "state": "not-run",
           "scope": "Exercise this contract on isolated synthetic inputs."
+        },
+        {
+          "item": 10,
+          "phase": "component",
+          "producers": [
+            "WP53"
+          ],
+          "state": "not-run"
         }
       ]
     },
