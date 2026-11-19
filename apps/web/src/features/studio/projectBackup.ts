@@ -1,3 +1,4 @@
+import * as Schema from "effect/Schema";
 import { isAffiliateDraft, type AffiliateDraft } from "./affiliateDraft";
 import { digitalProductPublicTitle } from "./digitalProductExport";
 import { createDraft, draftStages, insertDraft, projectName, stages, styleNames } from "./drafts";
@@ -66,22 +67,28 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-class ProjectBackupError extends Error {}
+class ProjectBackupError extends Schema.TaggedError<
+  ProjectBackupError,
+  { readonly brand: unique symbol }
+>()("ProjectBackupError", { message: Schema.String }) {}
+
+const isProjectBackupError = Schema.is(ProjectBackupError);
 
 function invalid(): never {
-  throw new ProjectBackupError("This backup contains invalid project data.");
+  throw new ProjectBackupError({ message: "This backup contains invalid project data." });
 }
 
-export type ProjectBackupRestoreOptions = {
-  allowLargeBackup?: boolean;
-  allowPartialReplica?: boolean;
-};
+export class ProjectBackupConfirmation extends Schema.TaggedError<
+  ProjectBackupConfirmation,
+  { readonly brand: unique symbol }
+>()("ProjectBackupConfirmation", {
+  message: Schema.String,
+  option: Schema.Literals(["allowLargeBackup", "allowPartialReplica"]),
+}) {}
 
-export class ProjectBackupConfirmation extends ProjectBackupError {
-  constructor(readonly option: keyof ProjectBackupRestoreOptions, message: string) {
-    super(message);
-  }
-}
+export const isProjectBackupConfirmation = Schema.is(ProjectBackupConfirmation);
+
+export type ProjectBackupRestoreOptions = Partial<Record<ProjectBackupConfirmation["option"], boolean>>;
 
 // These exact names identify state that must never transfer authority. Unknown
 // strings live only in the inert archive, including authored notes about security.
@@ -169,9 +176,9 @@ function copyTools(value: unknown, style: VideoStyle): string[] {
 }
 
 function handoff(): never {
-  throw new ProjectBackupError(
-    "This public handoff is missing private draft data. Choose a private project backup.",
-  );
+  throw new ProjectBackupError({
+    message: "This public handoff is missing private draft data. Choose a private project backup.",
+  });
 }
 
 function checkLegacyKind(
@@ -189,10 +196,10 @@ function checkLegacyKind(
       !options.allowPartialReplica &&
       !Object.keys(fields).some((key) => !replicaHandoffKeys.has(key))
     ) {
-      throw new ProjectBackupConfirmation(
-        "allowPartialReplica",
-        "Restore a partial copy? This Replica file may be a collaborator handoff. Private source locations, rights notes and open questions are missing. Only the content in this file can be recovered.",
-      );
+      throw new ProjectBackupConfirmation({
+        option: "allowPartialReplica",
+        message: "Restore a partial copy? This Replica file may be a collaborator handoff. Private source locations, rights notes and open questions are missing. Only the content in this file can be recovered.",
+      });
     }
     return;
   }
@@ -214,7 +221,7 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
   if (input.schema === "studio-affiliate-handoff/1") handoff();
   const legacy = input.schema === workingDraftSchema;
   if (!legacy && input.schema !== backupSchema) {
-    throw new ProjectBackupError("This file is not a supported Studio project backup version.");
+    throw new ProjectBackupError({ message: "This file is not a supported Studio project backup version." });
   }
   const { stage, title } = input;
   if (typeof input.category !== "string" || !Object.hasOwn(stages, input.category)) invalid();
@@ -245,7 +252,7 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
       ? legacyStyle?.version
       : Object.hasOwn(input, "styleVersion") ? input.styleVersion : 1;
     if (version !== catalog.styles[style].version) {
-      throw new ProjectBackupError("This backup uses an unsupported Video style version.");
+      throw new ProjectBackupError({ message: "This backup uses an unsupported Video style version." });
     }
     content.style = style;
     content.tools = copyTools(legacy ? input.plannedTools : input.tools, style);
@@ -277,7 +284,9 @@ export function downloadProjectBackup(draft: StudioDraft) {
 }
 
 export function projectBackupErrorMessage(error: unknown, fallback: string) {
-  return error instanceof ProjectBackupError ? error.message : fallback;
+  return isProjectBackupError(error) || isProjectBackupConfirmation(error)
+    ? error.message
+    : fallback;
 }
 
 export async function importProjectBackup(
@@ -286,30 +295,30 @@ export async function importProjectBackup(
   options: ProjectBackupRestoreOptions = {},
 ): Promise<StudioDraft> {
   if (file.size > PROJECT_BACKUP_MAX_BYTES) {
-    throw new ProjectBackupError(
-      `This backup is too large to restore in Studio. The restore limit is ${maxRestoreMib} MiB.`,
-    );
+    throw new ProjectBackupError({
+      message: `This backup is too large to restore in Studio. The restore limit is ${maxRestoreMib} MiB.`,
+    });
   }
   if (file.size > largeBackupBytes && !options.allowLargeBackup) {
-    throw new ProjectBackupConfirmation(
-      "allowLargeBackup",
-      `Restore a large backup? This file is ${(file.size / mib).toFixed(1)} MiB. Studio will load it into memory before saving a new project.`,
-    );
+    throw new ProjectBackupConfirmation({
+      option: "allowLargeBackup",
+      message: `Restore a large backup? This file is ${(file.size / mib).toFixed(1)} MiB. Studio will load it into memory before saving a new project.`,
+    });
   }
   let text: string;
   try {
     text = await file.text();
   } catch {
-    throw new ProjectBackupError("The selected backup could not be read. Choose the file again.");
+    throw new ProjectBackupError({ message: "The selected backup could not be read. Choose the file again." });
   }
   if (/^\s*(?:<!doctype html|<html[\s>])/i.test(text)) handoff();
   let input: unknown;
   try {
     input = JSON.parse(text);
   } catch {
-    throw new ProjectBackupError(
-      "Choose a Studio backup in JSON format. The selected file could not be parsed.",
-    );
+    throw new ProjectBackupError({
+      message: "Choose a Studio backup in JSON format. The selected file could not be parsed.",
+    });
   }
   const content = readContent(input, options);
   return insertDraft({ ...createDraft(workspaceId, content.category), ...content });

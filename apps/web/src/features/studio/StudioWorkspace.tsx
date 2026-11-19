@@ -52,8 +52,9 @@ import { digitalProductFormats, writeDigitalProductField } from "./digitalProduc
 import {
   downloadProjectBackup,
   importProjectBackup,
-  ProjectBackupConfirmation,
+  isProjectBackupConfirmation,
   projectBackupErrorMessage,
+  type ProjectBackupConfirmation,
   type ProjectBackupRestoreOptions,
 } from "./projectBackup";
 import { ProjectTour } from "./ProjectTour";
@@ -153,7 +154,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
       const saved = await importProjectBackup(file, workspaceId, options);
       setEditor(new DraftEditor(saved));
     } catch (error) {
-      if (error instanceof ProjectBackupConfirmation) {
+      if (isProjectBackupConfirmation(error)) {
         setConfirmation({ file, options, decision: error });
       } else {
         setImportError(

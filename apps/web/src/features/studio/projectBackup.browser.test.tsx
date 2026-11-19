@@ -6,12 +6,27 @@ import { createAffiliateCandidate } from "./affiliateDraft";
 import { digitalProductManuscript, digitalProductPublicTitle } from "./digitalProductExport";
 import { createDraft, insertDraft, listDrafts, saveDraft, type Category } from "./drafts";
 import { draftExport } from "./guide";
-import { importProjectBackup, projectBackupBlob, PROJECT_BACKUP_MAX_BYTES } from "./projectBackup";
+import {
+  importProjectBackup,
+  isProjectBackupConfirmation,
+  projectBackupBlob,
+  projectBackupErrorMessage,
+  PROJECT_BACKUP_MAX_BYTES,
+} from "./projectBackup";
 import StudioWorkspace from "./StudioWorkspace";
 
 function jsonFile(data: unknown) {
   return new File([JSON.stringify(data)], "backup.json", { type: "application/json" });
 }
+
+it("keeps unrelated exceptions out of backup messages and restore confirmations", () => {
+  const fallback = "The project could not be restored.";
+  for (const _tag of ["ProjectBackupError", "ProjectBackupConfirmation"]) {
+    const unrelated = { _tag, option: "allowPartialReplica", message: "Internal storage detail" };
+    expect(isProjectBackupConfirmation(unrelated)).toBe(false);
+    expect(projectBackupErrorMessage(unrelated, fallback)).toBe(fallback);
+  }
+});
 
 it("restores archived text from the Replica export sheet's private download", async () => {
   const scope = randomUUID();
