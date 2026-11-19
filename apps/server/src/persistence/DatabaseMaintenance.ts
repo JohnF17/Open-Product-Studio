@@ -38,9 +38,9 @@ export class DatabaseInUseError extends Schema.TaggedError<DatabaseInUseError>()
 ) {
   override get message() {
     if (this.pid !== undefined) {
-      return `Stop T3 Code server process ${this.pid}${this.serviceManaged ? "" : ", which the background service did not start,"} before repairing the database.`;
+      return `Process ${this.pid} is using the database at ${this.path}. Retry the repair after the database is available.`;
     }
-    return "Stop the T3 Code server and desktop app, including any version before 0.1.0, before repairing the database.";
+    return `The database at ${this.path} is in use. Retry the repair after the database is available.`;
   }
 }
 
@@ -353,7 +353,7 @@ export const runRequestedReclaim = Effect.fn("DatabaseMaintenance.runRequestedRe
             .writeFileString(
               files.failure,
               error._tag === "DatabaseInUseError"
-                ? "Another program kept the database open. Close other T3 Code apps and t3 commands on this machine, then try again."
+                ? "Another program kept the database open. Retry after the Studio engine directory is available."
                 : error.message,
             )
             .pipe(

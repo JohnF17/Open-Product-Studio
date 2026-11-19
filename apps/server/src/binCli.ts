@@ -22,24 +22,14 @@ import { sharedServerCommandFlags } from "./cli/config.ts";
 import { projectCommand } from "./cli/project.ts";
 import { threadCommand } from "./cli/thread.ts";
 import { runDefaultServerCommand, serveCommand, startCommand } from "./cli/server.ts";
-import { updateCommand } from "./cli/update.ts";
-import {
-  confirmCliInstall,
-  inTerminalForeground,
-  installCommand,
-  offerCliInstall,
-} from "./cli/install.ts";
-import { uninstallCommand } from "./cli/uninstall.ts";
-import { runServiceLauncherCli } from "./cli/serviceLauncher.ts";
 import { speechWorkerCommand } from "./cli/speechWorker.ts";
 import { claudeHistoryCommand } from "./cli/claudeHistory.ts";
 import { sshHelperCommand } from "./cli/sshHelper.ts";
-import { serviceCommand } from "./cli/service.ts";
-import { servicePreflightCommand } from "./cli/servicePreflight.ts";
 import { themeCommand } from "./cli/theme.ts";
 import { traceCommand } from "./cli/trace.ts";
 import { triageCommand } from "./cli/triage.ts";
-import { connectCommand, statusCommand, upCommand } from "./cli/up.ts";
+import { connectSubcommands } from "./cli/connect.ts";
+import { legacyLifecycleCommands, studioLifecycleGuidance } from "./studioLifecycle.ts";
 
 const layerCliRuntime = Layer.mergeAll(NodeServices.layer, NodeCrypto.layer, NetService.layer);
 
@@ -60,24 +50,39 @@ const connectUnavailableCommand = Command.make("connect", {
   Command.withHandler(() =>
     Effect.fail(
       new CliError.ShowHelp({
-        commandPath: ["t3", "connect"],
+        commandPath: ["open-product-studio", "connect"],
         errors: [new ConnectPublicConfigMissingError({ cause: connectPublicConfigMissingMessage })],
       }),
     ),
   ),
 );
 
+const declineLegacyLifecycle = () =>
+  Effect.fail(new CliError.UserError({ cause: studioLifecycleGuidance }));
+
+const unavailableLifecycleCommands = legacyLifecycleCommands.map((name) =>
+  Command.make(name, { args: Argument.String("arg").pipe(Argument.variadic) }).pipe(
+    Command.unlisted,
+    Command.withDescription(studioLifecycleGuidance),
+    Command.withHandler(declineLegacyLifecycle),
+  ),
+);
+
+const hostedConnectCommand = Command.make("connect").pipe(
+  Command.withDescription("Access the configured Studio hosting account."),
+  Command.withHandler(declineLegacyLifecycle),
+  Command.withSubcommands(connectSubcommands),
+);
+
 export const makeCli = ({ cloudEnabled = hasCloudPublicConfig } = {}) =>
-  Command.make("t3", { ...sharedServerCommandFlags }).pipe(
-    Command.withDescription(
-      "Run T3 Code in this terminal and open it in your browser. To use it from your other devices, run `t3 up`.",
-    ),
+  Command.make("open-product-studio", { ...sharedServerCommandFlags }).pipe(
+    Command.withDescription("Run Open Product Studio in this terminal and open it in your browser."),
     Command.withHandler(runDefaultServerCommand),
     Command.withSubcommands([
       Command.make("help").pipe(
         Command.withDescription("Show command help."),
         Command.withHandler(() =>
-          Effect.fail(new CliError.ShowHelp({ commandPath: ["t3"], errors: [] })),
+          Effect.fail(new CliError.ShowHelp({ commandPath: ["open-product-studio"], errors: [] })),
         ),
       ),
       acpMcpBridgeCommand,
@@ -91,29 +96,17 @@ export const makeCli = ({ cloudEnabled = hasCloudPublicConfig } = {}) =>
       browserCommand,
       projectCommand,
       threadCommand,
-      upCommand,
-      statusCommand,
-      serviceCommand,
-      updateCommand,
-      installCommand,
-      uninstallCommand,
-      // bin.ts runs the bare service invocation; this keeps flags and help working like other commands.
-      Command.make("__service-launcher").pipe(
-        Command.unlisted,
-        // The launcher owns shutdown until its child exits; `runMain` would interrupt that shutdown.
-        Command.withHandler(() => Effect.sync(() => void runServiceLauncherCli())),
-      ),
+      ...unavailableLifecycleCommands,
       claudeHistoryCommand,
       speechWorkerCommand,
       sshHelperCommand,
 
-      servicePreflightCommand,
       themeCommand,
       traceCommand,
       doctorCommand,
       policyCommand,
       triageCommand,
-      cloudEnabled ? connectCommand : connectUnavailableCommand,
+      cloudEnabled ? hostedConnectCommand : connectUnavailableCommand,
     ]),
   );
 
@@ -122,22 +115,7 @@ export const cli = makeCli();
 export function runCli() {
   extendConnectionAttemptTimeout();
   keepOutboundFetchOnHttp1();
-  offerCliInstall({
-    args: process.argv.slice(2),
-    // A child started over IPC (a service launcher) has no one to answer.
-    interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY) && process.send === undefined,
-    foreground: inTerminalForeground,
-    confirm: confirmCliInstall,
-  }).pipe(
-    // The offer handles its own errors; even an unexpected defect must not stop the command.
-    Effect.catchDefect(() => Effect.succeed(true)),
-    Effect.flatMap((proceed) =>
-      proceed
-        ? Command.run(cli, { version: packageJson.version })
-        : Effect.sync(() => {
-            process.exitCode = 130;
-          }),
-    ),
+  Command.run(cli, { version: packageJson.version }).pipe(
     Effect.scoped,
     Effect.provide(layerCliRuntime),
     NodeRuntime.runMain,

@@ -1,9 +1,10 @@
-// @effect-diagnostics nodeBuiltinImport:off -- The service launcher starts before the CLI runtime.
+// @effect-diagnostics nodeBuiltinImport:off -- The executable bootstrap runs before the CLI runtime.
 import * as NodeModule from "node:module";
 import * as NodeSea from "node:sea";
 import * as NodeURL from "node:url";
 
 import { isEntrypoint } from "./entrypoint.ts";
+import { isLegacyLifecycleCommand, studioLifecycleGuidance } from "./studioLifecycle.ts";
 
 // Loads the CLI outside the launcher's module graph. Packaged builds embed it as a raw asset.
 async function loadCliMain(): Promise<typeof import("./binMain.ts")> {
@@ -45,14 +46,10 @@ if (
   process.stdout.on("error", ignoreOutputError);
   process.stderr.on("error", ignoreOutputError);
 
-  // The launcher owns shutdown until its child exits, so it bypasses the Effect CLI runtime.
-  // A service unit passes nothing, or on Windows the launcher's own flags; help and anything
-  // else go through the full CLI.
-  const launcher =
-    process.argv[2] === "__service-launcher" ? await import("./cli/serviceLauncher.ts") : undefined;
-  const launcherOptions = launcher?.parseServiceLauncherArgs(process.argv.slice(3));
-  if (launcher !== undefined && launcherOptions !== undefined) {
-    await launcher.runServiceLauncherCli(launcherOptions);
+  // Refuse before importing CLI, daemon, native packages or any lifecycle implementation.
+  if (isLegacyLifecycleCommand(process.argv[2])) {
+    process.stderr.write(studioLifecycleGuidance + "\n");
+    process.exitCode = 1;
   } else {
     const { runCliCommand } = await loadCliMain();
     await runCliCommand();
