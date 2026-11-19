@@ -31,7 +31,8 @@ import {
 } from "./update-release-package-versions.ts";
 import { applyWebBrandAssets } from "./apply-web-brand-assets.ts";
 import {
-  BRAND_ASSET_PATHS,
+  STUDIO_LINUX_ICON,
+  STUDIO_MAC_ICON,
   STUDIO_WINDOWS_ICON,
   resolveWebAssetBrandForChannel,
   type WebAssetBrand,
@@ -2709,18 +2710,10 @@ export function resolveDesktopWebAssetBrand(version: string): WebAssetBrand {
   return resolveWebAssetBrandForChannel(resolveDesktopUpdateChannel(version));
 }
 
-export function resolveDesktopBuildIconAssets(version: string): DesktopBuildIconAssets {
-  if (resolveDesktopUpdateChannel(version) === "nightly") {
-    return {
-      macIconPng: BRAND_ASSET_PATHS.nightlyMacIconPng,
-      linuxIconPng: BRAND_ASSET_PATHS.nightlyLinuxIconPng,
-      windowsIconIco: STUDIO_WINDOWS_ICON,
-    };
-  }
-
+export function resolveDesktopBuildIconAssets(): DesktopBuildIconAssets {
   return {
-    macIconPng: BRAND_ASSET_PATHS.productionMacIconPng,
-    linuxIconPng: BRAND_ASSET_PATHS.productionLinuxIconPng,
+    macIconPng: STUDIO_MAC_ICON,
+    linuxIconPng: STUDIO_LINUX_ICON,
     windowsIconIco: STUDIO_WINDOWS_ICON,
   };
 }
@@ -3664,7 +3657,7 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
 
   const appVersion =
     options.version ?? resolveTaggedSourceVersion(repoRoot, serverPackageJson.version);
-  const iconAssets = resolveDesktopBuildIconAssets(appVersion);
+  const iconAssets = resolveDesktopBuildIconAssets();
   const commitHash = yield* resolveGitCommitHash(repoRoot);
   const mkdir = options.keepStage ? fs.makeTempDirectory : fs.makeTempDirectoryScoped;
   const stageRoot = yield* mkdir({

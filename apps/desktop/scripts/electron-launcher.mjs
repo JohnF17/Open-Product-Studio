@@ -19,13 +19,7 @@ const APP_BUNDLE_ID = isDevelopment
   : "org.openproductstudio.desktop";
 const APP_PROTOCOL_SCHEMES = isDevelopment ? ["open-product-studio-dev"] : ["open-product-studio"];
 const LAUNCHER_VERSION = 20;
-const developmentMacIconPngPath = NodePath.join(
-  repoRoot,
-  "assets",
-  "dev",
-  "blueprint-macos-1024.png",
-);
-const productionMacIconPngPath = NodePath.join(repoRoot, "assets", "prod", "black-macos-1024.png");
+const studioMacIconPngPath = NodePath.join(repoRoot, "assets", "studio", "macos-1024.png");
 // oxlint-disable-next-line t3code/no-global-process-runtime -- Standalone launcher script has no Effect runtime.
 const hostPlatform = NodeOS.platform();
 
@@ -203,10 +197,10 @@ function registerMacLauncherBundle(appBundlePath) {
 // Bundle-internal paths are macOS paths whatever host builds them.
 function resolveMacLauncherIconPaths(runtimeDir, development = isDevelopment) {
   return {
-    sourceIconPath: development ? developmentMacIconPngPath : productionMacIconPngPath,
+    sourceIconPath: studioMacIconPngPath,
     generatedIconPath: NodePath.posix.join(
       runtimeDir,
-      development ? "icon-dev.icns" : "icon-prod.icns",
+      development ? "studio-icon-dev.icns" : "studio-icon-prod.icns",
     ),
   };
 }

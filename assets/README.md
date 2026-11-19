@@ -1,8 +1,12 @@
 # Brand icons
 
-## Studio web and Windows
+## Open Product Studio
 
-`studio/mark.svg` is the source for the in-app mark, website icons and Windows application icon.
+[Logo preview on light and dark surfaces](studio/preview.png)
+
+`studio/mark.svg` is the source for the in-app mark, browser icons, and native application icons.
+The native exports include a macOS dock tile with a 100-pixel inset, a full-width Linux tile, an
+opaque iOS icon, Android adaptive and notification layers, and the monochrome widget mark.
 Use Python with Pillow 9.3.0 to regenerate the checked-in assets. Run both commands from the
 repository root.
 
@@ -13,8 +17,7 @@ python -B assets/studio/render-icons.py --check
 
 ## Icon Composer projects
 
-The three upstream Icon Composer projects provide the platform-specific artwork for macOS,
-Linux and mobile:
+The repository retains the three upstream Icon Composer projects:
 
 - `dev/app-icon.icon`
 - `nightly/app-icon.icon`
@@ -63,7 +66,7 @@ Verify every result is 1024×1024 and has the classic macOS safe area: an 824×8
 
 Do not edit the generated PNG or ICO files directly.
 
-## Android launcher and splash artwork
+## Upstream Android launcher and splash artwork
 
 Android masks the central 72dp of a 108dp adaptive canvas, and the Android 12+ splash screen masks
 the central two thirds of a 288dp canvas, so the Icon Composer exports cannot be used directly:

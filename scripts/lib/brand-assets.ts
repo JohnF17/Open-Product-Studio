@@ -62,6 +62,8 @@ const WEB_ICON_FILENAMES = [
 ] as const;
 
 export const STUDIO_WINDOWS_ICON = "assets/studio/windows.ico";
+export const STUDIO_MAC_ICON = "assets/studio/macos-1024.png";
+export const STUDIO_LINUX_ICON = "assets/studio/linux-1024.png";
 
 // Studio uses a single icon for all web release channels.
 export function resolveWebIconOverrides(
