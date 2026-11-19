@@ -362,3 +362,10 @@ export const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(AnalyticsService, make);
+
+// Local Studio has no external analytics integration or user consent flow.
+export const layerLocal = Layer.succeed(AnalyticsService, {
+  record: () => Effect.void,
+  recordOwners: () => Effect.void,
+  flush: Effect.void,
+});

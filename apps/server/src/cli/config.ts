@@ -333,7 +333,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
     mode === "web" && devUrl !== undefined ? yield* DevAuthTokenConfig : undefined;
   const explicitBaseDir = resolveOptionPrecedence(
     normalizedFlags.baseDir,
-    Option.fromUndefinedOr(env.t3Home),
+    Option.fromUndefinedOr(mode === "desktop" && bootstrap?.t3Home ? undefined : env.t3Home),
   ).pipe(Option.filter((value) => value.trim().length > 0));
   const baseDir = yield* resolveBaseDir(
     Option.getOrUndefined(

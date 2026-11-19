@@ -66,10 +66,24 @@ describe("DesktopEnvironment", () => {
         {},
         { VITE_DEV_SERVER_URL: "http://localhost:5173" },
       );
-      const production = yield* makeEnvironment();
+      const production = yield* makeEnvironment(
+        { platform: "win32" },
+        { T3CODE_HOME: "/other-product" },
+      );
+      const explicit = yield* makeEnvironment(
+        {},
+        {
+          VITE_DEV_SERVER_URL: "http://localhost:5173",
+          STUDIO_HOME: " /fixture ",
+          T3CODE_HOME: "/other-product",
+        },
+      );
+      assert.equal(explicit.stateDir, "/fixture/userdata");
+      assert.equal(production.appUserModelId, "org.openproductstudio.desktop");
+      assert.equal(development.appUserModelId, "org.openproductstudio.desktop.dev");
 
-      assert.equal(development.stateDir, "/Users/alice/.t3/dev");
-      assert.equal(production.stateDir, "/Users/alice/.t3/userdata");
+      assert.equal(development.stateDir, "/Users/alice/.open-product-studio/dev");
+      assert.equal(production.stateDir, "/Users/alice/.open-product-studio/userdata");
     }),
   );
 });

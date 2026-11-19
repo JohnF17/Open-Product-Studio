@@ -158,7 +158,7 @@ describe("renderCliShim", () => {
     expect(result.stdout).toContain(`appimage=${appImage}`);
   });
 
-  it("keeps the install's T3 home under sudo, unless one is set", () => {
+  it("keeps the Studio home even when the caller inherits a T3 home", () => {
     const root = tempRoot();
     writeExecutable(NodePath.join(root, "app"), REPORTER);
     const shim = writeShim(root, {
@@ -167,7 +167,7 @@ describe("renderCliShim", () => {
       entry: "/bin.mjs",
     });
     expect(run(shim, []).stdout).toContain(`home=${root}/home`);
-    expect(run(shim, [], { T3CODE_HOME: "/elsewhere" }).stdout).toContain("home=/elsewhere");
+    expect(run(shim, [], { T3CODE_HOME: "/elsewhere" }).stdout).toContain(`home=${root}/home`);
     const relative = NodeChildProcess.spawnSync("./bin/t3", [], { cwd: root, encoding: "utf8" });
     expect(relative.stdout).toContain(`cli=${shim}`);
   });

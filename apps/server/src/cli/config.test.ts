@@ -222,7 +222,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
       assert(child.pid !== undefined);
       for (const source of ["flag", "T3CODE_HOME", "default"] as const) {
         const home = yield* fs.makeTempDirectoryScoped({ prefix: "t3-cli-preflight-pair-" });
-        const baseDir = source === "default" ? path.join(home, ".t3") : home;
+        const baseDir = source === "default" ? path.join(home, ".open-product-studio") : home;
         const stateDir = path.join(baseDir, "userdata");
         yield* fs.makeDirectory(stateDir, { recursive: true });
         yield* fs.writeFileString(
@@ -426,6 +426,36 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         tailscaleServeEnabled: false,
         tailscaleServePort: 443,
       });
+    }),
+  );
+
+  it.effect("uses the Studio bootstrap home even if the desktop inherits T3CODE_HOME", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const home = yield* fs.makeTempDirectoryScoped();
+      const baseDir = path.join(home, "studio");
+      const fd = yield* openBootstrapFd(makeDesktopBootstrap({ t3Home: baseDir }));
+      const resolved = yield* resolveServerConfig(
+        {
+          ...minimalDesktopFlags(baseDir),
+          baseDir: Option.none(),
+          bootstrapFd: Option.some(fd),
+          devUrl: Option.some(new URL("http://localhost:5173")),
+        },
+        Option.none(),
+      ).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            ConfigProvider.layer(
+              ConfigProvider.fromEnv({ env: { T3CODE_HOME: path.join(home, "t3-sentinel") } }),
+            ),
+            NetService.layer,
+          ),
+        ),
+      );
+      expect(resolved.baseDir).toBe(baseDir);
+      expect(resolved.stateDir).toBe(path.join(baseDir, "dev"));
     }),
   );
 
