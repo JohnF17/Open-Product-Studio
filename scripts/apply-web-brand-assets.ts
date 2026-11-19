@@ -30,8 +30,11 @@ export const applyWebBrandAssets = Effect.fn("applyWebBrandAssets")(function* (
 
   yield* Effect.forEach(
     resolveWebIconOverrides(brand, path.resolve(repoRoot, targetDirectory)),
-    (override) =>
-      fs.copyFile(path.join(repoRoot, override.sourceRelativePath), override.targetRelativePath),
+    (override) => {
+      const source = path.join(repoRoot, override.sourceRelativePath);
+      const target = path.normalize(override.targetRelativePath);
+      return source === target ? Effect.void : fs.copyFile(source, target);
+    },
     { concurrency: "unbounded" },
   );
 });
