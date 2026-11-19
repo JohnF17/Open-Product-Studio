@@ -41,6 +41,12 @@ PINNED_MEDIA = {
 }
 LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 
+# Generated from the Studio renderer using a synthetic project. Capture provenance
+# and SHA-256 are in docs/acceptance/WP08/README.md. Review replacements explicitly.
+STUDIO_WINDOW_RECORDINGS = {
+    'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
+}
+
 
 def public_paths(root):
     """Enumerate candidate paths without descending into excluded working material."""
@@ -119,7 +125,8 @@ def check(root: Path) -> list[str]:
         if not path.is_file():  # Deleted working-tree path still in the Git index.
             continue
         if suffix in RESTRICTED:
-            expected = PINNED_MEDIA.get(relative.as_posix())
+            name = relative.as_posix()
+            expected = PINNED_MEDIA.get(name) or STUDIO_WINDOW_RECORDINGS.get(name)
             if expected is None or blob_id(path.read_bytes()) != expected:
                 errors.append(f'Restricted research/media asset: {relative}; explicit review required')
             continue

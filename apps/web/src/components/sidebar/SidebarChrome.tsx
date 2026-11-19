@@ -1,7 +1,9 @@
-import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, SettingsIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, HouseIcon, SettingsIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { T, useGT } from "gt-react";
 import { memo } from "react";
+import { isElectron as isDesktopHost } from "../../env";
+import { isLocalEnvironmentDisabled } from "../../localEnvironment";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 
 import { useAtomValue } from "@effect/atom-react";
@@ -233,6 +235,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
   const isOnUtilityPage = useLocation({
     select: (location) => isSidebarUtilityPage(location.pathname),
   });
+  const isHome = useLocation({ select: (location) => location.pathname === "/" });
   const pullRequestsSupported = usePullRequestsSupported();
   const issuesSupported = useIssuesSupported();
   const closeMobileSidebar = () => {
@@ -281,6 +284,16 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
         </SidebarMenuItem>
       ) : (
         <>
+          {isDesktopHost && !isHome && !isLocalEnvironmentDisabled() ? (
+            <SidebarUtilityItem
+              icon={<HouseIcon />}
+              label={gt("Studio home")}
+              onClick={() => {
+                closeMobileSidebar();
+                void navigate({ to: "/" });
+              }}
+            />
+          ) : null}
           <SidebarUtilityItem
             icon={<SettingsIcon />}
             label={gt("Settings")}

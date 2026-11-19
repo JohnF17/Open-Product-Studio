@@ -1,6 +1,6 @@
 # Integrated desktop product design
 
-Revised 19 November 2026. The desktop design retains the T3 Code shell and adds guided project builders and a shared dashboard. The pinned Windows desktop has built and opened a fixture conversation. The project categories and Studio workflows below are planned. [Desktop baseline](BASELINE.md)
+The desktop retains the T3 Code shell and adds guided project builders and a shared dashboard. Three categories, editable local working drafts and the agent-composer handoff are implemented in the Windows development build. The catalog below describes each category's intended release capabilities. [Guided workspace](acceptance/WP08.md) · [Desktop baseline](BASELINE.md)
 
 ## Product definition
 

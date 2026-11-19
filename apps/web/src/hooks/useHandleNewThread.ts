@@ -102,8 +102,11 @@ export function createNewThreadHandler(router: AnyRouter) {
       replace?: boolean;
       /** Composer text for the draft, set before it shows. A draft with user text keeps it. */
       prompt?: string;
+      /** Cancels a pending opener when its owning form or project changes. */
+      signal?: AbortSignal;
     },
   ): Promise<{ draftId: DraftId; threadId: ThreadId } | null> => {
+    if (options?.signal?.aborted) return Promise.resolve(null);
     const projects = readProjects();
     const projectGroupingSettings = selectProjectGroupingSettings(getClientSettings());
     // Read at call time; status pushes replace the config map and would recreate every sidebar handler.
@@ -162,7 +165,7 @@ export function createNewThreadHandler(router: AnyRouter) {
         candidate.environmentId === projectRef.environmentId,
     );
     const abandonedSinceRequest = () =>
-      routeChangedSinceRequest() || (project !== undefined && readProject(projectRef) === null);
+      options?.signal?.aborted || routeChangedSinceRequest() || (project !== undefined && readProject(projectRef) === null);
     const projectSettings = resolveProjectSettings(
       targetServerSettings,
       project?.id ?? null,
@@ -236,6 +239,7 @@ export function createNewThreadHandler(router: AnyRouter) {
     // Another opener (home's own first-project draft) may have reached this project's draft first.
     // Matches lag the location during a navigation, so compare against the location.
     const resultIfAbandoned = () => {
+      if (options?.signal?.aborted) return null;
       const draft = getDraftSessionByLogicalProjectKey(logicalProjectKey);
       if (draft === null || draft.promotedTo != null || readProject(projectRef) === null) {
         return null;

@@ -1,0 +1,56 @@
+name: Studio workspace
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'docs/roadmap/project-categories.json'
+      - 'package.json'
+      - 'pnpm-*.yaml'
+      - '.github/workflows/studio-workspace.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'docs/roadmap/project-categories.json'
+      - 'package.json'
+      - 'pnpm-*.yaml'
+      - '.github/workflows/studio-workspace.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-workspace-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  builder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out the exact public candidate
+        shell: bash
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          git init --quiet
+          git -c credential.helper= fetch --quiet --depth=1 --no-tags --no-recurse-submodules "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          node-version-file: package.json
+          run-install: false
+          cache: false
+      - name: Install the locked renderer dependencies
+        run: vp install --frozen-lockfile --filter=@t3tools/web...
+      - name: Set up Chromium
+        run: node apps/web/node_modules/playwright/cli.js install --with-deps --only-shell chromium
+      - name: Check draft transactions and guided navigation
+        working-directory: apps/web
+        run: vp test run --project unit --project browser src/features/studio src/hooks/useHandleNewThread.test.ts src/components/StudioLanding.browser.test.tsx

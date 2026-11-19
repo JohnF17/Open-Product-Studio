@@ -1045,7 +1045,7 @@
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
       "externalPrerequisites": [],
-      "status": "planned",
+      "status": "in-progress",
       "evidence": [],
       "requirementIds": [
         "MON-013",

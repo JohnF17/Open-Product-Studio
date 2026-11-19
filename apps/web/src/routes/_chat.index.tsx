@@ -6,6 +6,7 @@ import { T, useGT } from "gt-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { isElectron } from "../env";
+import StudioLanding from "../components/StudioLanding";
 import { NoProjectsHero } from "../components/NoProjectsHero";
 import { sortScopedProjectsForSidebar } from "../components/Sidebar.logic";
 import { Button } from "../components/ui/button";
@@ -31,7 +32,7 @@ function ChatIndexRouteView() {
     if (environments.length === 0) return <HostedEmptyState />;
   }
 
-  return <IndexDraftLanding />;
+  return isElectron && authGateState.status === "authenticated" ? <StudioLanding /> : <IndexDraftLanding />;
 }
 
 function IndexDraftLanding() {

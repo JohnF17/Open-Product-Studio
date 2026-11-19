@@ -90,6 +90,22 @@ class DocumentationPolicyTests(unittest.TestCase):
             doc.write_text('[Source](private-research/notes.txt)')
             self.assertTrue(policy.check(root))
 
+    def test_studio_recording_requires_reviewed_path_and_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.fixture(root)
+            asset = root / 'docs/acceptance/WP08/fixture.mp4'
+            asset.parent.mkdir(parents=True, exist_ok=True)
+            asset.write_bytes(b'synthetic frames')
+            reviewed = {asset.relative_to(root).as_posix(): policy.blob_id(asset.read_bytes())}
+            with patch.dict(policy.STUDIO_WINDOW_RECORDINGS, reviewed):
+                self.assertEqual(policy.check(root), [])
+                asset.write_bytes(b'different frames')
+                self.assertTrue(policy.check(root))
+                asset.unlink()
+                (asset.parent / 'different.mp4').write_bytes(b'synthetic frames')
+                self.assertTrue(policy.check(root))
+
     def test_tracked_private_candidate_rejected_without_opening(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

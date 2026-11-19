@@ -2,9 +2,9 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**The desktop source now tracks T3 Code at `bb234221`.** The original Windows baseline opened a fixture conversation in Electron. The new integration has its own build and installer qualification gates. See the [active source baseline](docs/BASELINE.md) and [earlier Windows smoke test](docs/acceptance/WP01.md).
+**The Windows development build includes a guided workspace.** Create a Blank, Digital product or Video project, move through its sheets, reopen a saved draft and download editable JSON. The agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
 
-Open Product Studio is a planned downloadable Electron workspace for making and publishing things with your own AI tools. New Project offers three starting points:
+Open Product Studio is an Electron workspace for making products with your own AI tools. The roadmap tracks downloadable releases, complete product exports and publishing. New Project offers three starting points:
 
 - **Blank** opens a workspace where you can bring existing material or pick a guided workflow later.
 - **Digital product** guides you from an idea through research, creation and export of an ebook, workbook or another supported product.
