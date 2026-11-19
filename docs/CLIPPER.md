@@ -2,7 +2,7 @@
 
 Clipper starts with a moment in an existing recording. A teacher can take one explanation from a lesson, and a developer can turn the few seconds where a feature works into a captioned walkthrough. Each project keeps the original recording, its marked moments and independently editable versions of each clip. The first release target is a portrait clip you can play outside Studio and reopen for another edit, working offline with a recording you have permission to use.
 
-Clipper is the fourth **planned** project category. The Windows development chooser currently opens Blank, Digital product and Video. The existing Video builder starts from a brief and storyboard. Both media categories share the Library, editor revisions, render jobs and export review. A rendered Video can become a Clipper source when the user selects that specific revision. [Current Windows build evidence](acceptance/WP08.md) · [Category catalog](roadmap/project-categories.json)
+Clipper is the fourth **planned** project category. The 19 November Windows capture shows the three choices its build supports, Blank, Digital product and Video. The chooser source still defines those three. Video starts by choosing a style and reviewing its tool checklist, then moves to the brief and storyboard. Both media categories share the Library, editor revisions, render jobs and export review. A rendered Video can become a Clipper source when the user selects that specific revision. [Current Windows build evidence](acceptance/WP08.md) · [Category catalog](roadmap/project-categories.json)
 
 ## The first clip
 
@@ -10,12 +10,14 @@ Clipper is the fourth **planned** project category. The Windows development choo
 | --- | --- |
 | **Source** | Create an empty Clipper project. Choose an owned local recording or an authorized Library revision. Show its duration, audio tracks and a preview. Save the source permissions and permitted uses. A pasted reference link can remain a note until the user supplies eligible media. |
 | **Moments** | Mark a start and end while playing the recording. Give the moment a name and play the surrounding context. With an eligible assistant, ask “Where does the guest explain the first repair?” or “Show the checkout working without sound.” Each suggestion opens at the cited interval. Keep, trim or dismiss it. |
-| **Edit** | Drag a portrait crop while watching the actual subject, or adjust it with the keyboard. Enter captions directly, import timed captions, or correct a proposed transcript. Preview caption placement and line breaks over the clip. Duplicate the variant to try another framing while keeping the first version. |
+| **Edit** | Drag a portrait crop while watching the actual subject, or adjust it with the keyboard. Enter captions directly, import timed captions, or correct a proposed transcript. Preview caption placement and line breaks over the clip. Compare an original style preset or a permitted reference on this exact moment. Duplicate the variant to try another framing while keeping the first version. |
 | **Review** | Play the selected cut with sound and then muted. Check the opening and closing frames, caption timing, crop, credits and permissions for voices, music or people visible in the shot. A corrected caption or cut reopens review for the affected variant. |
 | **Export** | Save the reviewed 9:16 video locally with an optional caption sidecar and an editable project manifest. The manifest identifies the source by revision and digest. It can prompt for a matching file on a different device. Including authorized source media in a portable bundle is a separate choice. |
 | **Publish, optional** | For an eligible connector, choose the destination account, preview the selected revision with its caption and visibility, and approve that one post. Show the confirmed post reference or an unresolved result. Local export completes the project independently. |
 
 Use the existing horizontal builder. Next slides the current sheet left and Back slides it right. Return focus to the incoming heading, offer a reduced-motion transition, and keep timeline controls operable by keyboard. On a narrow window the preview and controls stack. Home resumes the last moment, variant and step after a restart. A missing source offers relink by digest and keeps prior marks available.
+
+Video and Clipper share the optional style board. The next design records selectable examples, reference analysis, recipe-specific tools and the Clips Kitty integration candidate. [Media workflows and style references](MEDIA-WORKFLOWS.md)
 
 ## Tool decisions
 
@@ -50,4 +52,4 @@ The basic tool checklist contains a local media reader and renderer. Transcripti
 
 ## Evidence for the reference reel
 
-Research date: 19 November 2026. The supplied URL resolves by identity to Instagram shortcode `Df4VktwN5Sm`. The offline video-evidence helper normalized the locator. A search of prior local research found no matching capture. Agent Reach listed an Instagram channel. The public page fetch reported throttling, so retrieval on that route stopped. An independent exact-shortcode search located no attributable recording or transcript. Author, publication date, duration, footage, speech and tools shown remain unknown. The tool decisions above come from the linked primary documentation and the Studio design review. [Supplied reel](https://www.instagram.com/reel/Df4VktwN5Sm/)
+On 19 November 2026, the supplied URL identified Instagram shortcode `Df4VktwN5Sm`. The offline video-evidence helper normalized the locator. A search of prior local research found no matching capture. Agent Reach listed an Instagram channel. The public page fetch reported throttling, so retrieval on that route stopped. An independent exact-shortcode search located no attributable recording or transcript. Author, publication date, duration, footage, speech and tools shown remain unknown. The tool decisions above come from the linked primary documentation and the Studio design review. [Supplied reel](https://www.instagram.com/reel/Df4VktwN5Sm/)

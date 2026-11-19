@@ -15,6 +15,8 @@ The roadmap adds Clipper to the three categories available in **New project** to
 | **Video** | Start with a style or ask for a recommendation. Preview the required tools, prepare the chosen setup, then use a guided brief, storyboard and scene editor. | A standalone captioned explainer, product walkthrough or short with an optional social publication. |
 | **Clipper** (planned) | Start empty, import a permitted recording, mark a moment or inspect suggested cuts, then edit framing and captions. | A reviewed portrait clip from a longer recording, with its source and edits available to reopen. [Clipper plan](CLIPPER.md) |
 
+Video and Clipper can share an editable look derived from an original Studio sample, a permitted reference or manual controls. The selection belongs to the project and can be previewed on the user's own content. [Media workflows](MEDIA-WORKFLOWS.md)
+
 Styles and templates belong within a category. Future categories can add a starter flow and a primary artifact using the existing registry and shared services. A video can begin with a one-line idea and finish with a reviewed export. From an existing ebook, **Make a video from this** creates a linked Video draft with its own project ID. Copy only the selected, permitted pages or assets with their immutable revision and source attribution. Each project keeps its own edits, grants, jobs and receipts. A buyer, offer, ebook or campaign is optional for a Video project.
 
 ## Foundation and interface

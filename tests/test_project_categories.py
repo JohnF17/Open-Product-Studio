@@ -99,3 +99,72 @@ class ProjectCategoryTests(unittest.TestCase):
                 candidate = copy.deepcopy(self.catalog)
                 mutate(candidate)
                 self.assertTrue(check(candidate, self.roadmap))
+
+    def test_design_recipes_support_both_builders_without_extending_current_guide(self):
+        recipes = self.catalog["styleRecipes"]
+        self.assertEqual(recipes["status"], "design-only")
+        self.assertEqual(recipes["policy"]["skipStyle"], "use-manual-default-without-reference")
+        self.assertEqual(set(recipes["builders"]), {"video", "clipper"})
+        self.assertTrue(set(recipes["tools"]) - self.catalog["stackEntries"].keys())
+        for builder in recipes["builders"].values():
+            self.assertEqual(builder["origins"], ["manual", "built-in-example", "supplied-reference"])
+            self.assertGreaterEqual(len(builder["presets"]), 2)
+            treatments = {tuple(preset["treatment"].items()) for preset in builder["presets"].values()}
+            self.assertGreaterEqual(len(treatments), 2)
+        video = recipes["builders"]["video"]
+        self.assertEqual((video["styleAt"], video["prepareAt"]), ("style", ["prepare"]))
+        clipper = recipes["builders"]["clipper"]
+        self.assertEqual((clipper["styleAt"], clipper["prepareAt"]), ("edit", ["source", "edit"]))
+        portrait = clipper["presets"][clipper["defaultPreset"]]
+        self.assertEqual(portrait["aspectRatio"], "9:16")
+        self.assertEqual(portrait["required"]["render"][0], "ffmpeg")
+
+    def test_recipe_policy_keeps_reference_use_and_preparation_scoped(self):
+        def remove_origin(recipes):
+            recipes["builders"]["video"]["origins"].remove("supplied-reference")
+
+        for mutate in (
+            lambda r: r.update(status="available"),
+            lambda r: r["policy"].update(install="automatic"),
+            lambda r: r["policy"].update(skipStyle="disabled"),
+            lambda r: r["policy"].update(upload="allowed-by-selection"),
+            lambda r: r["policy"].update(referenceUse="unrestricted"),
+            lambda r: r["policy"].update(acquisition="download-any-link"),
+            lambda r: r["builders"]["clipper"].update(prepareAt=["source"]),
+            lambda r: r["builders"]["clipper"].update(styleAt="publish"),
+            lambda r: r["builders"]["video"].update(grantsAccess=True),
+            remove_origin,
+        ):
+            with self.subTest(mutate=mutate):
+                candidate = copy.deepcopy(self.catalog)
+                mutate(candidate["styleRecipes"])
+                self.assertTrue(check(candidate, self.roadmap))
+
+    def test_recipe_choices_preserve_manual_defaults_and_gate_optional_tools(self):
+        def update_default(recipes, **changes):
+            builder = recipes["builders"]["clipper"]
+            builder["presets"][builder["defaultPreset"]].update(**changes)
+
+        for mutate in (
+            lambda r: r["tools"]["yt-dlp"].update(scope="local"),
+            lambda r: r["tools"]["yt-dlp"].update(command="start"),
+            lambda r: r["tools"]["whisper-cpp"].update(capability="cap.media.video"),
+            lambda r: r["tools"]["remotion"].update(status="available"),
+            lambda r: r["tools"].pop("hyperframes"),
+            lambda r: update_default(r, aspectRatio="16:9"),
+            lambda r: update_default(r, treatment={"script": "run-this"}),
+            lambda r: update_default(r, required={"inspect": ["yt-dlp"], "edit": ["manual-clip-editor"],
+                                                   "render": ["ffmpeg"]}),
+            lambda r: update_default(r, optional=["ffmpeg"]),
+            lambda r: r["builders"]["video"]["presets"]["timed-text"].update(optional=["whisper-cpp"]),
+        ):
+            with self.subTest(mutate=mutate):
+                candidate = copy.deepcopy(self.catalog)
+                mutate(candidate["styleRecipes"])
+                self.assertTrue(check(candidate, self.roadmap))
+
+    def test_design_only_tools_cannot_enter_current_guide(self):
+        candidate = copy.deepcopy(self.catalog)
+        candidate["stackEntries"]["remotion"] = copy.deepcopy(candidate["stackEntries"]["hyperframes"])
+        candidate["styles"]["kinetic-type"]["required"][-1]["chooseOne"].append("remotion")
+        self.assertTrue(check(candidate, self.roadmap))

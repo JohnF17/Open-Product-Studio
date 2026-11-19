@@ -18,6 +18,10 @@ Guided mode explains purpose, required inputs, an example, current availability 
 
 Global settings contain device/application preferences and connection management. Workspace settings contain membership/roles and hosted service context. Billing lives under the selected payer organization and requires billing authority. Project settings contain brief, revisions, defaults and explicit bindings. Creator merchant setup belongs to offer/publication context; the buyer's checkout/account is an external surface. Do not place every account behind one ambiguous profile icon.
 
+## Style references for Video and Clipper
+
+In Video, choose a look in the style picker and try it on the first scene. In Clipper, choose a moment first, then compare looks in Edit. Both support a permitted reference, original Studio examples and manual styling. Sample the same material before and after, keep the traits you want, and apply the choice to selected revisions. [Recipes, integrations and acceptance](MEDIA-WORKFLOWS.md)
+
 ## A Video project from idea to publication
 
 “Help me choose” is available at every creative decision. Someone arriving without an idea can give a goal such as “explain one useful thing to first-time gardeners.” Studio can propose topics and an example style within the selected research budget. A user with a script can go straight to style selection. Both can work manually and return to earlier steps.

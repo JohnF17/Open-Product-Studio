@@ -1040,7 +1040,8 @@
         "Exercise empty/example, loading/partial, stale/offline, denied/revoked, quota/Unknown, retry and recovered states without sign-in for local work. Distinct blocker/remediation text preserves keyboard focus and useful partial exports; no fake percent, completed action or automatic connection.",
         "Measure the motion/performance profile in PROJECT-EXPERIENCE.md on declared hardware: 120-200 ms local transitions, 250 ms maximum decorative transition, reduced-motion removal, batched streaming, virtualized lists and retained scroll. Record baseline startup/idle memory and reviewed regression budgets, not claimed measurements.",
         "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.",
-        "From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected."
+        "From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.",
+        "Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B."
       ],
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
@@ -1146,6 +1147,15 @@
             "WP08"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 12,
+          "phase": "component",
+          "producers": [
+            "WP08"
+          ],
+          "state": "not-run",
+          "scope": "Use labeled fixtures to exercise reference, preset, manual and skip choices, tool readiness and the absence of side effects from style and tool selection."
         }
       ]
     },
@@ -1768,7 +1778,8 @@
         "Provider success is distinct from complete artifact finalization; crash resumes only unfinished sections.",
         "Sandboxed HTML/Markdown/SVG/PDF preview fixtures block scripts, privileged links and network/file fetches.",
         "Historical versions/claim links remain inspectable; stale evidence flags affected sections.",
-        "Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available."
+        "Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available.",
+        "Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review."
       ],
       "owner": "content/data maintainer",
       "reviewer": "editorial and preview-security reviewer",
@@ -1837,6 +1848,15 @@
             "WP14"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 6,
+          "phase": "component",
+          "producers": [
+            "WP14"
+          ],
+          "state": "not-run",
+          "scope": "Use permitted, denied and missing reference fixtures. Reopen a style revision and verify trait edits preserve the source and content revisions and invalidate stale sample approval."
         }
       ]
     },
@@ -3168,7 +3188,8 @@
         "For external routes prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.",
         "Start a standalone 30-second project from a blank brief. Pin one of the catalog styles, inspect and explicitly prepare its required tools, approve the script and storyboard, edit a scene, preview, render and review. Reopen the editable project and play the exported video with captions and credits outside Studio. Exercise the bundled local route with document, merchant, social and paid model connections absent; accept a separately quoted narration route only when requested.",
         "Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware.",
-        "Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection."
+        "Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection.",
+        "For Video and Clipper, let the user request and compare a before-and-after sample of the same content and approve the styled sample before applying the style to the export. Pin the style revision, source or scene revision, sample inputs, export preset, exact renderer build and configuration, and the selected tool versions and host. If a provider is chosen, bind its exact provider, account, model and supported settings with no silent substitution. Reopen the editable project from the recorded bindings. Verify the first usable export for each category with a local renderer and supplied media, offline with the optional style board skipped and paid or external services unavailable."
       ],
       "owner": "media maintainer",
       "reviewer": "rights/cost/security reviewer",
@@ -3311,6 +3332,27 @@
           ],
           "state": "not-run",
           "scope": "Witness the manual local M4A Clipper journey on the exact Windows and renderer builds. Record source revision, range, first and last frames, sync, applicable rights and metadata, 9:16 external playback, editable reopen and recovery after interruption."
+        },
+        {
+          "item": 11,
+          "phase": "component",
+          "producers": [
+            "WP24"
+          ],
+          "state": "not-run",
+          "scope": "Use local fixtures to verify that both samples preserve content, approval binds the style and sample inputs, and unavailable routes cannot silently substitute."
+        },
+        {
+          "item": 11,
+          "phase": "integration",
+          "producers": [
+            "WP24",
+            "WP08",
+            "WP14",
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Witness the style sample approval, reproducible local export and reopen for Video and Clipper on the declared renderer build. Verify the manual first export for both categories with networking disabled and the board skipped."
         }
       ],
       "externalGateApplicability": [

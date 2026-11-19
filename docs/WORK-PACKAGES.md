@@ -412,11 +412,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.
 
+- Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A11: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A12: **component**, producer WP08. Use labeled fixtures to exercise reference, preset, manual and skip choices, tool readiness and the absence of side effects from style and tool selection.
 
 **Execution steps:**
 
@@ -718,11 +722,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available.
 
+- Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A5: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A6: **component**, producer WP14. Use permitted, denied and missing reference fixtures. Reopen a style revision and verify trait edits preserve the source and content revisions and invalidate stale sample approval.
 
 **Execution steps:**
 
@@ -1256,6 +1264,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection.
 
+- For Video and Clipper, let the user request and compare a before-and-after sample of the same content and approve the styled sample before applying the style to the export. Pin the style revision, source or scene revision, sample inputs, export preset, exact renderer build and configuration, and the selected tool versions and host. If a provider is chosen, bind its exact provider, account, model and supported settings with no silent substitution. Reopen the editable project from the recorded bindings. Verify the first usable export for each category with a local renderer and supplied media, offline with the optional style board skipped and paid or external services unavailable.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5: **component**, producer WP24. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1273,6 +1283,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A10: **component**, producer WP24. Use local fixtures to verify timestamp mapping, variable frame rate boundaries, audio and caption sync, framing, metadata, persisted editable state and recovery after interruption.
 
 - A10: **integration**, producer WP24, WP03, WP08, WP14, WP17. Witness the manual local M4A Clipper journey on the exact Windows and renderer builds. Record source revision, range, first and last frames, sync, applicable rights and metadata, 9:16 external playback, editable reopen and recovery after interruption.
+
+- A11: **component**, producer WP24. Use local fixtures to verify that both samples preserve content, approval binds the style and sample inputs, and unavailable routes cannot silently substitute.
+
+- A11: **integration**, producer WP24, WP08, WP14, WP17. Witness the style sample approval, reproducible local export and reopen for Video and Clipper on the declared renderer build. Verify the manual first export for both categories with networking disabled and the board skipped.
 
 **Execution steps:**
 
