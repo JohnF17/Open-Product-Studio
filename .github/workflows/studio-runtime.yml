@@ -72,6 +72,7 @@ jobs:
           run-install: false
           cache: false
       - name: Install locked test dependencies
+        id: install
         run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/web... --filter=@t3tools/scripts... --filter=@t3tools/monorepo
       - name: Check worktree bootstrap and public configuration
         working-directory: scripts
@@ -103,12 +104,28 @@ jobs:
           src/components/settings/ConnectionsSettings.logic.test.ts src/components/desktopUpdate.logic.test.ts
           src/components/composerInlineTokenPaste.test.ts
       - name: Check foreground command and updater boundaries
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: apps/server
         run: |
           vp test run --maxWorkers=2 src/studioLifecycle.test.ts src/cliCompileCache.test.ts src/cli/doctor.test.ts src/serverRuntimeState.test.ts src/cli/app.test.ts
           vp test run --maxWorkers=1 src/cli/invocation.test.ts -t 'root CLI commands|host CLI commands'
-          vp test run --maxWorkers=2 src/cloud/selfUpdate.test.ts src/cloud/npmRelease.test.ts src/desktopUpdate/DesktopAppUpdate.test.ts src/environment/ServerEnvironment.test.ts src/serverRuntimeStartup.test.ts
+      - name: Check update ownership and server startup
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: vp test run --maxWorkers=2 src/cloud/selfUpdate.test.ts src/cloud/npmRelease.test.ts src/desktopUpdate/DesktopAppUpdate.test.ts src/environment/ServerEnvironment.test.ts src/serverRuntimeStartup.test.ts
+      - name: Check Studio diagnostic sources and session instructions
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: vp test run --maxWorkers=2 src/triage/TriageService.test.ts src/triage/triagePrompt.test.ts src/triage/triageSession.test.ts src/cli/triage.test.ts
+      - name: Typecheck affected desktop, server, shared and renderer packages
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && runner.os == 'Linux' }}
+        run: |
+          set -euo pipefail
+          for pkg in packages/shared apps/server apps/desktop apps/web; do
+            (cd "$pkg" && node ../../node_modules/@effect/tsgo/dist/effect-tsgo.cjs tsrs --noEmit)
+          done
       - name: Check state migration and worktree cleanup in disposable directories
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: apps/server
         run: |
           vp test run --maxWorkers=1 scripts/migrate-dev-db.test.ts
