@@ -2,7 +2,7 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**The Windows desktop baseline builds and opens.** We built the pinned T3 Code desktop, web and server from source and opened a fixture conversation in Electron. The Studio dashboard and guided product workflows are planned. See the [baseline record](docs/BASELINE.md) and [verified window](docs/acceptance/WP01/windows-source-smoke.png).
+**The desktop source now tracks T3 Code at `bb234221`.** The original Windows baseline opened a fixture conversation in Electron. The new integration has its own build and installer qualification gates. See the [active source baseline](docs/BASELINE.md) and [earlier Windows smoke test](docs/acceptance/WP01.md).
 
 Open Product Studio is a planned downloadable Electron workspace for making and publishing things with your own AI tools. New Project offers three starting points:
 

@@ -50,7 +50,7 @@ Persist last successful check time, last reviewed SHA, adopted/backported revisi
 
 ### Explicit decisions and evidence
 
-The [baseline manifest](upstream/manifest.json) records the upstream and downstream revisions, source license and lockfile digests. The [intake and patch ledger](PATCHES.md) records the first upstream comparison. Populate resolved production graphs, native and SBOM digests, supported targets and named maintainers as their gates pass. The baseline is imported for evaluation.
+The [baseline manifest](upstream/manifest.json) records the upstream and downstream revisions, source license and lockfile digests. The [intake and patch ledger](PATCHES.md) records comparisons and adopted revisions. Populate resolved production graphs, native and SBOM digests, supported targets and named maintainers as their gates pass. The baseline is imported for evaluation.
 
 Each commit/PR/advisory gets an owner, affected components, local applicability, prerequisites and one decision: `adopt`, `backport`, `defer` or `not-applicable`. Keep reasons, mitigation, review date/blocker, downstream commit and test evidence. A hidden UI feature is not evidence that its vulnerable code is unreachable. Not-applicable decisions require route/capability evidence.
 

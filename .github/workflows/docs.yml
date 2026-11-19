@@ -29,3 +29,5 @@ jobs:
         run: python3 scripts/check_roadmap.py
       - name: Check design agent contracts
         run: python3 scripts/check_agents.py
+      - name: Check project categories and production stages
+        run: python3 scripts/check_project_categories.py

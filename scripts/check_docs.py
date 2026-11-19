@@ -1,6 +1,7 @@
 """Small structural documentation gate; not a security or factual-content scanner."""
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -29,8 +30,7 @@ REQUIRED = (
 # private-research/ is intentionally local and excluded by .gitignore.
 IGNORED = {'.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build', 'private-research'}
 RESTRICTED = {'.pdf', '.vtt', '.srt', '.asar', '.mp4', '.mp3'}
-UPSTREAM_PIN = '7d71f852a8edd298ffde67c295760c286a71a27c'
-# Mode 100644 blobs selected from the public upstream tree at UPSTREAM_PIN.
+# Mode 100644 blobs individually reviewed against the active baseline manifest.
 # A new path or a changed asset needs a new review, including its distribution rights.
 PINNED_MEDIA = {
     '.repos/alchemy-effect/website/public/blog/beta-77/alchemy-cli.mp4':'b724dd6b740caafc245c56740305bc8dcf3db498',
@@ -60,10 +60,14 @@ def public_paths(root):
     files = [root / os.fsdecode(n) for n in names if n]
     if not (root / 'apps' / 'desktop' / 'package.json').exists():
         return files, {}
+    manifest = json.loads((root / 'docs/upstream/manifest.json').read_text(encoding='utf-8'))
+    pin = manifest.get('upstreamSha')
+    if not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{40}', pin):
+        raise ValueError('Baseline manifest requires a full upstream commit SHA')
     try:
-        tree = git('ls-tree', '-r', '-z', UPSTREAM_PIN)
+        tree = git('ls-tree', '-r', '-z', pin)
     except subprocess.CalledProcessError as exc:
-        raise ValueError(f'Import requires the pinned Git tree {UPSTREAM_PIN} to check upstream provenance') from exc
+        raise ValueError(f'Import requires the pinned Git tree {pin} to check upstream provenance') from exc
     pinned = {}
     for entry in tree.rstrip(b'\0').split(b'\0'):
         metadata, name = entry.split(b'\t', 1)
