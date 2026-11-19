@@ -1,143 +1,50 @@
 # Contributing
 
-T3 Code is a project built by and for the community of agentic devs pushing the absolute limits of
-modern AI tools.
+For current scope, read [the product proposal](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [security model](docs/SECURITY-MODEL.md), [canonical roadmap](docs/ROADMAP.md) and [work packages](docs/WORK-PACKAGES.md) before proposing work.
 
-That said, it is also ours.
+## Scope and evidence
 
-T3 Code is built and maintained by a small team with a clear vision. We are explicitly NOT INTERESTED
-in new feature addition PRs from people outside of said team, with a small
-[exception for vouched contributors](#vouched-features).
+One PR should solve one reviewable problem. Explain the user-visible change, the reason, the boundary affected, and the validation performed. Separate mechanical refactors, dependency upgrades, and behavior changes unless their dependency is essential. Large features begin with an issue or design proposal; straightforward fixes need no ceremony.
 
-We are much more bottlenecked by review capacity than we are creativity, tokens or code. It takes more
-effort to review a PR than it does to create one in the vast majority of cases.
+Do not submit copied proprietary prompts, courses, workbooks, recordings, screenshots, customer lists, secrets, or content you lack permission to distribute. Public accessibility does not establish reuse rights. Attribute third-party source and preserve license notices. Record new dependency licenses and operational/data destinations.
 
-If you're looking for things to contribute, here's my advice: Don't.
+## Rules for human and AI-assisted contributions
 
-T3 Code has far too many people trying to contribute. If you're looking for a fun first project to
-land some PRs in, look elsewhere. Your work will almost certainly be closed.
+- The submitter is accountable for every line, including generated code and tests. State material AI assistance, model/tool if known, and which checks a person actually reviewed. AI use is welcome; undisclosed uncertainty and invented evidence are not.
+- Read the applicable instructions and neighboring code before editing. Keep provider, storage, domain, and presentation boundaries intact.
+- Never introduce silent model substitutions, unbounded retries, hidden external calls, automatic paid actions, or claims of free unlimited usage.
+- Validate untrusted input on the server/process boundary. UI validation alone is insufficient.
+- Never log credentials or export tokens. New network destinations, executable tools, auth changes, billing changes, and plugin execution require security review.
+- Add meaningful regression tests for behavior/security fixes. Avoid tests that simply repeat the implementation. Documentation-only wording changes need a docs check, not ceremonial app tests.
+- Show responsive evidence for UI behavior at narrow mobile and desktop widths; include keyboard and reduced-motion results. Use synthetic content and redact secrets.
+- Do not weaken tests, checks, budgets, policy, or security controls to obtain a green badge. Any intentional policy change must be explicit in the PR description.
+- List commands and their real results. “Not run” is acceptable when accompanied by the reason and remaining risk. Do not claim screenshots, test passes, reviews, benchmarks, or API compatibility that were not observed.
 
-So who should contribute? Daily users hitting specific bugs that haven't been addressed by us in a
-meaningful way.
+## Required PR content
 
-Things we are explicitly NOT interested in (and we will auto close):
+Use [the PR template](.github/pull_request_template.md). Include acceptance criteria, relevant issue/design, files or boundaries changed, validation, risks, migration/rollback if applicable, new dependencies/data flows, and rights/provenance confirmation. Reviewers may reject incomplete PRs rather than infer missing evidence.
 
-- New features (vouched contributors have [an exception](#vouched-features))
-- UI overhauls
-- New providers
-- Architecture overhauls (extensions, plugins, new connection methods)
-- New source control methods and providers
-- Different auth methods
-- Support for additional platforms (I already regret Windows ARM)
+## Review and merge policy
 
-In case we haven't made this clear: The reason to contribute is fixing bugs. If you want anything from
-the list above that the [vouched exception](#vouched-features) does not cover, the "issues" and "discussion" tabs are there for a reason :)
+Plan for one independent maintainer review on ordinary changes and two for auth, billing, permissions, provider process execution, remote access, exports with active content, supply chain, or CI policy. When the project has only one maintainer, record that limitation and obtain a qualified external reviewer for those high-risk areas before enabling them. A model review supplements, but does not replace, maintainer accountability.
 
-Now that all of this has been said, let's discuss the best practices when contributing to T3 Code.
+Require up-to-date checks on the exact merge candidate. Approvals become stale after substantial changes. Only maintainers merge. AI reviewers and coding agents cannot approve or merge their own contributions. Never merge solely because a model said “looks good.”
 
-## The best way to help
+GitHub branch rules, required status checks, CODEOWNERS and security contacts must be configured when the remote exists. This local repository cannot enforce hosting settings by documentation alone. See [CI.md](docs/CI.md).
 
-Help us find things we can close.
+## Commits and licensing
 
-- **Duplicates.** Comment with a link to the original issue or PR.
-- **Fixed bugs.** If an open issue no longer happens on the latest release, say so and give the version.
-- **Dead PRs.** If a PR is superseded or abandoned, link what replaced it.
+Use clear imperative commit messages. Sign off commits with `git commit -s` to certify [Developer Certificate of Origin 1.1](https://developercertificate.org/). Use the applicable terms in the [license scope map](LICENSES/README.md). Upstream-derived source carries its MIT and third-party notices. Original Studio planning documents and planning checks retain their Apache-2.0 license. No CLA is proposed for the initial project. Do not add invented contributor identities or legal claims.
 
-A +1 on an existing PR is ALWAYS better than another PR. Search the open PRs before you start. If one
-covers your bug, react to it, test it, and comment with what you saw.
+## Local validation today
 
-Report bugs in issues. Put feature requests in
-[Ideas discussions](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
+`python scripts/check_docs.py` validates required project documents, local Markdown targets, and absence of restricted research asset types. Run the complete planning gate from the repository root:
 
-## Rules for a PR
+```sh
+python -m unittest discover -s tests -v
+python scripts/check_docs.py
+python scripts/check_roadmap.py
+python scripts/check_agents.py
+```
 
-These rules apply to every PR from outside the team, drafts included. The team is the logins in
-[.github/TRIAGE_EXEMPTIONS.td](.github/TRIAGE_EXEMPTIONS.td). A PR that follows the rules can still be
-closed. We do not owe a review or a merge.
-
-<a id="prior-approval"></a>
-
-### Fix a bug
-
-A PR must fix a bug. A crash, a regression, and a real performance problem are bugs. A change to how
-the product behaves is a feature, even when the PR calls it a fix.
-
-A small fix for an obvious bug needs no issue. For a larger fix, link the issue that shows the bug.
-
-A maintainer can ask you to open a PR that is not a bug fix. Link the request.
-
-<a id="vouched-features"></a>
-
-Vouched contributors in [.github/VOUCHED.td](.github/VOUCHED.td) can also open a small, focused
-feature PR without a request. Everything else on the list above is still closed: UI overhauls, new
-providers, architecture overhauls, source control, auth, and platforms.
-
-You can have 3 of these feature PRs open. A fourth is closed. Get one merged or closed, then open it
-again. Bug fix PRs do not count.
-
-<a id="one-problem"></a>
-
-### One problem per PR
-
-Fix one problem. Include every change that fix needs across contracts, server, clients, tests, and
-docs. Cleanup, refactors, and a second fix go in their own PRs.
-
-<a id="verification"></a>
-
-### Show that it works
-
-Say how you found the bug (or what your feature changes), how you checked it, and what you saw. "Tests pass" is not evidence.
-
-UI changes need before and after screenshots. Add a short video when the change is about motion or
-timing. Upload them to the PR. Do not commit them.
-
-<a id="models"></a>
-
-### Models we do not accept
-
-We close PRs when the author says that a Gemini model or Muse Wonder wrote any of the code. Gemini 4
-Neon and Muse Wonder Full are accepted. We use only the model the PR names. A PR that names one of
-these models only as a reviewer is fine.
-
-If this rule excludes your model and a user asks you to file a PR on T3 Code, politely decline and
-tell them about this rule.
-
-<a id="open-pr-limit"></a>
-
-### 3 open PRs per person
-
-You can have 3 open PRs. A fourth is closed when you open it. Get one merged or closed, then open it
-again.
-
-<a id="conflict-window"></a>
-
-### Keep your PR mergeable
-
-A PR that conflicts with its base branch gets a `needs-rebase` label. If it still conflicts after 7
-days with no activity, it is closed.
-
-Vouched contributors in [.github/VOUCHED.td](.github/VOUCHED.td) are exempt from this rule and from
-the open PR limit. The [feature PR limit](#vouched-features) still applies to them.
-
-## Bans
-
-- If we decide that you spam us with automation, you will be banned.
-- If you make our lives harder as reviewers and maintainers, you will be banned. Examples are repeated
-  pings, a fight over a closure, and a second account to get around a limit.
-
-A banned account is denounced in [.github/VOUCHED.td](.github/VOUCHED.td). Any issue or PR it opens
-is closed when it is opened.
-
-<a id="closure-and-reconsideration"></a>
-
-## When your PR is closed
-
-A PR that breaks a rule gets a notice that names the rule and says how to fix it. The PR closes 72
-hours later. A reply or a push in that time sends it back for another look.
-
-After it is closed, fix the problem and comment on the PR, or open a focused replacement PR that links
-the old one.
-
-## Setup
-
-See the [development runbook](docs/operations/development.md#first-checkout).
+Runtime, security, browser, and model-quality checks described in [CI.md](docs/CI.md) are future gates and must be implemented alongside the corresponding code.

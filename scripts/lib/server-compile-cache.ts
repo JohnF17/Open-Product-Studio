@@ -168,8 +168,21 @@ export async function generatePreparedServerCache(resourcesInput: string): Promi
     .filter((file) => file.endsWith(".mjs"))
     .flatMap((file) => {
       const key = cacheKey(active, NodePath.join(dist, file));
-      if (!NodeFS.existsSync(NodePath.join(active, key))) return [];
-      NodeFS.copyFileSync(NodePath.join(active, key), NodePath.join(prepared, key));
+      const source = NodePath.join(active, key);
+      const blob = NodeFS.statSync(source, { throwIfNoEntry: false });
+      if (!blob) return [];
+      const destination = NodePath.join(prepared, key);
+      // Windows ships each prepared blob as a loose file. Keep both startup entries at every size.
+      if (
+        process.platform === "win32" &&
+        file !== cli &&
+        file !== server &&
+        blob.size < 16 * 1024
+      ) {
+        NodeFS.rmSync(destination, { force: true });
+        return [];
+      }
+      NodeFS.copyFileSync(source, destination);
       return [{ module: `${archive}/apps/server/dist/${file}`, file: key }];
     });
   if (![cli, server].every((file) => entries.some((entry) => entry.module.endsWith(`/${file}`))))

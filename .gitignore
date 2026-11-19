@@ -51,3 +51,25 @@ node_modules/
 .pnpm-store/
 
 /packages/ssh/.ssh-launcher-test-*/
+
+# Studio local data and development files
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.sqlite
+*.sqlite-*
+*.db
+private-research/
+research-sources/
+artifacts/private/
+coverage/
+test-results/
+playwright-report/

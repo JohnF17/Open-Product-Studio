@@ -13,6 +13,7 @@ import * as Layer from "effect/Layer";
 import { afterAll, beforeEach, vi } from "vite-plus/test";
 
 const clerkStateDir = NodeFS.mkdtempSync(NodePath.join(NodeOS.tmpdir(), "t3-desktop-clerk-"));
+const appDataDirectory = NodePath.join(clerkStateDir, "app-data").replaceAll("\\", "/");
 afterAll(() => {
   NodeFS.rmSync(clerkStateDir, { recursive: true, force: true });
 });
@@ -56,7 +57,7 @@ const layerDesktopClerk = (
   events: string[] = [],
   platform: NodeJS.Platform = "darwin",
   fileSystemLayer: Layer.Layer<FileSystem.FileSystem> = FileSystem.layerNoop({
-    exists: () => Effect.succeed(false),
+    makeDirectory: () => Effect.void,
   }),
   shell: ElectronShell.ElectronShell["Service"] = {
     openExternal: () => Effect.succeed(true),
@@ -68,7 +69,7 @@ const layerDesktopClerk = (
   const environment = DesktopEnvironment.DesktopEnvironment.of({
     stateDir: clerkStateDir,
     isDevelopment,
-    appDataDirectory: "/tmp/app-data",
+    appDataDirectory,
     platform,
   } as unknown as DesktopEnvironment.DesktopEnvironment["Service"]);
 
@@ -122,25 +123,25 @@ describe("DesktopClerk", () => {
       name: "packaged macOS",
       isDevelopment: false,
       platform: "darwin" as const,
-      userData: "/tmp/app-data/t3code-v2",
+      userData: `${appDataDirectory}/open-product-studio`,
     },
     {
       name: "packaged Linux",
       isDevelopment: false,
       platform: "linux" as const,
-      userData: "/tmp/app-data/t3code-v2",
+      userData: `${appDataDirectory}/open-product-studio`,
     },
     {
       name: "packaged Windows",
       isDevelopment: false,
       platform: "win32" as const,
-      userData: "/tmp/app-data/t3code-v2",
+      userData: `${appDataDirectory}/open-product-studio`,
     },
     {
       name: "development",
       isDevelopment: true,
       platform: "win32" as const,
-      userData: "/tmp/app-data/t3code-dev",
+      userData: `${appDataDirectory}/open-product-studio-dev`,
     },
   ])(
     "creates the bridge before startup can yield to the event loop ($name)",
@@ -162,6 +163,7 @@ describe("DesktopClerk", () => {
 
       assert.deepEqual(events, [
         `setPath:userData:${userData}`,
+        `setPath:sessionData:${userData}`,
         "requestSingleInstanceLock",
         "on:second-instance",
         "on:open-url",
@@ -284,7 +286,8 @@ describe("DesktopClerk", () => {
 
         assert.isTrue(Exit.hasInterrupts(exit));
         assert.deepEqual(events, [
-          "setPath:userData:/tmp/app-data/t3code-v2",
+          `setPath:userData:${appDataDirectory}/open-product-studio`,
+          `setPath:sessionData:${appDataDirectory}/open-product-studio`,
           "requestSingleInstanceLock",
           "quit",
         ]);

@@ -1,108 +1,86 @@
-<p align="center">
-  <a href="https://t3.codes">
-    <img src="./assets/prod/t3-black-web-icon-192x192.png" width="80" height="80" alt="T3 Code logo" />
-  </a>
-</p>
+# Open Product Studio
 
-<h1 align="center">T3 Code</h1>
+Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-<p align="center">The open-source control plane for coding agents.</p>
+**The desktop source now tracks T3 Code at `bb234221`.** The original Windows baseline opened a fixture conversation in Electron. The new integration has its own build and installer qualification gates. See the [active source baseline](docs/BASELINE.md) and [earlier Windows smoke test](docs/acceptance/WP01.md).
 
-<p align="center">
-  <a href="https://t3.codes/download"><strong>Download</strong></a> ·
-  <a href="https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824">iOS</a> ·
-  <a href="https://play.google.com/store/apps/details?id=com.t3tools.t3code">Android</a> ·
-  <a href="https://app.t3.codes">Web</a> ·
-  <a href="./docs/README.md">Docs</a> ·
-  <a href="https://discord.gg/jn4EGJjrvv">Discord</a>
-</p>
+Open Product Studio is a planned downloadable Electron workspace for making and publishing things with your own AI tools. New Project offers three starting points:
 
-<p align="center">
-  <a href="https://t3.codes">
-    <img src="./.github/readme/hero.webp" width="100%" alt="T3 Code on desktop with a finished Claude thread, next to the phone app asking to approve a command from Codex" />
-  </a>
-</p>
+- **Blank** opens a workspace where you can bring existing material or pick a guided workflow later.
+- **Digital product** guides you from an idea through research, creation and export of an ebook, workbook or another supported product.
+- **Video** starts a production of its own. Choose a style, see which tools it needs, develop an idea with the builder, and take it through script, scenes, review and export. An eligible connected social account adds an optional publishing step.
 
-T3 Code runs the coding agents on your machine and gives them one fast interface. Start a thread at your desk, then approve the next step from your phone.
+Projects share the T3-derived desktop shell, model selection, library and job history. Engineering milestones govern when each action becomes available. The [project experience](docs/PROJECT-EXPERIENCE.md) describes the planned creation flow.
 
-It works with Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx, and any [ACP](./docs/user/providers-acp.md) agent. If an agent is set up on your computer, T3 Code can control it.
+The intended experience is simple: let AI investigate the web and recommend choices at every stage, accept or change those choices, review the result, and export or deliberately publish your work. "Recommend and do safe work" handles bounded research and reversible drafting under your chosen budget. A guided first project teaches the interface while you use it. You can always skip the tour.
 
-## What you get
+## Your tools, your choice
 
-- **Your subscriptions.** T3 Code does not resell tokens. It drives the agents you are already signed in to.
-- **Every agent in one place.** Change models in the middle of a thread. Let Claude hand a task to Codex.
-- **Desktop, web, and phone.** One server, and every client shows the same threads. There are apps for iOS and Android.
-- **Remote ready.** Run agents on any machine. Connect over your local network, Tailscale, or [T3 Connect](./docs/user/remote-access.md).
-- **Git built in.** Each thread can work in its own worktree. Review the diff, then commit, push, and open a pull request with one button.
-- **Fast.** Performance is a feature here. We measure it, and we treat a dropped frame as a bug.
-- **Open.** MIT licensed. If you don't like something, fork it.
+- **Use your CLI:** connect a supported AI CLI under your own account and its provider's terms. Provider usage limits still apply.
+- **Bring an API key:** use an official provider connection with an explicit model and budget.
+- **Use a local model:** suitable hardware and separately licensed model weights are required.
+- **Optional hosted service:** planned for a later release, with clear prices and usage receipts. No paid plan is required for the intended local workflow.
 
-## Install
+Select the provider, account, model, and available reasoning setting. If your selected model cannot run, the job pauses. It does not quietly become a different model wearing the same name tag.
 
-### Desktop app
+The planned agent harness gives specialists versioned roles, scoped tools, bounded delegated work, structured results and inspectable receipts. Councils add independent positions, evidence review and visible disagreement. A later single personal assistant adds memory, private proactive work and deliberately connected inbox/browser/phone capabilities through separate release gates.
 
-[Download T3 Code](https://t3.codes/download) for macOS, Windows, or Linux. You can also use a package manager:
+Free provider allowances are useful for experiments. They are finite, change over time, and do not promise free access to every premium model.
 
-| Platform       | Command                                                              |
-| -------------- | -------------------------------------------------------------------- |
-| macOS          | `brew install --cask t3-code`                                        |
-| Windows        | `winget install T3Tools.T3Code` or `scoop install extras/t3code`     |
-| Arch Linux     | `yay -S t3code-bin`                                                  |
-| Nix            | `nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code`         |
-| Debian, Ubuntu | `.deb` from [Releases](https://github.com/pingdotgg/t3code/releases) |
+## What we are building
 
-### Command line
+The first complete Digital product milestone takes a creator through this workflow:
 
-This installs the `t3` command. Run `t3` to start the server and open the web app.
+1. Describe a specific buyer and problem.
+2. Collect sources and separate evidence from assumptions.
+3. Choose a product outline and create an editable draft.
+4. Check claims, add exercises, and improve the product.
+5. Export the reviewed product and permitted source notes, then reopen/edit it outside the app.
+6. When launch capabilities are accepted, prepare a sales-page draft and launch kit; the first M2 export needs no CRM, creator or mailbox setup.
 
-```bash
-curl -fsSL https://t3.codes/install.sh | sh
-```
+Creator partnerships, CRM, campaigns, media, publishing and feedback are part of one shared product design from the start. Unshipped actions show their implementation milestone; project prerequisites and missing connections are separate states. Publishing and sending messages always require a deliberate user action.
 
-On Windows, in PowerShell:
+## A few unusually ordinary promises
 
-```powershell
-irm https://t3.codes/install.ps1 | iex
-```
+The free edition should remain useful after the welcome screen. Export should not be a retention strategy. A progress bar should measure work, not manufacture urgency.
 
-To try it once without an install, run `npx t3@latest`.
+Our stack is selected for engineering reasons. Equity stakes are not a dependency-resolution algorithm. Any future sponsorships, affiliations, or referral payments will be disclosed beside the relevant recommendation.
 
-### Phone
+We sell no income guarantee. AI can help make a product; usefulness, distribution, customer trust, and maintenance still require work.
 
-Get the app from the [App Store](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824) or [Google Play](https://play.google.com/store/apps/details?id=com.t3tools.t3code). Then follow [remote access](./docs/user/remote-access.md) to connect it to your computer.
+## Proposed stack
 
-### Sign in to an agent
+The fork brings Electron, React, TypeScript, Vite, TanStack Router, Tailwind, Node/Effect services, authenticated RPC, provider contracts and SQLite. Studio will add React Hook Form and Zod for business forms, plus accessible motion. The optional hosted service plans to use Clerk for sign-in and Convex for durable business data. Desktop cloud sign-in has its own qualification gate. Local projects will work without a Studio account.
 
-T3 Code needs one agent that is installed and signed in. For example, install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`, or install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`.
+## Start here
 
-[Provider setup](./docs/user/install.md#providers) has the steps for each agent. [Install T3 Code](./docs/user/install.md) covers nightly builds, AppImage, WSL, and NixOS.
+- [Product and experience design](docs/PRODUCT.md)
+- [Multi-project navigation, accessible motion and recovery](docs/PROJECT-EXPERIENCE.md)
+- [Service needs, stages, authority, costs and exit](docs/SERVICES.md)
+- [Payments and separate creator commerce](docs/PAYMENTS.md)
+- [First useful result and bounded service flows](docs/plans/2026-11-13-first-result-and-service-flows.md)
+- [Architecture and provider contract](docs/ARCHITECTURE.md)
+- [Downstream fork strategy](docs/research/fork-strategy.md)
+- [Complete module and milestone catalog](docs/MILESTONES.md)
+- [Recommendations at every step](docs/RECOMMENDATIONS.md)
+- [Local, cloud, commerce and customer-access boundaries](docs/PLATFORM-BOUNDARIES.md)
+- [Research skills and tool adoption policy](docs/TOOLING.md)
+- [Canonical engineering roadmap](docs/ROADMAP.md)
+- [66 dependency-ordered implementation contracts](docs/WORK-PACKAGES.md)
+- [Agent harness, roles and councils](docs/AGENT-HARNESS.md)
+- [Later single proactive personal agent](docs/PROACTIVE-DOT.md)
+- [Feature coverage, evidence and explicit limits](docs/FEATURE-COVERAGE.md)
+- [Platform choices and operating modes](docs/PLATFORMS.md)
+- [Interactive roadmap explorer](docs/roadmap/explorer.html)
+- [Security model](docs/SECURITY-MODEL.md)
+- [Business and launch plan](docs/LAUNCH.md)
+- [CI and review design](docs/CI.md)
+- [Contributing](CONTRIBUTING.md) and [agent instructions](AGENTS.md)
 
-## "Wait, what are you selling me?"
+## Support the project
 
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
-
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork and build the tool that you want.
-
-## Documentation
-
-- [Install and first run](./docs/user/install.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Source control](./docs/user/source-control.md)
-- [Connect outside agents over MCP](./docs/user/outside-agents.md)
-- [FAQ](./docs/user/faq.md)
-
-[All docs](./docs/README.md) has the full list.
-
-## Contributing
-
-We have limited review capacity. Small, focused fixes are the most likely to be merged. Features need an approved discussion first.
-
-- Read [CONTRIBUTING.md](./CONTRIBUTING.md) before you report a bug or open a pull request.
-- Put feature requests in [Ideas](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
-- Build from source with the [development runbook](./docs/operations/development.md#first-checkout). The [architecture overview](./docs/internals/overview.md) explains how it works.
-- Get help in [Discord](https://discord.gg/jn4EGJjrvv).
+Useful bug reports, accessibility feedback, documentation, and reviewed contributions are welcome. Donation links and GitHub Sponsors can be added once the maintainer supplies verified account URLs. Funding will not buy merge approval or alter the public roadmap in secret.
 
 ## License
 
-[MIT](./LICENSE)
+T3 Code retains its [MIT license](LICENSE). The original Studio planning files and checks retain their [Apache-2.0 license](LICENSES/Studio-Apache-2.0.txt). The [license scope](LICENSES/README.md) identifies the imported materials and third-party notices.

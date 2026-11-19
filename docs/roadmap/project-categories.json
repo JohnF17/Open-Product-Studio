@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "status": "design-only",
+  "selection": {
+    "effect": "save-preferences-and-prepare-checklist",
+    "grantsAccess": false,
+    "readiness": "per-action-on-selected-host"
+  },
+  "categories": {
+    "blank": {"label": "Blank", "sourceRequired": false, "entry": "workspace"},
+    "digital-product": {"label": "Digital product", "sourceRequired": false, "entry": "product-builder"},
+    "video": {"label": "Video", "sourceRequired": false, "entry": "video-builder"}
+  },
+  "videoStages": [
+    {"id": "style", "label": "Choose a style", "owner": "WP08", "capability": "cap.dashboard.workspace", "optional": false},
+    {"id": "prepare", "label": "Review tools and prepare this device", "owner": "WP09", "capability": "cap.tools.broker", "optional": false},
+    {"id": "brief", "label": "Choose an idea, audience and goal", "owner": "WP11", "capability": "cap.brief.capture", "optional": false},
+    {"id": "storyboard", "label": "Write the script and plan scenes", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "assets", "label": "Choose visuals, sound and narration", "owner": "WP17", "capability": "cap.media.library", "optional": false},
+    {"id": "render", "label": "Preview scenes and render a cut", "owner": "WP24", "capability": "cap.media.video", "optional": false},
+    {"id": "review", "label": "Review picture, captions, audio and rights", "owner": "WP24", "capability": "cap.media.video", "optional": false},
+    {"id": "export", "label": "Save the reviewed video and editable project", "owner": "WP24", "capability": "cap.media.video", "optional": false},
+    {"id": "publish", "label": "Review a connected account and approve a post", "owner": "WP28", "capability": "cap.publishing.publish", "optional": true}
+  ],
+  "stackEntries": {
+    "scene-editor": {"label": "Edit scenes by hand", "kind": "built-in", "cost": "local", "capability": "cap.content.versions"},
+    "storyboard-skill": {"label": "Guided storyboard skill", "kind": "skill", "cost": "selected-model", "capability": "cap.harness.definitions"},
+    "hyperframes": {"label": "HyperFrames local renderer", "kind": "local-tool", "cost": "local", "capability": "cap.media.video"},
+    "capture-import": {"label": "Import approved screenshots or a screen recording", "kind": "built-in", "cost": "local", "capability": "cap.media.library"},
+    "blender": {"label": "Render a local Blender shot", "kind": "local-tool", "cost": "local", "capability": "cap.media.video"},
+    "shot-import": {"label": "Import an existing 3D shot", "kind": "built-in", "cost": "local", "capability": "cap.media.library"},
+    "voice-import": {"label": "Use a recorded narration", "kind": "built-in", "cost": "local", "capability": "cap.media.library"},
+    "elevenlabs": {"label": "Generate narration through ElevenLabs", "kind": "connector", "cost": "quote-required", "capability": "cap.media.video"},
+    "earshot-mcp": {"label": "Suggest and check sound cues through Earshot MCP", "kind": "mcp", "cost": "local", "capability": "cap.tools.broker"},
+    "effect-plugin": {"label": "Add an optional third-party visual effect", "kind": "plugin", "cost": "route-specific", "capability": "cap.connections.plugins"},
+    "openverse": {"label": "Find images and audio through Openverse", "kind": "connector", "cost": "route-specific", "capability": "cap.evidence.research"}
+  },
+  "styles": {
+    "kinetic-type": {
+      "version": 1,
+      "label": "Kinetic typography",
+      "required": [
+        {"need": "Script and timed text", "chooseOne": ["scene-editor", "storyboard-skill"]},
+        {"need": "Final render", "chooseOne": ["hyperframes"]}
+      ],
+      "optional": ["voice-import", "elevenlabs", "earshot-mcp", "effect-plugin"]
+    },
+    "product-demo": {
+      "version": 1,
+      "label": "Product walkthrough",
+      "required": [
+        {"need": "Demo footage", "chooseOne": ["capture-import"]},
+        {"need": "Shot sequence", "chooseOne": ["scene-editor", "storyboard-skill"]},
+        {"need": "Final render", "chooseOne": ["hyperframes"]}
+      ],
+      "optional": ["voice-import", "elevenlabs", "earshot-mcp"]
+    },
+    "3d-showcase": {
+      "version": 1,
+      "label": "3D showcase",
+      "required": [
+        {"need": "3D shot", "chooseOne": ["blender", "shot-import"]},
+        {"need": "Shot sequence", "chooseOne": ["scene-editor", "storyboard-skill"]},
+        {"need": "Final render", "chooseOne": ["hyperframes"]}
+      ],
+      "optional": ["voice-import", "elevenlabs", "openverse", "effect-plugin"]
+    }
+  }
+}

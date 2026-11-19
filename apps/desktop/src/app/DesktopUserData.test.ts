@@ -7,38 +7,37 @@ import * as PlatformError from "effect/PlatformError";
 
 import { clearStaleGpuCaches, resolveUserDataPath } from "./DesktopUserData.ts";
 
-it.effect.each(["t3code", "T3 Code (Alpha)"])(
-  "preserves Windows credential keys from %s without copying browser databases",
-  (sourceName) =>
+it.effect.each([
+  { isDevelopment: false, directory: "open-product-studio" },
+  { isDevelopment: true, directory: "open-product-studio-dev" },
+])(
+  "keeps existing T3 profiles separate from $directory on first and repeat launch",
+  ({ isDevelopment, directory }) =>
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
-      const directory = yield* fs.makeTempDirectoryScoped({ prefix: "t3-v2-profile-" });
-      const source = path.join(directory, sourceName);
-      const destination = path.join(directory, "t3code-v2");
-      const state = '{"os_crypt":{"encrypted_key":"test-encrypted-key"}}';
-      yield* fs.makeDirectory(path.join(directory, "T3 Code (Alpha)"), { recursive: true });
-      yield* fs.makeDirectory(path.join(source, "IndexedDB"), { recursive: true });
-      yield* fs.writeFileString(path.join(source, "Local State"), state);
-      yield* fs.writeFileString(path.join(source, "IndexedDB", "LOCK"), "V1 owns this database");
-      yield* resolveUserDataPath({
-        appDataDirectory: directory,
-        isDevelopment: false,
-        platform: "win32",
-      });
-      assert.equal(yield* fs.readFileString(path.join(destination, "Local State")), state);
-      assert.equal(yield* fs.readFileString(path.join(source, "Local State")), state);
-      assert.isFalse(yield* fs.exists(path.join(destination, "IndexedDB")));
-      yield* fs.writeFileString(path.join(destination, "Local State"), "existing V2 state");
-      yield* resolveUserDataPath({
-        appDataDirectory: directory,
-        isDevelopment: false,
-        platform: "win32",
-      });
-      assert.equal(
-        yield* fs.readFileString(path.join(destination, "Local State")),
-        "existing V2 state",
-      );
+      const appDataDirectory = yield* fs.makeTempDirectoryScoped({ prefix: "studio-profile-" });
+      const existing = ["t3code-v2", "t3code", "T3 Code (Alpha)", "T3 Code (Dev)", "t3code-dev"];
+      for (const name of existing) {
+        const profile = path.join(appDataDirectory, name);
+        yield* fs.makeDirectory(path.join(profile, "GPUCache"), { recursive: true });
+        yield* fs.writeFileString(path.join(profile, "Local State"), name);
+        yield* fs.writeFileString(path.join(profile, "GPUCache", "sentinel"), name);
+      }
+      const input = { appDataDirectory, isDevelopment };
+      const destination = yield* resolveUserDataPath(input);
+      assert.equal(destination, path.join(appDataDirectory, directory));
+      assert.isTrue(yield* fs.exists(destination));
+      yield* clearStaleGpuCaches({ userDataPath: destination, electronVersion: "44.10.1" });
+      assert.isFalse(yield* fs.exists(path.join(destination, "Local State")));
+      yield* fs.writeFileString(path.join(destination, "Local State"), "Studio state");
+      assert.equal(yield* resolveUserDataPath(input), destination);
+      assert.equal(yield* fs.readFileString(path.join(destination, "Local State")), "Studio state");
+      for (const name of existing) {
+        const profile = path.join(appDataDirectory, name);
+        assert.equal(yield* fs.readFileString(path.join(profile, "Local State")), name);
+        assert.equal(yield* fs.readFileString(path.join(profile, "GPUCache", "sentinel")), name);
+      }
     }).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
 );
 

@@ -1,0 +1,48 @@
+name: Upstream intake
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-intake
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - name: Check out the public event commit
+        id: trusted_checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GIT_TERMINAL_PROMPT=0
+          git init --quiet
+          git -c credential.helper= fetch --quiet --no-tags --no-recurse-submodules \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Compare official main to the retained baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -c credential.helper= -c core.hooksPath=/dev/null \
+            -c protocol.allow=never -c protocol.https.allow=always \
+            fetch --quiet --filter=blob:none --no-tags --no-recurse-submodules --no-write-fetch-head \
+            https://github.com/pingdotgg/t3code.git +refs/heads/main:refs/intake/official-main
+          python3 -I -B scripts/upstream_intake.py refs/intake/official-main | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Inspect published releases and repository advisories
+        if: ${{ !cancelled() && steps.trusted_checkout.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I -B scripts/upstream_public_metadata.py | tee -a "$GITHUB_STEP_SUMMARY"

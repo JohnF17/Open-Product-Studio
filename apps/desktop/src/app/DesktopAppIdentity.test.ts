@@ -5,7 +5,6 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as PlatformError from "effect/PlatformError";
 
 import type * as Electron from "electron";
 
@@ -111,8 +110,6 @@ const withIdentity = <A, E, R>(
   input: {
     readonly calls?: ElectronAppCalls;
     readonly environment?: TestEnvironmentInput;
-    readonly legacyPathExists?: boolean;
-    readonly legacyPathProbeError?: PlatformError.PlatformError;
     readonly packageJson?: string;
     readonly pngIconPath?: Option.Option<string>;
   } = {},
@@ -129,12 +126,7 @@ const withIdentity = <A, E, R>(
         Layer.provide(NodePath.layerPosix),
         Layer.provideMerge(
           FileSystem.layerNoop({
-            exists: (path) =>
-              input.legacyPathProbeError
-                ? Effect.fail(input.legacyPathProbeError)
-                : Effect.succeed(
-                    input.legacyPathExists === true && /T3 Code \((Alpha|Dev)\)/.test(path),
-                  ),
+            makeDirectory: () => Effect.void,
             readFileString: () =>
               Effect.succeed(input.packageJson ?? '{"t3codeCommitHash":"abcdef1234567890"}'),
           }),
@@ -148,29 +140,27 @@ const withIdentity = <A, E, R>(
 };
 
 describe("DesktopAppIdentity", () => {
-  it.effect("isolates the V2 profile even when the legacy V1 profile exists", () =>
+  it.effect("resolves the Studio release profile without filesystem probes", () =>
     withIdentity(
       Effect.gen(function* () {
         const identity = yield* DesktopAppIdentity.DesktopAppIdentity;
         const userDataPath = yield* identity.resolveUserDataPath;
 
-        assert.equal(userDataPath, "/Users/alice/Library/Application Support/t3code-v2");
+        assert.equal(userDataPath, "/Users/alice/Library/Application Support/open-product-studio");
       }),
-      { legacyPathExists: true },
     ),
   );
 
-  it.effect("keeps using the legacy development profile", () =>
+  it.effect("resolves a separate Studio development profile without filesystem probes", () =>
     withIdentity(
       Effect.gen(function* () {
         const identity = yield* DesktopAppIdentity.DesktopAppIdentity;
         assert.equal(
           yield* identity.resolveUserDataPath,
-          "/Users/alice/Library/Application Support/T3 Code (Dev)",
+          "/Users/alice/Library/Application Support/open-product-studio-dev",
         );
       }),
       {
-        legacyPathExists: true,
         environment: { env: { VITE_DEV_SERVER_URL: "http://localhost:5173" } },
       },
     ),

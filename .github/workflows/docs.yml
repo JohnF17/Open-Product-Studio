@@ -1,0 +1,39 @@
+name: Documentation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the public event commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GIT_TERMINAL_PROMPT=0
+          git init --quiet
+          git -c credential.helper= fetch --quiet --no-tags --no-recurse-submodules \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Test documentation policy
+        run: python3 -m unittest discover -s tests -v
+      - name: Check project documents
+        run: python3 scripts/check_docs.py
+      - name: Check roadmap ownership and dependencies
+        run: python3 scripts/check_roadmap.py
+      - name: Check design agent contracts
+        run: python3 scripts/check_agents.py
+      - name: Check project categories and production stages
+        run: python3 scripts/check_project_categories.py

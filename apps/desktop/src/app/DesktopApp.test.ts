@@ -30,7 +30,6 @@ import * as DesktopAppActivation from "./DesktopAppActivation.ts";
 import * as DesktopAppIdentity from "./DesktopAppIdentity.ts";
 import * as DesktopClerk from "./DesktopClerk.ts";
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
-import * as DesktopLegacyLocalStorage from "./DesktopLegacyLocalStorage.ts";
 import * as DesktopLifecycle from "./DesktopLifecycle.ts";
 import * as DesktopLinuxUrlHandler from "./DesktopLinuxUrlHandler.ts";
 import * as DesktopPreReadyPlatform from "./DesktopPreReadyPlatform.ts";
@@ -159,9 +158,6 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
         Effect.provideService(ElectronProtocol.ElectronProtocol, {
           registerDesktopProtocol: () => Effect.void,
         } as unknown as ElectronProtocol.ElectronProtocol["Service"]),
-        Effect.provideService(DesktopLegacyLocalStorage.DesktopLegacyLocalStorage, {
-          load: () => Effect.void,
-        } as unknown as DesktopLegacyLocalStorage.DesktopLegacyLocalStorage["Service"]),
         Effect.provideService(DesktopSnapShot.DesktopSnapShot, {
           initialize: Effect.void,
         } as DesktopSnapShot.DesktopSnapShot["Service"]),
@@ -205,7 +201,9 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
           Layer.mock(BrowserImport.BrowserImport, {}),
           Layer.mock(ChildProcessSpawner.ChildProcessSpawner, {}),
           Layer.mock(DesktopBackendConfiguration.DesktopBackendConfiguration, {}),
-          Layer.mock(DesktopCliCommand.DesktopCliCommand, {}),
+          Layer.mock(DesktopCliCommand.DesktopCliCommand, {
+            installOnFirstLaunch: stub.record("unexpected CLI installation"),
+          }),
           Layer.mock(DesktopClientSettings.DesktopClientSettings, {}),
           Layer.mock(DesktopConnectionCatalogStore.DesktopConnectionCatalogStore, {}),
           Layer.mock(DesktopIpc.DesktopIpc, {}),
