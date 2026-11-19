@@ -322,25 +322,24 @@ export const load: Effect.Effect<OtelEnvironment> = Config.all({
  * A Studio-specific opt-in enables them. Studio's persisted collector settings and
  * the SDK kill switches still work without it.
  */
-export const withStudioExporterEnvironment = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-  Effect.gen(function* () {
-    const enabled = yield* Config.String("STUDIO_USE_OTLP_ENV").pipe(
-      Effect.orElseSucceed(() => ""),
-    );
-    if (enabled.trim() === "1") return yield* effect;
-    const source = yield* ConfigProvider.ConfigProvider;
-    const filtered = ConfigProvider.make((path) => {
-      const name = path[0];
-      if (
-        typeof name === "string" &&
-        (name.startsWith("T3CODE_OTLP_") ||
-          (name.startsWith("OTEL_") && name !== "OTEL_SDK_DISABLED"))
-      )
-        return Effect.undefined;
-      return source.load(path);
-    });
-    return yield* Effect.provideService(effect, ConfigProvider.ConfigProvider, filtered);
+export const withStudioExporterEnvironment = Effect.fnUntraced(function* <A, E, R>(
+  effect: Effect.Effect<A, E, R>,
+) {
+  const enabled = yield* Config.String("STUDIO_USE_OTLP_ENV").pipe(Effect.orElseSucceed(() => ""));
+  if (enabled.trim() === "1") return yield* effect;
+  const source = yield* ConfigProvider.ConfigProvider;
+  const filtered = ConfigProvider.make((path) => {
+    const name = path[0];
+    if (
+      typeof name === "string" &&
+      (name.startsWith("T3CODE_OTLP_") ||
+        (name.startsWith("OTEL_") && name !== "OTEL_SDK_DISABLED"))
+    )
+      return Effect.undefined;
+    return source.load(path);
   });
+  return yield* Effect.provideService(effect, ConfigProvider.ConfigProvider, filtered);
+});
 
 export const isRelayTracingEnabled = (env: Readonly<Record<string, string | undefined>>) =>
   env.STUDIO_USE_OTLP_ENV?.trim() === "1" &&

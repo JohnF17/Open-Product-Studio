@@ -124,53 +124,52 @@ export const launcherPath = (environment: DesktopEnvironment.DesktopEnvironment[
     environment.platform === "win32" ? "open-product-studio.cmd" : "open-product-studio",
   );
 
-const syncLauncher = (create: boolean) =>
-  Effect.gen(function* () {
-    const environment = yield* DesktopEnvironment.DesktopEnvironment;
-    if (!environment.isPackaged) return Option.none<string>();
-    const fs = yield* FileSystem.FileSystem;
-    const path = environment.path;
-    const windows = environment.platform === "win32";
-    const shimPath = launcherPath(environment);
-    const entry = path.join(environment.serverRoot, SERVER_ENTRY);
-    const target: CliShimTarget = windows
-      ? { kind: "windows", executable: process.execPath, entry }
-      : Option.match(environment.appImagePath, {
-          onSome: (appImage) => ({
-            kind: "appimage" as const,
-            appImage,
-            executableName: path.basename(process.execPath),
-          }),
-          onNone: () => ({ kind: "direct" as const, executable: process.execPath, entry }),
-        });
-    const content = renderCliShim({ target, shimPath, t3Home: environment.baseDir });
+const syncLauncher = Effect.fn("desktop.cliShim.syncLauncher")(function* (create: boolean) {
+  const environment = yield* DesktopEnvironment.DesktopEnvironment;
+  if (!environment.isPackaged) return Option.none<string>();
+  const fs = yield* FileSystem.FileSystem;
+  const path = environment.path;
+  const windows = environment.platform === "win32";
+  const shimPath = launcherPath(environment);
+  const entry = path.join(environment.serverRoot, SERVER_ENTRY);
+  const target: CliShimTarget = windows
+    ? { kind: "windows", executable: process.execPath, entry }
+    : Option.match(environment.appImagePath, {
+        onSome: (appImage) => ({
+          kind: "appimage" as const,
+          appImage,
+          executableName: path.basename(process.execPath),
+        }),
+        onNone: () => ({ kind: "direct" as const, executable: process.execPath, entry }),
+      });
+  const content = renderCliShim({ target, shimPath, t3Home: environment.baseDir });
 
-    return yield* Effect.gen(function* () {
-      const existing = yield* fs.readFileString(shimPath).pipe(Effect.option);
-      if (!create && Option.isNone(existing)) return Option.none<string>();
-      if (Option.isSome(existing) && !existing.value.includes(MARKER)) {
-        yield* logWarning("leaving a launcher the app did not write", { shimPath });
-        return Option.none<string>();
-      }
-      if (Option.getOrUndefined(existing) !== content) {
-        yield* fs.makeDirectory(path.dirname(shimPath), { recursive: true });
-        // Unique per call: backend startup and the first-launch command install can race here.
-        const staging = `${shimPath}.${process.pid}.${yield* Random.nextIntBetween(0, 0xffffff)}.tmp`;
-        yield* fs.writeFileString(staging, content, { mode: 0o755 });
-        yield* fs.rename(staging, shimPath);
-        yield* logInfo("installed Studio launcher", { shimPath });
-      }
-      return Option.some(shimPath);
-    }).pipe(
-      Effect.catchCause((cause) =>
-        logWarning("could not install Studio launcher", {
-          shimPath,
-          cause: Cause.pretty(cause),
-        }).pipe(Effect.as(Option.none<string>())),
-      ),
-      Effect.withSpan("desktop.cliShim.install"),
-    );
-  });
+  return yield* Effect.gen(function* () {
+    const existing = yield* fs.readFileString(shimPath).pipe(Effect.option);
+    if (!create && Option.isNone(existing)) return Option.none<string>();
+    if (Option.isSome(existing) && !existing.value.includes(MARKER)) {
+      yield* logWarning("leaving a launcher the app did not write", { shimPath });
+      return Option.none<string>();
+    }
+    if (Option.getOrUndefined(existing) !== content) {
+      yield* fs.makeDirectory(path.dirname(shimPath), { recursive: true });
+      // Unique per call: backend startup and the first-launch command install can race here.
+      const staging = `${shimPath}.${process.pid}.${yield* Random.nextIntBetween(0, 0xffffff)}.tmp`;
+      yield* fs.writeFileString(staging, content, { mode: 0o755 });
+      yield* fs.rename(staging, shimPath);
+      yield* logInfo("installed Studio launcher", { shimPath });
+    }
+    return Option.some(shimPath);
+  }).pipe(
+    Effect.catchCause((cause) =>
+      logWarning("could not install Studio launcher", {
+        shimPath,
+        cause: Cause.pretty(cause),
+      }).pipe(Effect.as(Option.none<string>())),
+    ),
+    Effect.withSpan("desktop.cliShim.install"),
+  );
+});
 
 export const install = syncLauncher(true);
 export const refreshInstalled = syncLauncher(false);
