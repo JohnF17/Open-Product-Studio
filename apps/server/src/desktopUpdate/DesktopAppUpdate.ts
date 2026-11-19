@@ -54,13 +54,24 @@ export class DesktopAppUpdate extends Context.Service<
   }
 >()("t3/desktopUpdate/DesktopAppUpdate") {}
 
+/** The desktop sets desktopAppUpdate after checking its packaged feed, platform and update policy. */
+export function isAvailable(config: ServerConfig.ServerConfig["Service"]): boolean {
+  return (
+    config.mode === "desktop" &&
+    config.desktopBootstrapToken !== undefined &&
+    config.desktopAppUpdate === true &&
+    config.desktopTelemetryFd !== undefined &&
+    config.desktopTelemetryControlFd !== undefined
+  );
+}
+
 export const make = Effect.fn("desktopUpdate.desktopAppUpdate.make")(function* () {
   const config = yield* ServerConfig.ServerConfig;
   const random = yield* SecureRandom.SecureRandom;
   const receiver = yield* DesktopTelemetryReceiver.DesktopTelemetryReceiver;
   const inFlight = yield* Ref.make(false);
 
-  const available = config.mode === "desktop" && config.desktopTelemetryControlFd !== undefined;
+  const available = isAvailable(config);
   const failWith = (reason: string, cause?: unknown) =>
     cause === undefined
       ? new ServerSelfUpdateError({ reason })
@@ -134,7 +145,7 @@ export const make = Effect.fn("desktopUpdate.desktopAppUpdate.make")(function* (
         return { targetVersion: report.state.currentVersion, method: "desktop-app" as const };
       }
       return yield* failWith(
-        `The T3 Code desktop app on this machine is already up to date on ${report.state.currentVersion}.`,
+        `The Open Product Studio desktop app on this machine is already up to date on ${report.state.currentVersion}.`,
       );
     }
     return yield* failWith(
@@ -146,7 +157,7 @@ export const make = Effect.fn("desktopUpdate.desktopAppUpdate.make")(function* (
     function* (reportProgress, trackSwitch) {
       if (!available) {
         return yield* failWith(
-          "This server was not started by the T3 Code desktop app, so it cannot drive a desktop update.",
+          "This Open Product Studio server has no configured desktop updater.",
         );
       }
       if (yield* Ref.getAndSet(inFlight, true)) {
@@ -168,7 +179,7 @@ export const make = Effect.fn("desktopUpdate.desktopAppUpdate.make")(function* (
             .requestDesktopUpdate(requestId, trackSwitch)
             .pipe(
               Effect.mapError((error) =>
-                failWith("Could not reach the T3 Code desktop app on this machine.", error),
+                failWith("Could not reach the Open Product Studio desktop app on this machine.", error),
               ),
             );
           return yield* consumeReports(
@@ -205,7 +216,7 @@ export const make = Effect.fn("desktopUpdate.desktopAppUpdate.make")(function* (
         });
         yield* Effect.uninterruptible(
           receiver.commitDesktopUpdate(requestId).pipe(
-            Effect.mapError((error) => failWith("Could not reach the T3 Code desktop app.", error)),
+            Effect.mapError((error) => failWith("Could not reach the Open Product Studio desktop app.", error)),
             Effect.tap(() => onHandoffAccepted()),
           ),
         );

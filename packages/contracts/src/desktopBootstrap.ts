@@ -28,6 +28,8 @@ export const DesktopBackendBootstrap = Schema.Struct({
   desktopTelemetryControlFd: Schema.optionalKey(PositiveInt),
   // Whether the spawning desktop app can install updates when the server requests one.
   desktopAppUpdate: Schema.optionalKey(Schema.Boolean),
+  /** Studio's desktop updater has an explicitly configured and eligible feed for this launch. */
+  studioDesktopAppUpdate: Schema.optionalKey(Schema.Boolean),
   desktopBrowserFd: Schema.optionalKey(PositiveInt),
   desktopBrowserControlFd: Schema.optionalKey(PositiveInt),
   resourceMonitorPath: Schema.optionalKey(TrimmedNonEmptyString),

@@ -554,6 +554,7 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       desktopTelemetryFd: 4,
       desktopTelemetryControlFd: 5,
       desktopAppUpdate: input.desktopAppUpdate,
+      studioDesktopAppUpdate: input.desktopAppUpdate,
       desktopBrowserFd: 6,
       desktopBrowserControlFd: 7,
       ...Option.match(input.resourceMonitorPath, {

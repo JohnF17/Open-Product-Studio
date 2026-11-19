@@ -1841,10 +1841,10 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
 
   it.effect("preserves explicit false boolean flags over true env defaults", () =>
     Effect.gen(function* () {
-      const resolved = yield* resolveBuildOptions({
-        platform: Option.some("mac"),
+      const flags = {
+        platform: Option.some("mac" as const),
         target: Option.none(),
-        arch: Option.some("arm64"),
+        arch: Option.some("arm64" as const),
         buildVersion: Option.none(),
         outputDir: Option.some("release-test"),
         skipBuild: Option.some(false),
@@ -1854,7 +1854,8 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         mockUpdates: Option.some(false),
         mockUpdateServerPort: Option.none(),
         wslRuntime: Option.none(),
-      }).pipe(
+      };
+      const resolved = yield* resolveBuildOptions(flags).pipe(
         Effect.provide(
           ConfigProvider.layer(
             ConfigProvider.fromEnv({
@@ -1863,7 +1864,7 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
                 T3CODE_DESKTOP_KEEP_STAGE: "true",
                 T3CODE_DESKTOP_SIGNED: "true",
                 T3CODE_DESKTOP_VERBOSE: "true",
-                T3CODE_DESKTOP_MOCK_UPDATES: "true",
+                STUDIO_DESKTOP_MOCK_UPDATES: "true",
               },
             }),
           ),
@@ -1875,6 +1876,20 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
       assert.equal(resolved.signed, false);
       assert.equal(resolved.verbose, false);
       assert.equal(resolved.mockUpdates, false);
+      const inherited = yield* resolveBuildOptions({ ...flags, mockUpdates: Option.none() }).pipe(
+        Effect.provide(
+          ConfigProvider.layer(
+            ConfigProvider.fromEnv({
+              env: {
+                T3CODE_DESKTOP_MOCK_UPDATES: "true",
+                T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
+              },
+            }),
+          ),
+        ),
+      );
+      assert.equal(inherited.mockUpdates, false);
+      assert.isUndefined(inherited.mockUpdateServerPort);
     }),
   );
 });
