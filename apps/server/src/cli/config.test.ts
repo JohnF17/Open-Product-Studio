@@ -208,7 +208,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           ),
           Effect.flip,
         );
-        expect(String(error)).toContain("A T3 Code server is already running");
+        expect(String(error)).toContain("An Open Product Studio server is already running");
         expect(String(error)).toContain(`pid ${child.pid}`);
         expect(yield* fs.exists(cwd)).toBe(false);
       }),
@@ -220,7 +220,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
       const path = yield* Path.Path;
       const child = yield* liveProcess;
       assert(child.pid !== undefined);
-      for (const source of ["flag", "T3CODE_HOME", "default"] as const) {
+      for (const source of ["flag", "STUDIO_HOME", "default"] as const) {
         const home = yield* fs.makeTempDirectoryScoped({ prefix: "t3-cli-preflight-pair-" });
         const baseDir = source === "default" ? path.join(home, ".open-product-studio") : home;
         const stateDir = path.join(baseDir, "userdata");
@@ -249,7 +249,10 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
               NetService.layer,
               ConfigProvider.layer(
                 ConfigProvider.fromEnv({
-                  env: source === "T3CODE_HOME" ? { T3CODE_HOME: baseDir } : {},
+                  env: {
+                    T3CODE_HOME: path.join(home, "parent-t3"),
+                    ...(source === "STUDIO_HOME" ? { STUDIO_HOME: baseDir } : {}),
+                  },
                 }),
               ),
             ),
@@ -395,7 +398,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_BOOTSTRAP_FD: String(fd),
+                  STUDIO_BOOTSTRAP_FD: String(fd),
                   T3CODE_NO_BROWSER: "true",
                   T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "true",
                   T3CODE_LOG_WS_EVENTS: "true",
@@ -512,9 +515,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_MODE: "web",
-                  T3CODE_BOOTSTRAP_FD: String(fd),
-                  T3CODE_HOME: baseDir,
+                  STUDIO_MODE: "web",
+                  STUDIO_BOOTSTRAP_FD: String(fd),
+                  STUDIO_HOME: baseDir,
                   T3CODE_NO_BROWSER: "true",
                   T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "true",
                   T3CODE_LOG_WS_EVENTS: "true",
@@ -1006,7 +1009,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
       }),
   );
 
-  it.effect("listens on private networks per T3CODE_LAN, else under the service launcher", () =>
+  it.effect("enables private-network access only through Studio flags or configuration", () =>
     Effect.gen(function* () {
       const { join } = yield* Path.Path;
       const baseDir = join(NodeOS.tmpdir(), "t3-cli-config-service-host");
@@ -1036,21 +1039,20 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           }),
         );
 
-      // A service installed before T3CODE_LAN existed.
-      expect(yield* resolveHost({ connected: true })).toEqual({
-        host: "0.0.0.0",
-        privateNetworkOnly: true,
-      });
-      // `service.env` reaches the server as its environment.
-      expect(yield* resolveHost({ connected: true, env: { T3CODE_HOST: "127.0.0.1" } })).toEqual({
-        host: "127.0.0.1",
-        privateNetworkOnly: undefined,
-      });
-      expect(yield* resolveHost({ connected: true, env: { T3CODE_LAN: "false" } })).toEqual({
+      // Even an inherited, connected T3 launcher must not widen Studio's bind.
+      expect(yield* resolveHost({ connected: true, env: { T3CODE_LAN: "true", T3CODE_HOST: "0.0.0.0" } })).toEqual({
         host: undefined,
         privateNetworkOnly: undefined,
       });
-      expect(yield* resolveHost({ connected: false, env: { T3CODE_LAN: "true" } })).toEqual({
+      expect(yield* resolveHost({ connected: true, env: { STUDIO_HOST: "127.0.0.1" } })).toEqual({
+        host: "127.0.0.1",
+        privateNetworkOnly: undefined,
+      });
+      expect(yield* resolveHost({ connected: true, env: { STUDIO_LAN: "false" } })).toEqual({
+        host: undefined,
+        privateNetworkOnly: undefined,
+      });
+      expect(yield* resolveHost({ connected: false, env: { STUDIO_LAN: "true" } })).toEqual({
         host: "0.0.0.0",
         privateNetworkOnly: true,
       });

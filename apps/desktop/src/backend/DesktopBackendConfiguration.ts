@@ -73,6 +73,13 @@ const emptyBackendObservabilitySettings: BackendObservabilitySettings = {
 };
 
 const DESKTOP_BACKEND_ENV_NAMES = [
+  "STUDIO_PORT",
+  "STUDIO_HOST",
+  "STUDIO_MODE",
+  "STUDIO_BOOTSTRAP_FD",
+  "STUDIO_TAILSCALE_SERVE",
+  "STUDIO_TAILSCALE_SERVE_PORT",
+  "STUDIO_LAN",
   "T3CODE_PORT",
   "T3CODE_MODE",
   "T3CODE_NO_BROWSER",
@@ -562,6 +569,7 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
         ? {
             VITE_DEV_SERVER_URL: undefined,
             T3CODE_TRACE_FILE: undefined,
+            STUDIO_TRACE_FILE: undefined,
             T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: undefined,
           }
         : {}),
@@ -569,7 +577,8 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
       // An unrelated T3 installation may have exported its own home into this process.
       T3CODE_HOME: undefined,
-      T3CODE_CLI_PATH: Option.getOrUndefined(input.cliPath),
+      T3CODE_CLI_PATH: undefined,
+      STUDIO_CLI_PATH: Option.getOrUndefined(input.cliPath),
       [DESKTOP_HOST_SCOPE_ENV]: input.hostScope,
     };
     if (environment.platform === "win32") {

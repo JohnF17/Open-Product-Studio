@@ -331,6 +331,7 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
   // T3's child processes still read this variable. Always give them an isolated directory.
   output.T3CODE_HOME = resolvedBaseDir;
   output.STUDIO_HOME = resolvedBaseDir;
+  output.STUDIO_PORT = String(serverPort);
 
   // Managed T3 service shells leak launcher variables that make dev servers fail version checks.
   // Dev-runner servers are never launcher-managed (serviceLauncherClient.ts resolveStartup).
@@ -370,16 +371,20 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
     // must not make Vite drop those URLs.
     delete output.T3CODE_SINGLE_ORIGIN_DEV;
     delete output.T3CODE_MODE;
+    delete output.STUDIO_MODE;
     delete output.T3CODE_NO_BROWSER;
     delete output.T3CODE_DEV_AUTH_TOKEN;
   }
 
   // Agent shells inherit the parent T3 server's bind settings; only --host widens the dev server.
   delete output.T3CODE_LAN;
+  delete output.STUDIO_LAN;
   if (!isDesktopMode && host !== undefined) {
     output.T3CODE_HOST = host;
+    output.STUDIO_HOST = host;
   } else {
     delete output.T3CODE_HOST;
+    delete output.STUDIO_HOST;
   }
 
   if (!isDesktopMode) {
@@ -400,11 +405,13 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
 
   if (mode === "dev") {
     output.T3CODE_MODE = "web";
+    output.STUDIO_MODE = "web";
     delete output.T3CODE_DESKTOP_WS_URL;
   }
 
   if (mode === "dev:server" || mode === "dev:web") {
     output.T3CODE_MODE = "web";
+    output.STUDIO_MODE = "web";
     delete output.T3CODE_DESKTOP_WS_URL;
   }
 

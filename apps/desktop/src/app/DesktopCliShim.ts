@@ -51,8 +51,8 @@ export const renderCliShim = (input: {
             "chcp 65001 >nul",
           ]
         : []),
-      `set "T3CODE_CLI_PATH=${cmdText(input.shimPath)}"`,
-      `set "T3CODE_HOME=${cmdText(input.t3Home)}"`,
+      `set "STUDIO_CLI_PATH=${cmdText(input.shimPath)}"`,
+      `set "STUDIO_HOME=${cmdText(input.t3Home)}"`,
       'set "ELECTRON_RUN_AS_NODE=1"',
       // Electron's Windows executable starts without stdin; this tells the CLI to reopen the console.
       'set "T3CODE_DESKTOP_CLI_LAUNCHER=1"',
@@ -72,9 +72,9 @@ export const renderCliShim = (input: {
   const header = [
     "#!/bin/sh",
     `# ${MARKER}`,
-    `export T3CODE_CLI_PATH=${shellWord(input.shimPath)}`,
+    `export STUDIO_CLI_PATH=${shellWord(input.shimPath)}`,
     `home=${shellWord(input.t3Home)}`,
-    'export T3CODE_HOME="$home"',
+    'export STUDIO_HOME="$home"',
     "export ELECTRON_RUN_AS_NODE=1",
     `app=${shellWord(target.kind === "appimage" ? target.appImage : target.executable)}`,
     'if [ ! -x "$app" ]; then',

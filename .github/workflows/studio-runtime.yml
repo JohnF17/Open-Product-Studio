@@ -80,7 +80,7 @@ jobs:
           vp test run --config ../vite.config.ts --dir . build-desktop-artifact.test.ts -t 'omits upstream feeds'
       - name: Check Studio homes, telemetry environment and link formats
         working-directory: packages/shared
-        run: vp test run --config ../../vite.config.ts --dir . src/devHome.test.ts src/otelEnvironment.test.ts src/promptLinks.test.ts src/threadLinks.test.ts
+        run: vp test run --config ../../vite.config.ts --dir . src/devHome.test.ts src/desktopAppControl.test.ts src/otelEnvironment.test.ts src/promptLinks.test.ts src/threadLinks.test.ts
       - name: Check desktop profiles, first launch and backend configuration
         working-directory: apps/desktop
         run: >-
@@ -88,6 +88,7 @@ jobs:
           src/app/DesktopAppIdentity.test.ts src/app/DesktopClerk.test.ts
           src/app/DesktopEnvironment.test.ts src/app/DesktopStartupRecovery.test.ts
           src/app/DesktopUserData.test.ts src/backend/DesktopBackendConfiguration.test.ts
+          src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts
       - name: Check server configuration, telemetry, pairing and MCP approval
         working-directory: apps/server
         run: >-
@@ -101,6 +102,12 @@ jobs:
           src/hostedPairing.test.ts src/components/settings/pairingUrls.test.ts
           src/components/settings/ConnectionsSettings.logic.test.ts src/components/desktopUpdate.logic.test.ts
           src/components/composerInlineTokenPaste.test.ts
+      - name: Check foreground command and updater boundaries
+        working-directory: apps/server
+        run: |
+          vp test run --maxWorkers=2 src/studioLifecycle.test.ts src/cliCompileCache.test.ts src/cli/doctor.test.ts src/serverRuntimeState.test.ts src/cli/app.test.ts
+          vp test run --maxWorkers=1 src/cli/invocation.test.ts -t 'root CLI commands|host CLI commands'
+          vp test run --maxWorkers=2 src/cloud/selfUpdate.test.ts src/cloud/npmRelease.test.ts src/desktopUpdate/DesktopAppUpdate.test.ts src/environment/ServerEnvironment.test.ts src/serverRuntimeStartup.test.ts
       - name: Check state migration and worktree cleanup in disposable directories
         working-directory: apps/server
         run: |
