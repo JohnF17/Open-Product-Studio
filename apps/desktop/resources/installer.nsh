@@ -31,6 +31,11 @@
 !macroend
 
 !macro customInstall
+  ; Only installation associates the Studio link. Unpacked local launches do not write HKCU.
+  WriteRegStr SHCTX "Software\Classes\open-product-studio" "" "URL:Open Product Studio"
+  WriteRegStr SHCTX "Software\Classes\open-product-studio" "URL Protocol" ""
+  WriteRegStr SHCTX "Software\Classes\open-product-studio\DefaultIcon" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}",0'
+  WriteRegStr SHCTX "Software\Classes\open-product-studio\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
   !ifndef DO_NOT_CREATE_START_MENU_SHORTCUT
     ${IfNot} ${FileExists} "$newStartMenuLink"
       !insertmacro createMenuDirectory
@@ -39,4 +44,13 @@
       WinShell::SetLnkAUMI "$newStartMenuLink" "${APP_ID}"
     ${EndIf}
   !endif
+!macroend
+
+!macro customUnInstall
+  Push $0
+  ReadRegStr $0 SHCTX "Software\Classes\open-product-studio\shell\open\command" ""
+  ${If} $0 == '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
+    DeleteRegKey SHCTX "Software\Classes\open-product-studio"
+  ${EndIf}
+  Pop $0
 !macroend

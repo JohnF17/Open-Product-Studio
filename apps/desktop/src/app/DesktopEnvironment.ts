@@ -147,7 +147,12 @@ const make = Effect.fn("desktop.environment.make")(function* (
   const path = yield* Path.Path;
   const config = yield* DesktopConfig.DesktopConfig;
   const homeDirectory = input.homeDirectory;
-  const devServerUrl = config.devServerUrl;
+  const devServerUrl = input.isPackaged
+    ? Option.none<URL>()
+    : yield* Config.URL("VITE_DEV_SERVER_URL").pipe(Config.option);
+  const configuredBackendPort = yield* Config.Port(
+    input.isPackaged ? "STUDIO_DESKTOP_PORT" : "T3CODE_PORT",
+  ).pipe(Config.option);
   const isDevelopment = Option.isSome(devServerUrl);
   const appDataDirectory =
     input.platform === "win32"
@@ -219,7 +224,7 @@ const make = Effect.fn("desktop.environment.make")(function* (
       : path.join(input.appPath, "dev-app-update.yml"),
     devServerUrl,
     devRemoteT3ServerEntryPath: config.devRemoteT3ServerEntryPath,
-    configuredBackendPort: config.configuredBackendPort,
+    configuredBackendPort,
     commitHashOverride: config.commitHashOverride,
     otlpTracesUrl: config.otlpTracesUrl,
     otlpMetricsUrl: config.otlpMetricsUrl,

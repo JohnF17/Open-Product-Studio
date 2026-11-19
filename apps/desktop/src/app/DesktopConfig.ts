@@ -1,4 +1,5 @@
 import { OtlpHeadersFromString, OtlpProtocol } from "@t3tools/shared/observability";
+import { withStudioExporterEnvironment } from "@t3tools/shared/otelEnvironment";
 import * as Config from "effect/Config";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Option from "effect/Option";
@@ -38,10 +39,8 @@ export const DesktopConfig = Config.all({
   xdgConfigHome: trimmedString("XDG_CONFIG_HOME"),
   xdgDataHome: trimmedString("XDG_DATA_HOME"),
   studioHome: trimmedString("STUDIO_HOME"),
-  devServerUrl: Config.URL("VITE_DEV_SERVER_URL").pipe(Config.option),
   appUserModelIdOverride: trimmedString("STUDIO_DESKTOP_APP_USER_MODEL_ID"),
   devRemoteT3ServerEntryPath: trimmedString("T3CODE_DEV_REMOTE_T3_SERVER_ENTRY_PATH"),
-  configuredBackendPort: Config.Port("T3CODE_PORT").pipe(Config.option),
   commitHashOverride: trimmedString("T3CODE_COMMIT_HASH"),
   desktopLanHostOverride: trimmedString("T3CODE_DESKTOP_LAN_HOST"),
   desktopHttpsEndpointUrls: commaSeparatedStrings("T3CODE_DESKTOP_HTTPS_ENDPOINTS"),
@@ -62,7 +61,7 @@ export const DesktopConfig = Config.all({
   mockUpdateServerPort: Config.Port("T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT").pipe(
     Config.withDefault(3000),
   ),
-});
+}).pipe(withStudioExporterEnvironment);
 
 export const layerTest = (env: Readonly<Record<string, string | undefined>>) =>
   ConfigProvider.layer(ConfigProvider.fromEnv({ env: compactEnv(env) }));

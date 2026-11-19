@@ -18,6 +18,7 @@ import {
 interface EarlyDesktopSettingsInput {
   readonly env: NodeJS.ProcessEnv;
   readonly homeDirectory: string;
+  readonly isPackaged?: boolean;
   readonly joinPath: JoinPath;
   readonly readFileString: (path: string) => string;
 }
@@ -51,6 +52,7 @@ const isDevelopmentEnvironment = (env: NodeJS.ProcessEnv): boolean =>
 function resolveEarlyDesktopSettingsPath(input: {
   readonly env: NodeJS.ProcessEnv;
   readonly homeDirectory: string;
+  readonly isPackaged?: boolean;
   readonly joinPath: JoinPath;
 }): string {
   const studioHome = Option.fromUndefinedOr(input.env.STUDIO_HOME);
@@ -61,7 +63,7 @@ function resolveEarlyDesktopSettingsPath(input: {
   });
   const stateDir = resolveDesktopStateDir({
     baseDir,
-    isDevelopment: isDevelopmentEnvironment(input.env),
+    isDevelopment: !input.isPackaged && isDevelopmentEnvironment(input.env),
     joinPath: input.joinPath,
     studioHome,
   });
@@ -142,7 +144,7 @@ export function resolveEarlyLinuxElectronOptions(
   input: EarlyLinuxElectronOptionsInput,
 ): EarlyLinuxElectronOptions {
   const preference = resolveEarlyLinuxPasswordStorePreference(input);
-  const isDevelopment = isDevelopmentEnvironment(input.env);
+  const isDevelopment = !input.isPackaged && isDevelopmentEnvironment(input.env);
   return {
     isDevelopment,
     linuxDesktopEntryName: resolveLinuxDesktopEntryName(isDevelopment),

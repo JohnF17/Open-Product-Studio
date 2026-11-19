@@ -65,6 +65,7 @@ const layerDesktopClerk = (
     copyText: () => Effect.void,
   },
   listeners = new Map<string, (...args: unknown[]) => void>(),
+  cloudAuthConfigured = false,
 ) => {
   const environment = DesktopEnvironment.DesktopEnvironment.of({
     stateDir: clerkStateDir,
@@ -98,7 +99,7 @@ const layerDesktopClerk = (
       ).pipe(Effect.asVoid),
   } as unknown as ElectronApp.ElectronApp["Service"];
 
-  return DesktopClerk.layer.pipe(
+  return Layer.effect(DesktopClerk.DesktopClerk, DesktopClerk.make(cloudAuthConfigured)).pipe(
     Layer.provide(
       Layer.mergeAll(
         NodePathLayer.layerPosix,
@@ -117,6 +118,19 @@ describe("DesktopClerk", () => {
     requestSingleInstanceLockMock.mockReset().mockReturnValue(true);
     storageMock.mockReset();
   });
+
+  it.effect("leaves the OS handler and Clerk storage alone on local Windows startup", () =>
+    Effect.gen(function* () {
+      const events: string[] = [];
+      yield* DesktopClerk.DesktopClerk.pipe(
+        Effect.provide(layerDesktopClerk(false, events, "win32")),
+      );
+      assert.include(events, "requestSingleInstanceLock");
+      assert.include(events, "on:second-instance");
+      assert.equal(storageMock.mock.calls.length, 0);
+      assert.equal(createClerkBridgeMock.mock.calls.length, 0);
+    }),
+  );
 
   it.each([
     {
@@ -156,7 +170,15 @@ describe("DesktopClerk", () => {
       Effect.runSync(
         Effect.scoped(
           Layer.build(
-            layerDesktopClerk(isDevelopment, events, platform, DesktopPreReadyFileSystem.layer),
+            layerDesktopClerk(
+              isDevelopment,
+              events,
+              platform,
+              DesktopPreReadyFileSystem.layer,
+              undefined,
+              undefined,
+              true,
+            ),
           ),
         ),
       );

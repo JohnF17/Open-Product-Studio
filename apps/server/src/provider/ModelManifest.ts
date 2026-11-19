@@ -192,7 +192,7 @@ const BundledOnlyModelManifest: ModelManifest["Service"] = {
   refreshInBackground: Effect.void,
 };
 
-const layerBundledOnly = Layer.succeed(ModelManifest, BundledOnlyModelManifest);
+export const layerBundledOnly = Layer.succeed(ModelManifest, BundledOnlyModelManifest);
 
 export const make = Effect.gen(function* () {
   const fileSystem = yield* FileSystem.FileSystem;

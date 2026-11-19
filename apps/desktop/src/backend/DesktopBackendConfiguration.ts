@@ -86,6 +86,8 @@ const DESKTOP_BACKEND_ENV_NAMES = [
 
 // Windows forwards these variables into WSL only through WSLENV.
 const WSL_FORWARDED_ENV_NAMES = [
+  "STUDIO_USE_OTLP_ENV",
+  "STUDIO_ENABLE_HOSTED_CONNECTIONS",
   "OPENAI_API_KEY",
   "ANTHROPIC_API_KEY",
   "T3CODE_TELEMETRY_ENABLED",
@@ -568,6 +570,13 @@ const resolvePrimaryStartConfig = Effect.fn("desktop.backendConfiguration.resolv
       cwd: environment.backendCwd,
       env: {
         ...backendChildEnvPatch(),
+        ...(environment.isPackaged
+          ? {
+              VITE_DEV_SERVER_URL: undefined,
+              T3CODE_TRACE_FILE: undefined,
+              T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: undefined,
+            }
+          : {}),
         ELECTRON_RUN_AS_NODE: "1",
         T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING: "1",
         // An unrelated T3 installation may have exported its own home into this process.

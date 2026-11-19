@@ -350,7 +350,7 @@ const readPersistedObservabilitySettings: Effect.Effect<
 });
 
 const resolveOtlpEndpoints = Effect.gen(function* () {
-  const otel = yield* OtelEnvironment.load;
+  const otel = yield* OtelEnvironment.load.pipe(OtelEnvironment.withStudioExporterEnvironment);
   if (otel.disabled) {
     return {
       traces: undefined,

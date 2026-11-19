@@ -87,6 +87,7 @@ function layerEnvironment(
         NodeCrypto.layer,
         DesktopConfig.layerTest({
           STUDIO_HOME: baseDir,
+          STUDIO_USE_OTLP_ENV: "1",
           T3CODE_PORT: "9999",
           T3CODE_MODE: "desktop",
           T3CODE_DESKTOP_LAN_HOST: "192.168.1.50",
@@ -667,9 +668,8 @@ describe("DesktopBackendConfiguration", () => {
           linuxEntryPath,
           "--bootstrap-fd",
           "0",
-          "--dev-url",
-          devServerUrl,
         ]);
+        assert.notInclude(config.args, devServerUrl);
         assert.notInclude(config.args, "bash");
         assert.notInclude(config.args, "/bin/sh");
         assert.notInclude(config.args, "-c");
@@ -794,7 +794,7 @@ describe("DesktopBackendConfiguration", () => {
         assert.equal(config.env.T3CODE_OTLP_PROTOCOL, "http/protobuf");
         assert.equal(
           config.env.WSLENV,
-          "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u:T3CODE_DESKTOP_HOST_SCOPE:ANTHROPIC_API_KEY:T3CODE_OTLP_HEADERS:T3CODE_OTLP_PROTOCOL",
+          "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u:T3CODE_DESKTOP_HOST_SCOPE:STUDIO_USE_OTLP_ENV:ANTHROPIC_API_KEY:T3CODE_OTLP_HEADERS:T3CODE_OTLP_PROTOCOL",
         );
       }).pipe(
         Effect.provide(
@@ -816,6 +816,7 @@ describe("DesktopBackendConfiguration", () => {
           WSLENV: "GOPATH/p:OPENAI_API_KEY/u:EMPTY::AZURE_DEVOPS_EXT_PAT/u",
           OPENAI_API_KEY: "openai-key",
           ANTHROPIC_API_KEY: "anthropic-key",
+          STUDIO_USE_OTLP_ENV: "1",
           T3CODE_OTLP_HEADERS: 'authorization="Bearer%20my-token"',
           T3CODE_OTLP_PROTOCOL: "http/protobuf",
         }),

@@ -3,6 +3,7 @@ import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import * as DesktopConfig from "./DesktopConfig.ts";
@@ -40,12 +41,18 @@ const makeEnvironment = (
 describe("DesktopEnvironment", () => {
   it.effect("uses the packaged Windows server sidecar as the backend root", () =>
     Effect.gen(function* () {
-      const environment = yield* makeEnvironment({
-        platform: "win32",
-        isPackaged: true,
-        appPath: "/install/resources/app.asar",
-        resourcesPath: "/install/resources",
-      });
+      const environment = yield* makeEnvironment(
+        {
+          platform: "win32",
+          isPackaged: true,
+          appPath: "/install/resources/app.asar",
+          resourcesPath: "/install/resources",
+        },
+        { VITE_DEV_SERVER_URL: "https://another-product.example.test", T3CODE_PORT: "3773" },
+      );
+      assert.isFalse(environment.isDevelopment);
+      assert.isTrue(Option.isNone(environment.devServerUrl));
+      assert.isTrue(Option.isNone(environment.configuredBackendPort));
 
       assert.equal(environment.appRoot, "/install/resources/app.asar");
       assert.equal(environment.serverRoot, "/install/resources/server.asar");
@@ -75,10 +82,13 @@ describe("DesktopEnvironment", () => {
         {
           VITE_DEV_SERVER_URL: "http://localhost:5173",
           STUDIO_HOME: " /fixture ",
+          T3CODE_OTLP_TRACES_URL: "https://inherited.example.test/traces",
+          T3CODE_OTLP_PROTOCOL: "invalid-inherited-setting",
           T3CODE_HOME: "/other-product",
         },
       );
       assert.equal(explicit.stateDir, "/fixture/userdata");
+      assert.isTrue(Option.isNone(explicit.otlpTracesUrl));
       assert.equal(production.appUserModelId, "org.openproductstudio.desktop");
       assert.equal(development.appUserModelId, "org.openproductstudio.desktop.dev");
 

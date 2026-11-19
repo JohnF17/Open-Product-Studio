@@ -448,7 +448,14 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         Effect.provide(
           Layer.mergeAll(
             ConfigProvider.layer(
-              ConfigProvider.fromEnv({ env: { T3CODE_HOME: path.join(home, "t3-sentinel") } }),
+              ConfigProvider.fromEnv({
+                env: {
+                  T3CODE_HOME: path.join(home, "t3-sentinel"),
+                  T3CODE_OTLP_TRACES_URL: "https://inherited.example.test/traces",
+                  OTEL_EXPORTER_OTLP_ENDPOINT: "https://inherited.example.test",
+                  T3CODE_OTLP_PROTOCOL: "invalid-inherited-setting",
+                },
+              }),
             ),
             NetService.layer,
           ),
@@ -456,6 +463,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
       );
       expect(resolved.baseDir).toBe(baseDir);
       expect(resolved.stateDir).toBe(path.join(baseDir, "dev"));
+      expect(resolved.otlpTracesUrl).toBeUndefined();
+      expect(resolved.otlpMetricsUrl).toBeUndefined();
+      expect(resolved.otlpLogsUrl).toBeUndefined();
     }),
   );
 
@@ -803,6 +813,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
+                  STUDIO_USE_OTLP_ENV: "1",
                   T3CODE_OTLP_HEADERS: "authorization=Bearer abc==, x-tenant=t3",
                   T3CODE_OTLP_TRACES_URL: "http://collector.internal:4318",
                 },
@@ -911,6 +922,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
               ConfigProvider.layer(
                 ConfigProvider.fromEnv({
                   env: {
+                    STUDIO_USE_OTLP_ENV: "1",
                     T3CODE_OTLP_TRACES_URL: "http://t3:4318/v1/traces",
                     T3CODE_OTLP_HEADERS: "x-key=secret",
                     OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://otel-traces:4318/custom",
@@ -976,6 +988,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
               ConfigProvider.layer(
                 ConfigProvider.fromEnv({
                   env: {
+                    STUDIO_USE_OTLP_ENV: "1",
                     T3CODE_OTLP_TRACES_URL: "http://t3:4318/v1/traces",
                     OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel:4318",
                     OTEL_EXPORTER_OTLP_HEADERS: "x-key=%zz",

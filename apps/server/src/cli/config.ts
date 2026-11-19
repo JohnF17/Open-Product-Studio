@@ -277,7 +277,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
   const selectAutomaticPort = options?.selectAutomaticPort ?? findAvailablePort;
   const path = yield* Path.Path;
   const fs = yield* FileSystem.FileSystem;
-  const env = yield* EnvServerConfig;
+  const env = yield* EnvServerConfig.pipe(OtelEnvironment.withStudioExporterEnvironment);
   const normalizedFlags = {
     mode: flags.mode ?? Option.none(),
     port: flags.port ?? Option.none(),
@@ -449,7 +449,7 @@ export const resolveServerConfig = Effect.fn("config.resolveServerConfig")(funct
   );
   const logLevel = Option.getOrElse(cliLogLevel, () => env.logLevel);
 
-  const otel = yield* OtelEnvironment.load;
+  const otel = yield* OtelEnvironment.load.pipe(OtelEnvironment.withStudioExporterEnvironment);
 
   const signalExport: SignalExport = {
     protocol: env.otlpProtocol,

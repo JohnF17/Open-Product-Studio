@@ -122,7 +122,7 @@ describe("DesktopClientSettings", () => {
         const dotfiles = yield* fileSystem.makeTempDirectoryScoped({
           prefix: "t3-desktop-client-settings-dotfiles-",
         });
-        const linkedSettingsPath = `${dotfiles}/client-settings.json`;
+        const linkedSettingsPath = environment.path.join(dotfiles, "client-settings.json");
         yield* fileSystem.writeFileString(linkedSettingsPath, "{}\n");
         yield* fileSystem.makeDirectory(environment.stateDir, { recursive: true });
         yield* fileSystem.symlink(linkedSettingsPath, environment.clientSettingsPath);
