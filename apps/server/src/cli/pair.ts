@@ -72,7 +72,7 @@ export class NoRunningServerError extends Schema.TaggedError<NoRunningServerErro
 ) {
   override get message(): string {
     return [
-      "No running T3 Code server found.",
+      "No running Open Product Studio server found.",
       ...this.checkedStatePaths.map((statePath) => `  checked ${statePath}`),
       ...(this.inLinkedWorktree
         ? ["In a linked worktree, pass --base-dir to pair with a server outside it."]
@@ -92,8 +92,8 @@ export class IncompatibleServerProtocolError extends Schema.TaggedError<Incompat
 ) {
   override get message(): string {
     return [
-      `The running T3 Code server (${this.serverVersion}) speaks orchestration protocol ${String(this.serverProtocolVersion)}, but this CLI speaks protocol ${String(ORCHESTRATION_PROTOCOL_VERSION)}.`,
-      `Pair with the matching CLI instead: \`${this.pairCommand}\`.`,
+      `The running Open Product Studio server (${this.serverVersion}) speaks orchestration protocol ${String(this.serverProtocolVersion)}, but this CLI speaks protocol ${String(ORCHESTRATION_PROTOCOL_VERSION)}.`,
+      `Use the Studio CLI from the installation matching the server version, then run \`${this.pairCommand}\`.`,
     ].join("\n");
   }
 }
@@ -559,7 +559,7 @@ export const pairCommand = Command.make("pair", {
         return yield* new IncompatibleServerProtocolError({
           serverVersion: target.descriptor.serverVersion,
           serverProtocolVersion,
-          pairCommand: `npx t3@${target.descriptor.serverVersion} pair${baseDirArgs}`,
+          pairCommand: `open-product-studio pair${baseDirArgs}`,
         });
       }
 
