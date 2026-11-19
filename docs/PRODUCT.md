@@ -6,13 +6,16 @@ The desktop retains the T3 Code shell and adds guided project builders and a sha
 
 A downloadable Electron workspace that carries a person from "I do not know what to make" through research, a product, a creator partnership or direct launch, distribution, delivery and improvement. The AI investigates, synthesizes and proposes the next useful decisions throughout the journey. Beginners should not need to invent prompts or learn what every agent does. Experts can inspect the evidence, prompts, model selections, permissions, activity and artifacts.
 
-The workspace opens to the user's projects. **New project** offers three peer choices. The chosen category determines the starting builder, suggested decisions and primary artifact on Home. All three use the same BusinessProject, modules, connections, jobs and library. Each action shows its release availability and the prerequisites for this project.
+The roadmap adds Clipper to the three categories available in **New project** today. The chosen category determines the starting builder, suggested decisions and primary artifact on Home. Each uses the same BusinessProject, modules, connections, jobs and library. Each action shows its release availability and the prerequisites for this project.
 
 | Category | Starting experience | Example outcome |
 | --- | --- | --- |
 | **Blank** | Create a named workspace, collect notes and material, then choose an eligible workflow when ready. | A research workspace that later produces a video or document. |
 | **Digital product** | Start with an idea, supplied material or a recommendation. Choose a format and guide the reader toward a useful outcome. | An editable ebook, workbook, template kit, curriculum or action plan. |
 | **Video** | Start with a style or ask for a recommendation. Preview the required tools, prepare the chosen setup, then use a guided brief, storyboard and scene editor. | A standalone captioned explainer, product walkthrough or short with an optional social publication. |
+| **Clipper** (planned) | Start empty, import a permitted recording, mark a moment or inspect suggested cuts, then edit framing and captions. | A reviewed portrait clip from a longer recording, with its source and edits available to reopen. [Clipper plan](CLIPPER.md) |
+
+Video and Clipper can share an editable look derived from an original Studio sample, a permitted reference or manual controls. The selection belongs to the project and can be previewed on the user's own content. [Media workflows](MEDIA-WORKFLOWS.md)
 
 Styles and templates belong within a category. Future categories can add a starter flow and a primary artifact using the existing registry and shared services. A video can begin with a one-line idea and finish with a reviewed export. From an existing ebook, **Make a video from this** creates a linked Video draft with its own project ID. Copy only the selected, permitted pages or assets with their immutable revision and source attribution. Each project keeps its own edits, grants, jobs and receipts. A buyer, offer, ebook or campaign is optional for a Video project.
 
@@ -45,7 +48,7 @@ The first dashboard registers all modules below, with an explanation, inputs, ou
 - **Creators and partnerships:** permitted profile/content analysis, audience-fit hypotheses, partner shortlist, proposals, responsibilities and agreements tracked as user-supplied records.
 - **Contacts:** deduplicated people/organizations, relationship pipeline, tasks, correspondence references, consent/suppression and activity.
 - **Campaigns and launch:** reusable brand/product context; sales pages, funnels, emails, social/story sequences, video/ad scripts, FAQs and experiments.
-- **Media:** style setup, storyboards, editable scene and audio timelines, licensed references, local or connected rendering, variants, provenance and quality review. Media supplies both the Video project's main deliverable and supporting assets in other categories.
+- **Media:** style setup, storyboards, editable scene and audio timelines, licensed references, local or connected rendering, variants, provenance and quality review. Media supplies the main deliverable for Video and Clipper projects and supporting assets for other categories.
 - **Publishing and delivery:** approved destination connectors, preview/dry run, explicit payload approval, publishing receipts and provider-backed delivery configuration.
 - **Feedback and improvement:** interviews, imported outcomes, complaints/refunds where authorized, experiment analysis, revision suggestions and source refresh.
 - **Library and exports:** product/artifact versions, brand/audience profiles, reusable templates, sources, portable bundles and backups.
@@ -62,7 +65,7 @@ Brand voice and customer context are shared, versioned inputs. Changing the prom
 
 ## Beginner journey
 
-Start with the category chooser. A person who is undecided can ask for a recommendation or open Blank. Within a guided project, “I have an idea,” “Use my material” and “Help me choose” are ways to fill the brief. Creator collaboration is available where relevant. A Video user gets a topic or style suggestion and a sample scene. A Digital product user gets a proposed reader outcome and sample section. Each suggestion remains editable.
+Start with the category chooser. A person who is undecided can ask for a recommendation or open Blank. Within a guided project, “I have an idea,” “Use my material” and “Help me choose” are ways to fill the brief. Creator collaboration is available where relevant. A Video user gets a topic or style suggestion and a sample scene. A Digital product user gets a proposed reader outcome and sample section. In the planned Clipper flow, a suggested moment opens at the matching source frames with the surrounding context available to play. Each suggestion remains editable.
 
 The dashboard makes the next decision small. Recommendations arrive as choices with evidence, tradeoffs and one suggested action. A beginner can accept recommendations repeatedly while the system creates private drafts, tracks progress and explains uncertainty. They can always edit or go back. No hidden prompt-writing prerequisite.
 
