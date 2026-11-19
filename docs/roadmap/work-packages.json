@@ -494,7 +494,7 @@
         "Separate component acceptance from integration/public-release activation evidence with producer, exact revision, applicable action, pending/passed state and independent reviewer. Component acceptance alone cannot make a capability available; reject missing or stale activation evidence through direct RPC.",
         "Workspace, BusinessProject, BillingOrganization, provider connection, execution host, sender and merchant are separate typed references. Two projects with overlapping display names cannot share private notes, defaults, callbacks or authority through navigation state.",
         "For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.",
-        "Persist the starter category (blank, digital-product or video) separately from formats, style versions, module capabilities and entitlements. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants."
+        "Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants."
       ],
       "owner": "domain architect",
       "reviewer": "data/authorization reviewer",
@@ -1040,7 +1040,7 @@
         "Exercise empty/example, loading/partial, stale/offline, denied/revoked, quota/Unknown, retry and recovered states without sign-in for local work. Distinct blocker/remediation text preserves keyboard focus and useful partial exports; no fake percent, completed action or automatic connection.",
         "Measure the motion/performance profile in PROJECT-EXPERIENCE.md on declared hardware: 120-200 ms local transitions, 250 ms maximum decorative transition, reduced-motion removal, batched streaming, virtualized lists and retained scroll. Record baseline startup/idle memory and reviewed regression budgets, not claimed measurements.",
         "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.",
-        "From New project present Blank, Digital product and Video as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Show each future action and its milestone even when the category can already be selected."
+        "From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected."
       ],
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
@@ -1407,7 +1407,8 @@
         "Offer an optional editable 30-day execution plan with weekly checkpoints, first-week steps, dependencies, time/budget assumptions and a user-adjustable activity target. It is revisioned recommendation data at M1, separate from the sellable action-plan product at M2; input changes stale dependent steps and unavailable capabilities keep their gates.",
         "Manual progress and user-requested check-ins need no CRM, mailbox, calendar account or Dot. Converting eligible steps into M3 task/campaign records requires an explicit choice; advice and checklists never activate reminders, external actions or persistent wakes. Activity targets are hypotheses, not income or reply guarantees.",
         "A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.",
-        "A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision."
+        "A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.",
+        "Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable."
       ],
       "owner": "product/research maintainer",
       "reviewer": "independent domain and novice UX reviewer",
@@ -1536,6 +1537,15 @@
             "WP11"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 13,
+          "phase": "component",
+          "producers": [
+            "WP11"
+          ],
+          "state": "not-run",
+          "scope": "Exercise source-grounded suggestions, missing or stale evidence, invalid ranges, unsupported quotes and manual selection on isolated fixtures."
         }
       ]
     },
@@ -3146,8 +3156,8 @@
         "packages/studio-contracts/src/videoProject.ts",
         "apps/web/src/features/studio/media/VideoBuilder.tsx"
       ],
-      "consumes": "A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget.",
-      "produces": "Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts.",
+      "consumes": "A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget. For Clipper, consume a permitted local video revision, approved ranges and framing, and a qualified local renderer.",
+      "produces": "Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts. For Clipper, produce a reviewed 9:16 clip, reopenable edit state and source, rights and export metadata.",
       "acceptance": [
         "Check video entitlements, scopes and duration pricing independently on each paid route. An offline render with supplied media and narration can finish without a paid account, an image provider or a document project.",
         "Async completion, timeout/revoke/unknown/cancel/failed-charge and duplicate-event fixtures.",
@@ -3157,7 +3167,8 @@
         "Before first external connector activation, record a ConnectorOperations profile: named operator/backup or explicit provider-owned support route, ingress/backlog/age/rate/cost caps, alert channel, retention, reconciliation and credential-compromise response. Keep a credential-free outage runbook and redacted receipt-ID support path accessible without the app; no automatic private-content diagnostic upload.",
         "For external routes prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.",
         "Start a standalone 30-second project from a blank brief. Pin one of the catalog styles, inspect and explicitly prepare its required tools, approve the script and storyboard, edit a scene, preview, render and review. Reopen the editable project and play the exported video with captions and credits outside Studio. Exercise the bundled local route with document, merchant, social and paid model connections absent; accept a separately quoted narration route only when requested.",
-        "Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware."
+        "Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware.",
+        "Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection."
       ],
       "owner": "media maintainer",
       "reviewer": "rights/cost/security reviewer",
@@ -3278,6 +3289,28 @@
             "WP24"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 10,
+          "phase": "component",
+          "producers": [
+            "WP24"
+          ],
+          "state": "not-run",
+          "scope": "Use local fixtures to verify timestamp mapping, variable frame rate boundaries, audio and caption sync, framing, metadata, persisted editable state and recovery after interruption."
+        },
+        {
+          "item": 10,
+          "phase": "integration",
+          "producers": [
+            "WP24",
+            "WP03",
+            "WP08",
+            "WP14",
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Witness the manual local M4A Clipper journey on the exact Windows and renderer builds. Record source revision, range, first and last frames, sync, applicable rights and metadata, 9:16 external playback, editable reopen and recovery after interruption."
         }
       ],
       "externalGateApplicability": [

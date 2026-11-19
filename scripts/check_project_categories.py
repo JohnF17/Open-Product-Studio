@@ -8,6 +8,14 @@ ROOT = Path(__file__).resolve().parents[1] / "docs/roadmap"
 FRAMEWORK_STAGES = (
     "style", "prepare", "brief", "storyboard", "assets", "render", "review", "export", "publish"
 )
+CLIPPER_STAGES = {
+    "source": ("cap.media.library", "WP17"),
+    "moments": ("cap.content.versions", "WP14"),
+    "edit": ("cap.content.versions", "WP14"),
+    "review": ("cap.media.video", "WP24"),
+    "export": ("cap.media.video", "WP24"),
+    "publish": ("cap.publishing.publish", "WP28"),
+}
 
 
 def text(value):
@@ -17,6 +25,29 @@ def text(value):
 def valid_refs(refs, entries):
     return (isinstance(refs, list) and all(text(ref) and ref in entries for ref in refs)
             and len(refs) == len(set(refs)))
+
+
+def check_stages(stages, builder, stage_ids, owners, expected_bindings=None):
+    if not isinstance(stages, list) or not all(isinstance(stage, dict) for stage in stages):
+        return [f"Expected an ordered {builder} stage list"]
+    errors = []
+    if tuple(stage.get("id") for stage in stages) != tuple(stage_ids):
+        errors.append(f"{builder.capitalize()} builder must reach local export before the optional publish action")
+    for stage in stages:
+        name, capability, owner = stage.get("id"), stage.get("capability"), stage.get("owner")
+        if (not text(stage.get("label")) or not text(capability) or not text(owner)
+                or owners.get(capability) != owner):
+            errors.append(f"{name}: invalid work-package capability binding")
+        if stage.get("optional") is not (name == "publish"):
+            errors.append(f"{name}: invalid optional stage")
+        if (name == "publish") != (capability == "cap.publishing.publish"):
+            errors.append(f"{name}: publishing must stay separate from editing and export")
+        if expected_bindings is not None:
+            if set(stage) != {"id", "label", "capability", "owner", "optional"}:
+                errors.append(f"{name}: {builder} stages only describe the stage and its capability")
+            if text(name) and name in expected_bindings and (capability, owner) != expected_bindings[name]:
+                errors.append(f"{name}: invalid {builder} stage capability or owner")
+    return errors
 
 
 def check(catalog, roadmap):
@@ -33,35 +64,32 @@ def check(catalog, roadmap):
     if any(not isinstance(catalog.get(group), dict) or not catalog[group] for group in groups):
         return errors + ["Missing category, style or stack-entry definitions"]
     categories, styles, entries = (catalog[group] for group in groups)
-    launch_categories = {"blank", "digital-product", "video"}
-    if not launch_categories <= categories.keys():
-        errors.append("Missing a first-class starting category")
     entry_points = {
         "blank": "workspace", "digital-product": "product-builder", "video": "video-builder",
+        "clipper": "clipper-builder",
     }
+    if not entry_points.keys() <= categories.keys():
+        errors.append("Missing a first-class starting category")
     for key, category in categories.items():
         if (not isinstance(category, dict) or not text(category.get("entry"))
                 or not text(category.get("label")) or type(category.get("sourceRequired")) is not bool):
             errors.append(f"{key}: missing category entry, label or source policy")
-        elif key in launch_categories and category["sourceRequired"]:
-            errors.append(f"{key}: a launch category must be able to start with an empty project")
-        elif key in entry_points and category["entry"] != entry_points[key]:
-            errors.append(f"{key}: starting category must open its own entry point")
+            continue
+        if key in entry_points:
+            if category["sourceRequired"]:
+                errors.append(f"{key}: a starting category must be able to start with an empty project")
+            if category["entry"] != entry_points[key]:
+                errors.append(f"{key}: starting category must open its own entry point")
+        if key == "clipper":
+            if category["label"] != "Clipper":
+                errors.append("clipper: starting category must be labeled Clipper")
+            if set(category) != {"entry", "label", "sourceRequired"}:
+                errors.append("clipper: categories only describe entry, label and source policy")
     owners = {cap: p["id"] for p in roadmap["workPackages"] for cap in p["capabilities"]}
-    stages = catalog.get("videoStages")
-    if not isinstance(stages, list) or not all(isinstance(stage, dict) for stage in stages):
-        return errors + ["Expected an ordered video stage list"]
-    if tuple(stage.get("id") for stage in stages) != FRAMEWORK_STAGES:
-        errors.append("Video builder must reach local export before the optional publish action")
-    for stage in stages:
-        name, capability = stage.get("id"), stage.get("capability")
-        if (not text(stage.get("label")) or not text(capability) or not text(stage.get("owner"))
-                or owners.get(capability) != stage["owner"]):
-            errors.append(f"{name}: invalid work-package capability binding")
-        if stage.get("optional") is not (name == "publish"):
-            errors.append(f"{name}: invalid optional stage")
-        if (name == "publish") != (capability == "cap.publishing.publish"):
-            errors.append(f"{name}: publishing must stay separate from editing and export")
+    errors.extend(check_stages(catalog.get("videoStages"), "video", FRAMEWORK_STAGES, owners))
+    errors.extend(check_stages(
+        catalog.get("clipperStages"), "Clipper", CLIPPER_STAGES, owners, expected_bindings=CLIPPER_STAGES,
+    ))
     for key, entry in entries.items():
         if not isinstance(entry, dict) or set(entry) != {"label", "kind", "cost", "capability"}:
             errors.append(f"{key}: stack entries only describe capabilities, labels, kinds and costs")
@@ -105,4 +133,4 @@ if __name__ == "__main__":
         print(issue, file=sys.stderr)
     if issues:
         sys.exit(1)
-    print("Project categories, style stacks, video stages and roadmap references passed.")
+    print("Project categories, style stacks, Video and Clipper stages and roadmap references passed.")

@@ -9,7 +9,8 @@
   "categories": {
     "blank": {"label": "Blank", "sourceRequired": false, "entry": "workspace"},
     "digital-product": {"label": "Digital product", "sourceRequired": false, "entry": "product-builder"},
-    "video": {"label": "Video", "sourceRequired": false, "entry": "video-builder"}
+    "video": {"label": "Video", "sourceRequired": false, "entry": "video-builder"},
+    "clipper": {"label": "Clipper", "sourceRequired": false, "entry": "clipper-builder"}
   },
   "videoStages": [
     {"id": "style", "label": "Choose a style", "owner": "WP08", "capability": "cap.dashboard.workspace", "optional": false},
@@ -20,6 +21,14 @@
     {"id": "render", "label": "Preview scenes and render a cut", "owner": "WP24", "capability": "cap.media.video", "optional": false},
     {"id": "review", "label": "Review picture, captions, audio and rights", "owner": "WP24", "capability": "cap.media.video", "optional": false},
     {"id": "export", "label": "Save the reviewed video and editable project", "owner": "WP24", "capability": "cap.media.video", "optional": false},
+    {"id": "publish", "label": "Review a connected account and approve a post", "owner": "WP28", "capability": "cap.publishing.publish", "optional": true}
+  ],
+  "clipperStages": [
+    {"id": "source", "label": "Import or select a source you have rights to use", "owner": "WP17", "capability": "cap.media.library", "optional": false},
+    {"id": "moments", "label": "Find and select moments to turn into clips", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "edit", "label": "Trim clips and edit framing and captions", "owner": "WP14", "capability": "cap.content.versions", "optional": false},
+    {"id": "review", "label": "Review picture, captions, audio and rights", "owner": "WP24", "capability": "cap.media.video", "optional": false},
+    {"id": "export", "label": "Save reviewed clips and the editable project locally", "owner": "WP24", "capability": "cap.media.video", "optional": false},
     {"id": "publish", "label": "Review a connected account and approve a post", "owner": "WP28", "capability": "cap.publishing.publish", "optional": true}
   ],
   "stackEntries": {

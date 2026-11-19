@@ -152,7 +152,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.
 
-- Persist the starter category (blank, digital-product or video) separately from formats, style versions, module capabilities and entitlements. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.
+- Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.
 
 **Evidence phase / producer (all not-run):**
 
@@ -410,7 +410,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.
 
-- From New project present Blank, Digital product and Video as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Show each future action and its milestone even when the category can already be selected.
+- From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.
 
 **Evidence phase / producer (all not-run):**
 
@@ -570,6 +570,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.
 
+- Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -577,6 +579,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A11: **component**, producer WP11. Exercise this contract on isolated synthetic inputs.
 
 - A12: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A13: **component**, producer WP11. Exercise source-grounded suggestions, missing or stale evidence, invalid ranges, unsupported quotes and manual selection on isolated fixtures.
 
 **Execution steps:**
 
@@ -1220,9 +1224,9 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Files:** `apps/server/src/studio/connectors/video.ts`, `apps/server/src/studio/connectors/video.contract.test.ts`, `apps/web/src/features/studio/media/VideoJobs.tsx`, `packages/studio-contracts/src/videoProject.ts`, `apps/web/src/features/studio/media/VideoBuilder.tsx`.
 
-**Consumes:** A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget.
+**Consumes:** A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget. For Clipper, consume a permitted local video revision, approved ranges and framing, and a qualified local renderer.
 
-**Produces:** Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts.
+**Produces:** Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts. For Clipper, produce a reviewed 9:16 clip, reopenable edit state and source, rights and export metadata.
 
 **External gate applicability:**
 
@@ -1250,6 +1254,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Render from an immutable timeline with approved local assets and reviewed templates inside a bounded worker. Bind a scene revision to its assets, narration, timings and renderer version. Editing one line invalidates the affected caches and approval. Preserve valid takes. Exercise interrupted setup, low disk, renderer failure, missing optional tools, cancelled rendering and unknown provider charges. Record preview, render and revision times on declared hardware.
 
+- Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5: **component**, producer WP24. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -1263,6 +1269,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A8: **integration**, producer WP24, WP03, WP08, WP11, WP53, WP17. Witness a real end-to-end M4A Video project on the exact renderer build. Record applicable permissions, rights, account/charge receipts, export and reopen evidence.
 
 - A9: **component**, producer WP24. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A10: **component**, producer WP24. Use local fixtures to verify timestamp mapping, variable frame rate boundaries, audio and caption sync, framing, metadata, persisted editable state and recovery after interruption.
+
+- A10: **integration**, producer WP24, WP03, WP08, WP14, WP17. Witness the manual local M4A Clipper journey on the exact Windows and renderer builds. Record source revision, range, first and last frames, sync, applicable rights and metadata, 9:16 external playback, editable reopen and recovery after interruption.
 
 **Execution steps:**
 
