@@ -52,7 +52,7 @@ it("downloads the complete oversized archive and displays its restore limit", as
     const archive = urls.mock.calls.at(-1)![0] as Blob;
     expect(archive.size).toBeGreaterThan(PROJECT_BACKUP_MAX_BYTES);
     expect(JSON.parse(await archive.text()).fields.script.length).toBe(source.fields.script.length);
-    await expect.element(screen.getByRole("alert")).toHaveTextContent(/32 MiB restore limit/);
+    expect(screen.getByRole("alert").element().textContent).toContain("32 MiB restore limit");
   } finally {
     clicks.mockRestore();
     urls.mockRestore();
