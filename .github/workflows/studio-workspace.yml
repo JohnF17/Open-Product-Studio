@@ -53,4 +53,4 @@ jobs:
         run: node apps/web/node_modules/playwright/cli.js install --with-deps --only-shell chromium
       - name: Check draft transactions and guided navigation
         working-directory: apps/web
-        run: vp test run --project unit --project browser src/features/studio src/hooks/useHandleNewThread.test.ts src/components/StudioLanding.browser.test.tsx
+        run: vp test run --project unit --project browser src/features/studio src/hooks/useHandleNewThread.test.ts src/components/StudioLanding.browser.test.tsx src/components/settings/AddEnvironmentDialog.browser.test.tsx

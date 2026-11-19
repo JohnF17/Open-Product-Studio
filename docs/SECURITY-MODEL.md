@@ -10,6 +10,11 @@ The main boundaries are browser↔engine, engine↔CLI process, engine↔filesys
 
 ## Local engine
 
+Studio development receives its engine directory from an explicit development option or its isolated default. Parent T3 session state and parent checkout configuration are separate trust boundaries. A linked worktree receives its own state directory, its setup does not share environment files, and the Studio configuration reader accepts regular checkout-local files. Test startup with an unrelated synthetic T3 directory beside it.
+
+Managed SSH provisioning is unavailable in Studio. The desktop bridge rejects both new and saved SSH routes before provisioning can download a runner or change a remote host. Pairing with a running Studio backend uses the host and pairing code supplied by the user.
+
+- Pairing grants stay in the selected engine URL fragment unless a hosted Studio origin was explicitly configured for the build. Copied desktop prompts and thread links open the Studio protocol by default. A browser uses its own origin.
 - Bind the local server to loopback by default. Preserve the fork's authenticated WebSocket/RPC transport; validate Host and the exact permitted Origin set. CORS is not authentication; reject arbitrary websites and DNS-rebinding hosts.
 - The bundled Electron renderer uses its own registered custom scheme, separate from the backend origin. Give this fork a new scheme and validate its authenticated launch/session exchange and IPC sender. Browser clients use the explicitly configured HTTPS origin; paired clients use separately scoped device grants. Do not require a fictitious shared UI/API origin or create a parallel authentication stack. Keep bootstrap secrets out of query strings, logs, browser history and project exports; use CSRF protection for cookie-authenticated mutations. Test each client class and reject all other origins.
 - Resolve executable paths from approved provider configuration; show the chosen binary and version. Spawn with argument arrays and `shell: false`; pass prompts through supported stdin/RPC, not shell interpolation. Do not let a model choose an executable path or launch arbitrary PowerShell.

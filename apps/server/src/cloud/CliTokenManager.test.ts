@@ -19,6 +19,7 @@ import * as ExternalLauncher from "../process/externalLauncher.ts";
 import * as CliTokenManager from "./CliTokenManager.ts";
 
 const TEST_ENV = {
+  STUDIO_ENABLE_HOSTED_CONNECTIONS: "1",
   T3CODE_CLERK_PUBLISHABLE_KEY: "pk_test_Y2xlcmsuZXhhbXBsZS50ZXN0JA==",
   T3CODE_CLERK_CLI_OAUTH_CLIENT_ID: "oauth_client_test",
   T3CODE_HOSTED_APP_URL: "https://hosted.example.test",

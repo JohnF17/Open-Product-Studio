@@ -14,6 +14,13 @@ describe("settings pairing URL helpers", () => {
     );
   });
 
+  it("keeps the grant on the HTTPS backend when no hosted app was chosen", () => {
+    vi.stubEnv("VITE_HOSTED_APP_URL", "");
+    const endpoint = "https://engine.example.test";
+    expect(resolveHostedPairingUrl(endpoint, "fixture")).toBeNull();
+    expect(resolveDesktopPairingUrl(endpoint, "fixture")).toBe(endpoint + "/pair#token=fixture");
+  });
+
   it("uses hosted pairing URLs for HTTPS endpoints", () => {
     vi.stubEnv("VITE_HOSTED_APP_URL", "https://preview.t3.codes");
 

@@ -1,0 +1,133 @@
+name: Studio runtime
+
+on:
+  pull_request:
+    paths: &runtime-paths
+      - 'apps/desktop/**'
+      - 'apps/server/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'patches/**'
+      - 'infra/task-cache/**'
+      - 'package.json'
+      - 'pnpm-*.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/studio-runtime.yml'
+  push:
+    branches: [main]
+    paths: *runtime-paths
+
+permissions: {}
+
+concurrency:
+  group: studio-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    env:
+      GIT_TERMINAL_PROMPT: '0'
+      DO_NOT_TRACK: '1'
+    steps:
+      - name: Create a disposable tool and test profile
+        shell: pwsh
+        run: |
+          $profileRoot = Join-Path $env:RUNNER_TEMP 'studio-runtime-profile'
+          $dirs = @{
+            HOME = $profileRoot
+            XDG_CONFIG_HOME = Join-Path $profileRoot 'config'
+            XDG_CACHE_HOME = Join-Path $profileRoot 'cache'
+          }
+          if ($IsWindows) {
+            $dirs.USERPROFILE = $profileRoot
+            $dirs.APPDATA = Join-Path $profileRoot 'AppData/Roaming'
+            $dirs.LOCALAPPDATA = Join-Path $profileRoot 'AppData/Local'
+          }
+          foreach ($entry in $dirs.GetEnumerator()) {
+            New-Item -ItemType Directory -Path $entry.Value -Force | Out-Null
+            "$($entry.Key)=$($entry.Value)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          }
+      - name: Check out the exact public candidate
+        run: |
+          set -euo pipefail
+          git init --quiet
+          git -c credential.helper= fetch --quiet --depth=1 --no-tags --no-recurse-submodules "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          node-version-file: package.json
+          run-install: false
+          cache: false
+      - name: Install locked test dependencies
+        id: install
+        run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/web... --filter=@t3tools/scripts... --filter=@t3tools/monorepo
+      - name: Check worktree bootstrap and public configuration
+        working-directory: scripts
+        run: |
+          vp test run --config ../vite.config.ts --dir . dev-runner.test.ts lib/public-config.test.ts
+          vp test run --config ../vite.config.ts --dir . build-desktop-artifact.test.ts -t 'omits upstream feeds|preserves explicit false boolean flags'
+      - name: Check Studio homes, telemetry environment and link formats
+        working-directory: packages/shared
+        run: vp test run --config ../../vite.config.ts --dir . src/devHome.test.ts src/desktopAppControl.test.ts src/otelEnvironment.test.ts src/promptLinks.test.ts src/threadLinks.test.ts
+      - name: Check desktop profiles, first launch and backend configuration
+        working-directory: apps/desktop
+        run: >-
+          vp test run --project unit
+          src/app/DesktopAppIdentity.test.ts src/app/DesktopClerk.test.ts
+          src/app/DesktopEnvironment.test.ts src/app/DesktopStartupRecovery.test.ts
+          src/app/DesktopUserData.test.ts src/backend/DesktopBackendConfiguration.test.ts
+          src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts src/updates/DesktopUpdates.test.ts
+          src/ssh/DesktopSshEnvironment.test.ts
+      - name: Check server configuration, telemetry, pairing and MCP approval
+        working-directory: apps/server
+        run: >-
+          vp test run
+          src/cli/config.test.ts src/cli/pair.test.ts src/cloud/publicConfig.test.ts
+          src/telemetry/AnalyticsService.test.ts src/auth/McpOAuth.test.ts
+      - name: Check renderer pairing, local links and updates
+        working-directory: apps/web
+        run: >-
+          vp test run --project unit
+          src/hostedPairing.test.ts src/components/settings/pairingUrls.test.ts
+          src/components/settings/ConnectionsSettings.logic.test.ts src/components/desktopUpdate.logic.test.ts
+          src/components/composerInlineTokenPaste.test.ts src/lib/bootError.test.ts
+      - name: Check foreground command and updater boundaries
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: |
+          vp test run --maxWorkers=2 src/studioLifecycle.test.ts src/cliCompileCache.test.ts src/cli/doctor.test.ts src/serverRuntimeState.test.ts src/cli/app.test.ts
+          vp test run --maxWorkers=1 src/cli/invocation.test.ts -t 'root CLI commands|host CLI commands'
+      - name: Check update ownership and server startup
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: vp test run --maxWorkers=2 src/cloud/selfUpdate.test.ts src/cloud/npmRelease.test.ts src/desktopUpdate/DesktopAppUpdate.test.ts src/environment/ServerEnvironment.test.ts src/serverRuntimeStartup.test.ts
+      - name: Check Studio diagnostic sources and session instructions
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: vp test run --maxWorkers=2 src/binCli.test.ts src/triage/TriageService.test.ts src/triage/triagePrompt.test.ts src/triage/triageSession.test.ts src/cli/triage.test.ts
+      - name: Typecheck affected desktop, server, shared and renderer packages
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && runner.os == 'Linux' }}
+        run: |
+          set -euo pipefail
+          for pkg in packages/shared apps/server apps/desktop apps/web; do
+            (cd "$pkg" && node ../../node_modules/@effect/tsgo/dist/effect-tsgo.cjs tsrs --noEmit)
+          done
+      - name: Check state migration and worktree cleanup in disposable directories
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: apps/server
+        run: |
+          vp test run --maxWorkers=1 scripts/migrate-dev-db.test.ts
+          vp test run --maxWorkers=1 src/storageCleanup.test.ts -t 'a custom worktrees folder'

@@ -41,7 +41,7 @@ const withTempHome = <A, E>(
           runningUnderArm64Translation: false,
         }).pipe(
           Layer.provide(
-            Layer.mergeAll(NodeServices.layer, DesktopConfig.layerTest({ T3CODE_HOME: home })),
+            Layer.mergeAll(NodeServices.layer, DesktopConfig.layerTest({ STUDIO_HOME: home })),
           ),
         ),
       ),
@@ -94,6 +94,18 @@ describe("DesktopHomeOwner.readLiveHomeOwner", () => {
       );
     }),
   );
+});
+
+it("offers a separate Studio home for an unknown, foreground or service owner", () => {
+  for (const owner of [
+    Option.none<DesktopHomeOwner.HomeOwner>(),
+    Option.some({ pid: 123, port: 1234 }),
+    Option.some({ pid: 123, port: 1234, serviceManaged: true, serverVersion: "1.0.0" }),
+  ]) {
+    const message = DesktopHomeOwner.homeOwnedMessage(owner);
+    assert.include(message, "STUDIO_HOME");
+    assert.notMatch(message, /T3CODE_HOME|t3 service|npx t3|t3 update/i);
+  }
 });
 
 describe("DesktopHomeOwner.awaitHomeOwnershipRelease", () => {

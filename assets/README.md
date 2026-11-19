@@ -1,6 +1,23 @@
 # Brand icons
 
-The three Icon Composer projects are the source of truth for full application icons:
+## Open Product Studio
+
+[Logo preview on light and dark surfaces](studio/preview.png)
+
+`studio/mark.svg` is the source for the in-app mark, browser icons, and native application icons.
+The native exports include a macOS dock tile with a 100-pixel inset, a full-width Linux tile, an
+opaque iOS icon, Android adaptive and notification layers, and the monochrome widget mark.
+Use Python with Pillow 9.3.0 to regenerate the checked-in assets. Run both commands from the
+repository root.
+
+```powershell
+python -B assets/studio/render-icons.py
+python -B assets/studio/render-icons.py --check
+```
+
+## Icon Composer projects
+
+The repository retains the three upstream Icon Composer projects:
 
 - `dev/app-icon.icon`
 - `nightly/app-icon.icon`
@@ -8,7 +25,7 @@ The three Icon Composer projects are the source of truth for full application ic
 
 Each project uses `text.svg` for the T3 mark and `background.svg` when the background is a vector layer. Additional layers use semantic names that describe their role and placement.
 
-Run `vp run icons:export` from the repository root to regenerate the tracked iOS, Linux, Windows, and web assets. The development web exports are also copied to `apps/web/public` for the browser favicon, web app manifest icons, and splash screen. Run `vp run icons:check` to verify that the generated assets and public copies match their sources without changing files.
+Run `vp run icons:export` from the repository root to regenerate the tracked artwork in `assets/dev`, `assets/nightly` and `assets/prod`. Run `vp run icons:check` to verify those exports against the Icon Composer sources.
 
 Exporting requires Icon Composer 2 or newer on macOS. The script selects the newest compatible exporter from Xcode or a standalone Icon Composer installation and pins design generation 26. Set `ICON_COMPOSER_TOOL` to the full path of `Icon Composer.app/Contents/Executables/ictool` to override automatic discovery.
 
@@ -49,7 +66,7 @@ Verify every result is 1024×1024 and has the classic macOS safe area: an 824×8
 
 Do not edit the generated PNG or ICO files directly.
 
-## Android launcher and splash artwork
+## Upstream Android launcher and splash artwork
 
 Android masks the central 72dp of a 108dp adaptive canvas, and the Android 12+ splash screen masks
 the central two thirds of a 288dp canvas, so the Icon Composer exports cannot be used directly:

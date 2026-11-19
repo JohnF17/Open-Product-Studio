@@ -1,4 +1,3 @@
-import { DEFAULT_HOSTED_APP_URL } from "./connectAuth.ts";
 import { parseUrl } from "./url.ts";
 
 export const PROMPT_LINK_MAX_PROMPT_LENGTH = 8_000;
@@ -189,6 +188,17 @@ export function withoutPromptLinkParams(search: string): string {
   return rest ? `?${rest}` : "";
 }
 
+export const STUDIO_APP_ORIGIN = "open-product-studio://app";
+const APP_SCHEME = /^open-product-studio(?:-dev)?:$/;
+
+/** Native links use their route as the authority, e.g. open-product-studio://new. */
+export function buildStudioShareUrl(path: string, origin = STUDIO_APP_ORIGIN): URL {
+  const url = new URL(path, origin);
+  return APP_SCHEME.test(url.protocol)
+    ? new URL(`${url.protocol}//${url.pathname.slice(1)}${url.search}`)
+    : url;
+}
+
 export function buildNewThreadLink(input: {
   readonly prompt: string;
   readonly repository?: PromptLinkRepository | null;
@@ -196,7 +206,7 @@ export function buildNewThreadLink(input: {
   readonly model?: string | null;
   readonly origin?: string;
 }): string {
-  const url = new URL("/new", input.origin ?? DEFAULT_HOSTED_APP_URL);
+  const url = buildStudioShareUrl("/new", input.origin);
   url.searchParams.set("prompt", input.prompt);
   if (input.repository) {
     url.searchParams.set("repo", `${input.repository.owner}/${input.repository.name}`);
@@ -206,13 +216,9 @@ export function buildNewThreadLink(input: {
   return url.toString();
 }
 
-const APP_SCHEME = /^t3code(?:-[a-z]+)?:$/;
 const THREAD_PATH = /^\/([^/]+)\/([^/]+)\/?$/;
 
-export function promptLinkAppPath(
-  value: string,
-  hostedAppUrl: string = DEFAULT_HOSTED_APP_URL,
-): string | null {
+export function promptLinkAppPath(value: string, hostedAppUrl?: string): string | null {
   const url = parseUrl(value);
   if (!url) return null;
   if (APP_SCHEME.test(url.protocol)) {
@@ -222,7 +228,7 @@ export function promptLinkAppPath(
     const thread = url.host === "threads" ? THREAD_PATH.exec(url.pathname) : null;
     return thread ? `/${thread[1]}/${thread[2]}${url.search}` : null;
   }
-  if (url.origin !== parseUrl(hostedAppUrl)?.origin) return null;
+  if (!hostedAppUrl || url.origin !== parseUrl(hostedAppUrl)?.origin) return null;
   if (url.pathname === "/new") return `/new${url.search}`;
   // The web app's own thread route is a link only with a prompt, so reloading a tab never asks.
   const thread = url.pathname.startsWith("/threads/")
@@ -233,7 +239,7 @@ export function promptLinkAppPath(
   return thread ? `/${thread[1]}/${thread[2]}${url.search}` : null;
 }
 
-export function promptLinkDeepLink(appPath: string, scheme = "t3code"): string {
+export function promptLinkDeepLink(appPath: string, scheme = "open-product-studio"): string {
   const url = new URL(appPath, "https://app.invalid");
   const host = url.pathname === "/new" ? "new" : `threads${url.pathname}`;
   return `${scheme}://${host}${url.search}`;

@@ -39,6 +39,11 @@ it("keeps a conflicting edit in the window until the user explicitly leaves it",
     history: createMemoryHistory({ initialEntries: ["/"] }),
   });
   await using screen = await render(<RouterProvider router={router} />, { router: false });
+  const chooser = screen.getByRole("region", { name: "Open Product Studio" });
+  await expect.element(chooser.getByRole("heading", { name: "New project" })).toBeVisible();
+  const brandMark = chooser.element().querySelector<HTMLImageElement>(".ops-identity img");
+  expect(brandMark?.getAttribute("alt")).toBe("");
+  await expect.poll(() => brandMark?.naturalWidth ?? 0).toBeGreaterThan(0);
   await screen.getByRole("button", { name: /^Blank/ }).click();
   await expect.element(screen.getByText("Saved on this device")).toBeVisible();
   const [stored] = await listDrafts(workspace);

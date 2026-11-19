@@ -1,6 +1,6 @@
 import { msg, T, Var } from "gt-react";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
-import { TRIAGE_CLI_COMMAND } from "~/hooks/useStartTriage";
+import { TRIAGE_CLI_COMMAND } from "~/lib/triageCommand";
 
 import { InlineButton } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -40,7 +40,7 @@ export function TriageDraftHero(props: {
           </TooltipTrigger>
           <TooltipPopup side="bottom">
             <T>
-              The agent reads T3 Code's logs and source here, and asks before it applies a fix or
+              The agent reads Open Product Studio's logs and source here, and asks before it applies a fix or
               posts anything.
             </T>
           </TooltipPopup>

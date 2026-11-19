@@ -327,7 +327,7 @@ it.effect.each([false, true])(
 );
 
 it.effect(
-  "points a stale t3 launcher at the updated AppImage and accepts t3 <dir> with Local environment off",
+  "refreshes an installed Studio launcher after an AppImage update and accepts a project path with Local environment off",
   () =>
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
@@ -344,7 +344,11 @@ it.effect(
       yield* fs.writeFileString(
         launcher,
         DesktopCliShim.renderCliShim({
-          target: { kind: "appimage", appImage: removedAppImage, executableName: "t3code" },
+          target: {
+            kind: "appimage",
+            appImage: removedAppImage,
+            executableName: "open-product-studio",
+          },
           shimPath: launcher,
           t3Home: baseDir,
         }),
@@ -375,11 +379,11 @@ it.effect(
       assert.include(
         content,
         `app='${updatedAppImage}'`,
-        "startup left the t3 launcher pointing at the removed AppImage",
+        "startup left the Studio launcher pointing at the removed AppImage",
       );
       assert.isTrue(
         yield* Deferred.isDone(activationStarted),
-        "startup left the t3 <dir> control socket closed",
+        "startup left the desktop activation socket closed",
       );
     }).pipe(Effect.provide(Layer.mergeAll(DesktopShutdown.layer, NodeServices.layer))),
 );

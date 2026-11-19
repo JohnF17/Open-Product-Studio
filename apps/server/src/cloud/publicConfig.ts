@@ -1,8 +1,4 @@
-import {
-  connectLoopbackRedirectUri,
-  CONNECT_OAUTH_SCOPES,
-  DEFAULT_HOSTED_APP_URL,
-} from "@t3tools/shared/connectAuth";
+import { connectLoopbackRedirectUri, CONNECT_OAUTH_SCOPES } from "@t3tools/shared/connectAuth";
 import { clerkFrontendApiUrlFromPublishableKey } from "@t3tools/shared/relayAuth";
 import { isRelayTracingEnabled } from "@t3tools/shared/otelEnvironment";
 import { normalizeSecureRelayUrl } from "@t3tools/shared/relayUrl";
@@ -13,7 +9,6 @@ import * as Schema from "effect/Schema";
 import * as SchemaIssue from "effect/SchemaIssue";
 
 declare const __T3CODE_BUILD_RELAY_URL__: string | undefined;
-declare const __T3CODE_BUILD_CHANNEL__: "nightly" | "latest" | undefined;
 declare const __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__: string | undefined;
 declare const __T3CODE_BUILD_CLERK_CLI_OAUTH_CLIENT_ID__: string | undefined;
 declare const __T3CODE_BUILD_RELAY_CLIENT_OTLP_TRACES_URL__: string | undefined;
@@ -87,7 +82,7 @@ export function resolveRelayClientTracingConfig(
   env: Readonly<Record<string, string | undefined>> = process.env,
   fallback = buildTimeRelayClientTracing,
 ) {
-  if (!isRelayTracingEnabled(env)) {
+  if (env.STUDIO_ENABLE_HOSTED_CONNECTIONS?.trim() !== "1" || !isRelayTracingEnabled(env)) {
     return null;
   }
 
@@ -102,31 +97,16 @@ export function resolveRelayClientTracingConfig(
 }
 
 export function makeRelayUrlConfig(fallback = buildTimeRelayUrl) {
-  const runtimeConfig = Config.NonEmptyString("T3CODE_RELAY_URL");
-  return (fallback ? runtimeConfig.pipe(Config.withDefault(fallback)) : runtimeConfig).pipe(
+  return makePublicValueConfig("T3CODE_RELAY_URL", fallback).pipe(
     Config.mapEffect(validateRelayUrl),
   );
 }
 
 export const relayUrlConfig = makeRelayUrlConfig();
 
-export const hostedAppUrlConfig = makePublicValueConfig(
-  "T3CODE_HOSTED_APP_URL",
-  DEFAULT_HOSTED_APP_URL,
-).pipe(Config.mapEffect(validateHostedAppUrl));
-
-const NIGHTLY_HOSTED_APP_URL = "https://nightly.app.t3.codes";
-
-/**
- * Where agent sign-ins on the T3 Connect address are approved. A nightly build defaults to the
- * nightly hosted app, which ships the same approval page; app.t3.codes serves stable.
- */
-export const agentApprovalAppUrlConfig = makePublicValueConfig(
-  "T3CODE_HOSTED_APP_URL",
-  typeof __T3CODE_BUILD_CHANNEL__ !== "undefined" && __T3CODE_BUILD_CHANNEL__ === "nightly"
-    ? NIGHTLY_HOSTED_APP_URL
-    : DEFAULT_HOSTED_APP_URL,
-).pipe(Config.mapEffect(validateHostedAppUrl));
+export const hostedAppUrlConfig = makePublicValueConfig("T3CODE_HOSTED_APP_URL", "").pipe(
+  Config.mapEffect(validateHostedAppUrl),
+);
 
 function validateHostedAppUrl(value: string) {
   try {
@@ -158,7 +138,12 @@ function validateHostedAppUrl(value: string) {
 
 function makePublicValueConfig(name: string, fallback: string) {
   const runtimeConfig = Config.NonEmptyString(name);
-  return (fallback ? runtimeConfig.pipe(Config.withDefault(fallback)) : runtimeConfig).pipe(
+  const config = fallback ? runtimeConfig.pipe(Config.withDefault(fallback)) : runtimeConfig;
+  return Config.String("STUDIO_ENABLE_HOSTED_CONNECTIONS").pipe(
+    Config.withDefault(""),
+    Config.mapEffect((flag) =>
+      flag.trim() === "1" ? config : config.parse(ConfigProvider.fromEnvRecord({})),
+    ),
     Config.map((value) => value.trim()),
   );
 }
@@ -218,8 +203,11 @@ export function makeCloudCliOAuthConfig({
 
 export const cloudCliOAuthConfig = makeCloudCliOAuthConfig();
 
+const cloudEnvironment: NodeJS.ProcessEnv =
+  process.env.STUDIO_ENABLE_HOSTED_CONNECTIONS?.trim() === "1" ? process.env : {};
+
 export const hasCloudPublicConfig = Boolean(
-  (normalizeSecureRelayUrl(process.env.T3CODE_RELAY_URL ?? "") ?? buildTimeRelayUrl) &&
-  (process.env.T3CODE_CLERK_PUBLISHABLE_KEY?.trim() || buildTimeClerkPublishableKey) &&
-  (process.env.T3CODE_CLERK_CLI_OAUTH_CLIENT_ID?.trim() || buildTimeClerkCliOAuthClientId),
+  (normalizeSecureRelayUrl(cloudEnvironment.T3CODE_RELAY_URL ?? "") ?? buildTimeRelayUrl) &&
+  (cloudEnvironment.T3CODE_CLERK_PUBLISHABLE_KEY?.trim() || buildTimeClerkPublishableKey) &&
+  (cloudEnvironment.T3CODE_CLERK_CLI_OAUTH_CLIENT_ID?.trim() || buildTimeClerkCliOAuthClientId),
 );

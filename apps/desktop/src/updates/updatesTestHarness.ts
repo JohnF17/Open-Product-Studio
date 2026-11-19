@@ -194,9 +194,9 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
       Layer.mergeAll(
         NodeServices.layer,
         DesktopConfig.layerTest({
-          T3CODE_HOME: `/tmp/t3-desktop-updates-test-${process.pid}`,
-          T3CODE_DESKTOP_MOCK_UPDATES: "true",
-          T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
+          STUDIO_HOME: `/tmp/t3-desktop-updates-test-${process.pid}`,
+          STUDIO_DESKTOP_MOCK_UPDATES: "true",
+          STUDIO_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
           ...options.env,
         }),
       ),
@@ -255,7 +255,8 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
         ? (installRecords.get(path) ?? previousInstallRecord)
         : undefined;
       if (installRecord !== undefined) return Effect.succeed(installRecord);
-      return path === "/missing/resources/package-type" && options.packageType !== undefined
+      return path.replaceAll("\\", "/") === "/missing/resources/package-type" &&
+        options.packageType !== undefined
         ? Effect.succeed(options.packageType)
         : Effect.fail(
             PlatformError.systemError({
@@ -271,7 +272,7 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
       Effect.sync(() => {
         if (isInstallRecord(path)) installRecords.set(path, data);
         else {
-          if (path.endsWith("/desktop-update-restart")) updateRestartMarkers.add(path);
+          if (path.split(/[\\/]/).at(-1) === "desktop-update-restart") updateRestartMarkers.add(path);
           updateMarkerContents.set(path, data);
         }
       }),
@@ -301,9 +302,9 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
     Layer.provideMerge(layerSettings),
     Layer.provideMerge(
       DesktopConfig.layerTest({
-        T3CODE_HOME: `/tmp/t3-desktop-updates-test-${process.pid}`,
-        T3CODE_DESKTOP_MOCK_UPDATES: "true",
-        T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
+        STUDIO_HOME: `/tmp/t3-desktop-updates-test-${process.pid}`,
+        STUDIO_DESKTOP_MOCK_UPDATES: "true",
+        STUDIO_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
         ...options.env,
       }),
     ),
@@ -318,7 +319,9 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
     installSteps,
     updateRestartMarkers,
     updateInProgressMarker: () =>
-      [...updateMarkerContents].find(([path]) => path.endsWith("/desktop-update-in-progress"))?.[1],
+      [...updateMarkerContents].find(
+        ([path]) => path.split(/[\\/]/).at(-1) === "desktop-update-in-progress",
+      )?.[1],
     installRecords,
     previousInstallRecord: () => previousInstallRecord,
     downloadCount: () => downloadCount,

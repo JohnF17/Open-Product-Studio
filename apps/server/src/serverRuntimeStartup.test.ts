@@ -27,7 +27,6 @@ import * as GitVcsDriver from "./vcs/GitVcsDriver.ts";
 import * as ServerConfig from "./config.ts";
 import * as ServerRuntimeStartup from "./serverRuntimeStartup.ts";
 import * as EnvironmentAuth from "./auth/EnvironmentAuth.ts";
-import * as ServiceLauncherClient from "./cloud/serviceLauncherClient.ts";
 import * as ServerEnvironment from "./environment/ServerEnvironment.ts";
 import * as Keybindings from "./keybindings.ts";
 import * as EffectWorker from "./orchestration-v2/EffectWorker.ts";
@@ -202,11 +201,6 @@ it.effect.each([
                 }),
               );
         },
-      }),
-      Layer.mock(ServiceLauncherClient.ServiceLauncherClient)({
-        managed: false,
-        protocol: undefined,
-        prepareTrial: () => Effect.undefined,
       }),
       Layer.mock(GitVcsDriver.GitVcsDriver)({}),
       Layer.mock(AnalyticsService.AnalyticsService)({}),

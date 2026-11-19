@@ -22,9 +22,35 @@ import * as DesktopBackendPool from "../backend/DesktopBackendPool.ts";
 import * as DesktopAppSettings from "../settings/DesktopAppSettings.ts";
 import * as DesktopEnvironment from "../app/DesktopEnvironment.ts";
 import * as DesktopState from "../app/DesktopState.ts";
+import * as DesktopConfig from "../app/DesktopConfig.ts";
 import * as DesktopUpdatePolicy from "./DesktopUpdatePolicy.ts";
 import * as DesktopUpdates from "./DesktopUpdates.ts";
 import { flushCallbacks, makeHarness } from "./updatesTestHarness.ts";
+
+it.effect("only Studio's explicit mock settings can select a local desktop update feed", () =>
+  Effect.gen(function* () {
+    const upstream = {
+      T3CODE_DESKTOP_MOCK_UPDATES: "true",
+      T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT: "4141",
+    };
+    const defaults = yield* DesktopConfig.DesktopConfig.pipe(
+      Effect.provide(DesktopConfig.layerTest(upstream)),
+    );
+    assert.isFalse(defaults.mockUpdates);
+    assert.equal(defaults.mockUpdateServerPort, 3000);
+    const configured = yield* DesktopConfig.DesktopConfig.pipe(
+      Effect.provide(
+        DesktopConfig.layerTest({
+          ...upstream,
+          STUDIO_DESKTOP_MOCK_UPDATES: "true",
+          STUDIO_DESKTOP_MOCK_UPDATE_SERVER_PORT: "5050",
+        }),
+      ),
+    );
+    assert.isTrue(configured.mockUpdates);
+    assert.equal(configured.mockUpdateServerPort, 5050);
+  }),
+);
 
 const encodeUpdateState = Schema.encodeEffect(DesktopUpdateStateSchema);
 
@@ -1359,7 +1385,7 @@ describe("DesktopUpdates under a managed policy", () => {
   it.effect("updates from the administrator's feed", () => {
     const harness = makeHarness({
       // Any user can set the mock flag; it must not redirect a managed feed.
-      env: { T3CODE_DESKTOP_MOCK_UPDATES: "true" },
+      env: { STUDIO_DESKTOP_MOCK_UPDATES: "true" },
       policy: managed({ feedUrl: "https://updates.example.com/t3code" }),
     });
 

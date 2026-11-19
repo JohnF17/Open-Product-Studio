@@ -75,7 +75,7 @@ const makeServerConfig = Effect.fn(function* (baseDir: string) {
 });
 
 it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("ServerEnvironmentLive", (it) => {
-  it.effect("publishes proven install ownership only for manually updated servers", () =>
+  it.effect("omits upstream release and installation capabilities even when launched beside the upstream package", () =>
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
       const baseDir = yield* fs.makeTempDirectoryScoped();
@@ -88,7 +88,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("ServerEnvironmen
         `${prefix}/lib/node_modules/t3/package.json`,
         '{"name":"t3","version":"0.0.45","bin":{"t3":"./dist/bin.mjs"}}',
       );
-      yield* fs.symlink(entry, `${prefix}/bin/t3`);
+      yield* fs.writeFileString(`${prefix}/bin/t3`, "upstream fixture");
       const config = yield* makeServerConfig(baseDir);
       yield* fs.makeDirectory(config.stateDir, { recursive: true });
       for (const mode of ["web", "desktop"] as const) {
@@ -107,12 +107,10 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("ServerEnvironmen
           Effect.provideService(HostProcess.Platform, "linux"),
           Effect.provideService(HostProcess.Environment, {}),
         );
-        expect(descriptor.capabilities.serverInstallation).toEqual(
-          mode === "web" ? { kind: "npm-global", prefix } : undefined,
-        );
-        expect(descriptor.capabilities.serverSelfUpdate).toBe(
-          mode === "web" ? undefined : "desktop-managed",
-        );
+        expect(descriptor.capabilities.serverInstallation).toBeUndefined();
+        expect(descriptor.capabilities.serverSelfUpdate).toBeUndefined();
+        expect(descriptor.capabilities.serverUpdateStaging).toBeUndefined();
+        expect(descriptor.capabilities.npmReleaseLookup).toBeUndefined();
         expect(descriptor.capabilities).toMatchObject({
           settledWorktreeCleanup: true,
           storageCleanupRun: true,
@@ -145,6 +143,8 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("ServerEnvironmen
                 ServerConfig.layer({
                   ...config,
                   mode: "desktop",
+                  desktopBootstrapToken: "fixture-desktop-token",
+                  desktopTelemetryFd: 4,
                   desktopTelemetryControlFd: 5,
                   desktopAppUpdate,
                 }),
@@ -160,9 +160,9 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("ServerEnvironmen
           desktopAppChannelSwitch: capabilities.desktopAppChannelSwitch,
           serverSelfUpdateProgress: capabilities.serverSelfUpdateProgress,
         }).toEqual({
-          serverSelfUpdate: "desktop-managed",
+          serverSelfUpdate: advertised ? "desktop-managed" : undefined,
           desktopAppUpdate: advertised,
-          desktopAppChannelSwitch: advertised,
+          desktopAppChannelSwitch: undefined,
           serverSelfUpdateProgress: advertised,
         });
       }),

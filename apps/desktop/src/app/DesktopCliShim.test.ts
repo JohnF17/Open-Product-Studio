@@ -39,7 +39,7 @@ const run = (shim: string, args: ReadonlyArray<string>, env: NodeJS.ProcessEnv =
   });
 
 const REPORTER =
-  '#!/bin/sh\necho "node=$ELECTRON_RUN_AS_NODE cli=$T3CODE_CLI_PATH home=$T3CODE_HOME appimage=$APPIMAGE"\nprintf "%s\\n" "$@"\nexit 3\n';
+  '#!/bin/sh\necho "node=$ELECTRON_RUN_AS_NODE cli=$STUDIO_CLI_PATH home=$STUDIO_HOME appimage=$APPIMAGE"\nprintf "%s\\n" "$@"\nexit 3\n';
 
 const fakeAppImage = (canMount = true, app = REPORTER) => {
   const root = tempRoot();
@@ -158,7 +158,7 @@ describe("renderCliShim", () => {
     expect(result.stdout).toContain(`appimage=${appImage}`);
   });
 
-  it("keeps the install's T3 home under sudo, unless one is set", () => {
+  it("keeps the Studio home even when the caller inherits a T3 home", () => {
     const root = tempRoot();
     writeExecutable(NodePath.join(root, "app"), REPORTER);
     const shim = writeShim(root, {
@@ -167,7 +167,7 @@ describe("renderCliShim", () => {
       entry: "/bin.mjs",
     });
     expect(run(shim, []).stdout).toContain(`home=${root}/home`);
-    expect(run(shim, [], { T3CODE_HOME: "/elsewhere" }).stdout).toContain("home=/elsewhere");
+    expect(run(shim, [], { T3CODE_HOME: "/elsewhere" }).stdout).toContain(`home=${root}/home`);
     const relative = NodeChildProcess.spawnSync("./bin/t3", [], { cwd: root, encoding: "utf8" });
     expect(relative.stdout).toContain(`cli=${shim}`);
   });
@@ -206,6 +206,6 @@ describe("renderCliShim", () => {
       (line) => line.includes("whoami") && !/"[^"]*whoami[^"]*"/.test(line),
     );
     expect(bare).toEqual([]);
-    expect(lines).toContain('set "T3CODE_CLI_PATH=C:\\Users\\José\\.t3\\bin\\t3.cmd"');
+    expect(lines).toContain('set "STUDIO_CLI_PATH=C:\\Users\\José\\.t3\\bin\\t3.cmd"');
   });
 });

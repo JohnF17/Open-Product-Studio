@@ -47,9 +47,12 @@ try {
     // main process on a keychain dialog. macOS keeps its Electron profile in the runner's HOME.
     env: {
       ...process.env,
+      ...(process.platform === "win32"
+        ? { APPDATA: NodePath.join(home, "AppData", "Roaming") }
+        : {}),
       XDG_CONFIG_HOME: NodePath.join(home, ".config"),
       XDG_DATA_HOME: NodePath.join(home, ".local/share"),
-      T3CODE_HOME: t3Home,
+      STUDIO_HOME: t3Home,
       T3CODE_TELEMETRY_ENABLED: "false",
       T3CODE_DISABLE_AUTO_UPDATE: "true",
     },

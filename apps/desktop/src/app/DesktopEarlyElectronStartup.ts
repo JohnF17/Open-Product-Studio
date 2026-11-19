@@ -18,6 +18,7 @@ import {
 interface EarlyDesktopSettingsInput {
   readonly env: NodeJS.ProcessEnv;
   readonly homeDirectory: string;
+  readonly isPackaged?: boolean;
   readonly joinPath: JoinPath;
   readonly readFileString: (path: string) => string;
 }
@@ -31,7 +32,7 @@ export interface EarlyLinuxElectronOptions {
 }
 
 export const resolveLinuxDesktopEntryName = (isDevelopment: boolean): string =>
-  isDevelopment ? "com.t3tools.T3Code.Development.desktop" : "com.t3tools.T3Code.desktop";
+  isDevelopment ? "open-product-studio-dev.desktop" : "open-product-studio.desktop";
 
 const trimNonEmpty = (value: string | undefined): string | null => {
   const trimmed = value?.trim();
@@ -51,19 +52,20 @@ const isDevelopmentEnvironment = (env: NodeJS.ProcessEnv): boolean =>
 function resolveEarlyDesktopSettingsPath(input: {
   readonly env: NodeJS.ProcessEnv;
   readonly homeDirectory: string;
+  readonly isPackaged?: boolean;
   readonly joinPath: JoinPath;
 }): string {
-  const t3Home = Option.fromUndefinedOr(input.env.T3CODE_HOME);
+  const studioHome = Option.fromUndefinedOr(input.env.STUDIO_HOME);
   const baseDir = resolveDesktopBaseDir({
     homeDirectory: input.homeDirectory,
     joinPath: input.joinPath,
-    t3Home,
+    studioHome,
   });
   const stateDir = resolveDesktopStateDir({
     baseDir,
-    isDevelopment: isDevelopmentEnvironment(input.env),
+    isDevelopment: !input.isPackaged && isDevelopmentEnvironment(input.env),
     joinPath: input.joinPath,
-    t3Home,
+    studioHome,
   });
   return input.joinPath(stateDir, "desktop-settings.json");
 }
@@ -142,7 +144,7 @@ export function resolveEarlyLinuxElectronOptions(
   input: EarlyLinuxElectronOptionsInput,
 ): EarlyLinuxElectronOptions {
   const preference = resolveEarlyLinuxPasswordStorePreference(input);
-  const isDevelopment = isDevelopmentEnvironment(input.env);
+  const isDevelopment = !input.isPackaged && isDevelopmentEnvironment(input.env);
   return {
     isDevelopment,
     linuxDesktopEntryName: resolveLinuxDesktopEntryName(isDevelopment),

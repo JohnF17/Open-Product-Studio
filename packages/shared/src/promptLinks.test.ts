@@ -101,7 +101,8 @@ describe("link round trips", () => {
       model: "opus",
     });
     const path = promptLinkAppPath(link);
-    expect(path).toBe(new URL(link).pathname + new URL(link).search);
+    expect(link).toMatch(/^open-product-studio:\/\/new\?/);
+    expect(path).toBe("/new" + new URL(link).search);
     const parsed = parseNewThreadLink(new URL(link).search);
     expect(parsed.ok && parsed.value.kind === "new" && parsed.value.prompt.text).toBe(
       "Swear count & rating?",
@@ -116,36 +117,67 @@ describe("link round trips", () => {
     const path = promptLinkAppPath(link);
     expect(path).toBe("/env-1/mcp%3A1");
     const deepLink = promptLinkDeepLink(path!);
-    expect(deepLink).toBe("t3code://threads/env-1/mcp%3A1");
+    expect(deepLink).toBe("open-product-studio://threads/env-1/mcp%3A1");
     expect(promptLinkAppPath(deepLink)).toBe(path);
   });
 
   it("maps app scheme and hosted links to in-app paths, and nothing else", () => {
-    expect(promptLinkAppPath("t3code://new?prompt=hi")).toBe("/new?prompt=hi");
-    expect(promptLinkAppPath("t3code-dev://threads/env-1/thread-1")).toBe("/env-1/thread-1");
-    expect(promptLinkAppPath("https://app.t3.codes/env-1/thread-1?prompt=go")).toBe(
-      "/env-1/thread-1?prompt=go",
-    );
-    expect(promptLinkAppPath("https://app.t3.codes/threads/env-1/thread-1")).toBe(
+    expect(promptLinkAppPath("open-product-studio://new?prompt=hi")).toBe("/new?prompt=hi");
+    expect(promptLinkAppPath("open-product-studio-dev://threads/env-1/thread-1")).toBe(
       "/env-1/thread-1",
     );
-    expect(promptLinkAppPath("https://app.t3.codes/threads/env-1/thread-1?prompt=go")).toBe(
-      "/env-1/thread-1?prompt=go",
-    );
+    expect(
+      promptLinkAppPath(
+        "https://studio.example.test/env-1/thread-1?prompt=go",
+        "https://studio.example.test",
+      ),
+    ).toBe("/env-1/thread-1?prompt=go");
+    expect(
+      promptLinkAppPath(
+        "https://studio.example.test/threads/env-1/thread-1",
+        "https://studio.example.test",
+      ),
+    ).toBe("/env-1/thread-1");
+    expect(
+      promptLinkAppPath(
+        "https://studio.example.test/threads/env-1/thread-1?prompt=go",
+        "https://studio.example.test",
+      ),
+    ).toBe("/env-1/thread-1?prompt=go");
     // The web app's own thread route, reloaded, is no link.
-    expect(promptLinkAppPath("https://app.t3.codes/env-1/thread-1")).toBeNull();
-    expect(promptLinkAppPath("https://app.t3.codes/threads/env-1")).toBeNull();
-    expect(promptLinkAppPath("https://app.t3.codes/settings/general")).toBeNull();
+    expect(
+      promptLinkAppPath(
+        "https://studio.example.test/env-1/thread-1",
+        "https://studio.example.test",
+      ),
+    ).toBeNull();
+    expect(
+      promptLinkAppPath("https://studio.example.test/threads/env-1", "https://studio.example.test"),
+    ).toBeNull();
+    expect(
+      promptLinkAppPath(
+        "https://studio.example.test/settings/general",
+        "https://studio.example.test",
+      ),
+    ).toBeNull();
     expect(promptLinkAppPath("https://evil.test/new?prompt=hi")).toBeNull();
-    expect(promptLinkAppPath("t3code://app/index.html")).toBeNull();
+    expect(promptLinkAppPath("https://app.t3.codes/new?prompt=hi")).toBeNull();
+    expect(promptLinkAppPath("open-product-studio://app/index.html")).toBeNull();
   });
 
   it("maps links in browsers without URL.canParse, such as Safari before 17", () => {
     const canParse = URL.canParse;
     Reflect.deleteProperty(URL, "canParse");
     try {
-      expect(promptLinkAppPath("https://app.t3.codes/new?prompt=hi")).toBe("/new?prompt=hi");
-      expect(promptLinkAppPath("https://app.t3.codes/")).toBeNull();
+      expect(
+        promptLinkAppPath(
+          "https://studio.example.test/new?prompt=hi",
+          "https://studio.example.test",
+        ),
+      ).toBe("/new?prompt=hi");
+      expect(
+        promptLinkAppPath("https://studio.example.test/", "https://studio.example.test"),
+      ).toBeNull();
       expect(promptLinkAppPath("not a url")).toBeNull();
     } finally {
       URL.canParse = canParse;

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.openproductstudio.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Open Product Studio</name>
+  <summary>Desktop GUI for coding agents</summary>
+  <developer id="org.openproductstudio">
+    <name>Open Product Studio contributors</name>
+  </developer>
+  <description>
+    <p>Open Product Studio is a local workspace for planning and building products with coding agents.</p>
+  </description>
+  <launchable type="desktop-id">open-product-studio.desktop</launchable>
+  <icon type="stock">open-product-studio</icon>
+  <provides>
+    <binary>open-product-studio</binary>
+  </provides>
+  <categories>
+    <category>Development</category>
+  </categories>
+  <url type="homepage">https://github.com/JohnF17/Open-Product-Studio</url>
+  <url type="bugtracker">https://github.com/JohnF17/Open-Product-Studio/issues</url>
+  <url type="vcs-browser">https://github.com/JohnF17/Open-Product-Studio</url>
+</component>

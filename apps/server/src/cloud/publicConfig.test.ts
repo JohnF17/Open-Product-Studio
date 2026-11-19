@@ -13,9 +13,33 @@ import {
 const provideEnv = (env: Readonly<Record<string, string>>) =>
   Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnv({ env })));
 
+it.effect("ignores inherited relay and account settings on a default local build", () =>
+  Effect.gen(function* () {
+    const env = {
+      T3CODE_RELAY_URL: "https://inherited.example.test",
+      T3CODE_CLERK_PUBLISHABLE_KEY: "pk_test_Y2xlcmsuZXhhbXBsZS50ZXN0JA==",
+      T3CODE_CLERK_CLI_OAUTH_CLIENT_ID: "foreign-account",
+    };
+    assert.isTrue(
+      Result.isFailure(yield* makeRelayUrlConfig("").pipe(provideEnv(env), Effect.result)),
+    );
+    assert.isTrue(
+      Result.isFailure(
+        yield* makeCloudCliOAuthConfig({
+          clerkPublishableKeyFallback: "",
+          clerkCliOAuthClientIdFallback: "",
+        }).pipe(provideEnv(env), Effect.result),
+      ),
+    );
+  }),
+);
+
 it.effect("rejects an insecure runtime relay URL override", () =>
   makeRelayUrlConfig("https://embedded.example.test").pipe(
-    provideEnv({ T3CODE_RELAY_URL: "http://runtime.example.test" }),
+    provideEnv({
+      STUDIO_ENABLE_HOSTED_CONNECTIONS: "1",
+      T3CODE_RELAY_URL: "http://runtime.example.test",
+    }),
     Effect.flip,
   ),
 );
@@ -29,7 +53,7 @@ it.effect("rejects malformed or insecure hosted app URLs", () =>
       "https://app.t3.codes?alias=true",
     ]) {
       const result = yield* hostedAppUrlConfig.pipe(
-        provideEnv({ T3CODE_HOSTED_APP_URL: value }),
+        provideEnv({ STUDIO_ENABLE_HOSTED_CONNECTIONS: "1", T3CODE_HOSTED_APP_URL: value }),
         Effect.result,
       );
       assert.isTrue(Result.isFailure(result), value);

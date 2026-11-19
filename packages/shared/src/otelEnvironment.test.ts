@@ -387,17 +387,20 @@ describe("OtelEnvironment", () => {
 });
 
 describe("isRelayTracingEnabled", () => {
-  it("defaults on and respects the T3CODE SDK override of the standard kill switch", () => {
-    assert.isTrue(OtelEnvironment.isRelayTracingEnabled({}));
+  it("requires Studio opt-in and respects the SDK kill switches", () => {
+    assert.isFalse(OtelEnvironment.isRelayTracingEnabled({}));
+    assert.isTrue(OtelEnvironment.isRelayTracingEnabled({ STUDIO_USE_OTLP_ENV: "1" }));
     assert.isFalse(OtelEnvironment.isRelayTracingEnabled({ OTEL_SDK_DISABLED: "true" }));
     assert.isTrue(
       OtelEnvironment.isRelayTracingEnabled({
+        STUDIO_USE_OTLP_ENV: "1",
         OTEL_SDK_DISABLED: "true",
         T3CODE_OTEL_SDK_DISABLED: "false",
       }),
     );
     assert.isFalse(
       OtelEnvironment.isRelayTracingEnabled({
+        STUDIO_USE_OTLP_ENV: "1",
         OTEL_SDK_DISABLED: "false",
         T3CODE_OTEL_SDK_DISABLED: "true",
       }),

@@ -1,0 +1,135 @@
+name: Studio Windows installer
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Full commit SHA of the selected workflow ref
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  select:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+      candidate: ${{ steps.select.outputs.candidate }}
+    steps:
+      - name: Select the source commit and qualification scope
+        id: select
+        shell: bash
+        env:
+          SELECTED: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
+          LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'windows-qualification') }}
+          EVENT_ACTION: ${{ github.event.action }}
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          [[ "$SELECTED" =~ ^[0-9a-f]{40}$ ]]
+          run=false
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            [[ "$SELECTED" == "$GITHUB_SHA" ]]
+            run=true
+          elif [[ "$LABELED" == true ]]; then
+            run=true
+          elif [[ "$EVENT_ACTION" != labeled ]]; then
+            # Compare the PR merge tree to its base parent without executing PR code.
+            git init --quiet
+            git -c credential.helper= fetch --quiet --depth=2 --filter=blob:none --no-tags --no-recurse-submodules "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+            [[ "$(git rev-parse FETCH_HEAD^2)" == "$SELECTED" ]]
+            changed=$(git diff --no-renames --name-only FETCH_HEAD^1 FETCH_HEAD -- \
+              apps/desktop apps/server packages/shared native packaging patches apps/web/vite.config.ts \
+              apps/web/src/features/studio apps/web/src/components/StudioLanding.tsx assets docs/roadmap/project-categories.json \
+              'scripts/*desktop*' scripts/lib scripts/qualify-studio-windows-install.ps1 \
+              scripts/prepare-server-compile-cache.cjs scripts/smoke-studio-windows-app.cjs .github/workflows/studio-windows-installer.yml \
+              package.json pnpm-lock.yaml pnpm-workspace.yaml)
+            if [[ -n "$changed" ]]; then run=true; fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "candidate=$SELECTED" >> "$GITHUB_OUTPUT"
+
+  qualify:
+    needs: select
+    if: needs.select.outputs.run == 'true'
+    concurrency:
+      group: windows-installer-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    runs-on: windows-2025
+    timeout-minutes: 85
+    defaults:
+      run:
+        working-directory: C:/s
+    env:
+      CANDIDATE_SHA: ${{ needs.select.outputs.candidate }}
+      T3CODE_DESKTOP_SIGNED: 'false'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      T3CODE_DESKTOP_REUSE_RESOURCE_MONITOR: 'true'
+      DO_NOT_TRACK: '1'
+    steps:
+      - name: Check out the selected public commit
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir /c/s /c/t
+          cd /c/s
+          git init --quiet
+          git -c credential.helper= fetch --depth=1 --quiet --no-tags --no-recurse-submodules "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$CANDIDATE_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          printf '%s\n' 'TEMP=C:\t' 'TMP=C:\t' 'STUDIO_QUALIFICATION_TEMP=C:\t' >> "$GITHUB_ENV"
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          working-directory: C:/s
+          node-version-file: package.json
+          run-install: false
+          cache: false
+      - name: Install the locked build graph
+        shell: bash
+        run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/web... --filter=@t3tools/scripts... --filter=@t3tools/monorepo
+      - name: Build the Windows x64 helper and desktop bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target x86_64-pc-windows-msvc
+          node apps/desktop/scripts/ensure-electron-runtime.mjs
+          vp run build:desktop
+      - name: Build and validate the unsigned NSIS payload
+        run: node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --skip-build --output-dir release/qualification
+      - name: Install, launch, restart and uninstall on the disposable runner
+        id: installed
+        shell: pwsh
+        run: ./scripts/qualify-studio-windows-install.ps1
+      - name: Keep qualification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: studio-windows-evidence-${{ needs.select.outputs.candidate }}
+          path: |
+            C:/s/release/evidence/*.json
+            C:/s/release/evidence/*.png
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain the qualified unsigned development installer
+        if: success() && steps.installed.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: unsigned-development-windows-x64-${{ needs.select.outputs.candidate }}
+          path: |
+            ${{ steps.installed.outputs.installer }}
+            C:/s/release/evidence/installer.json
+            C:/s/release/evidence/windows-runtime.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 7

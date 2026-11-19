@@ -30,7 +30,14 @@ function isSnapShotEvent(value: unknown): value is DesktopSnapShotEvent {
   );
 }
 
-exposeClerkBridge({ passkeys: true });
+declare const __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__: string | undefined;
+
+if (
+  typeof __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__ === "string" &&
+  __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__.trim()
+) {
+  exposeClerkBridge({ passkeys: true });
+}
 
 // oxlint-disable-next-line t3code/no-global-process-runtime -- Electron exposes the client platform in its sandboxed preload process.
 const clientPlatform = process.platform;
