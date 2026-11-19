@@ -1,14 +1,15 @@
 {
   "name": "t3",
+  "private": true,
   "version": "0.1.10",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pingdotgg/t3code",
+    "url": "https://github.com/JohnF17/Open-Product-Studio",
     "directory": "apps/server"
   },
   "bin": {
-    "t3": "./dist/bin.mjs"
+    "open-product-studio": "./dist/bin.mjs"
   },
   "files": [
     "dist"

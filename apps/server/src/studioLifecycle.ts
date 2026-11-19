@@ -11,7 +11,7 @@ export const legacyLifecycleCommands = [
 ] as const;
 
 export const studioLifecycleGuidance =
-  "This Studio build uses a foreground engine. Open Open Product Studio, or run open-product-studio serve. Manage the optional Studio CLI in the desktop app's settings.";
+  "This Studio build uses a foreground engine. Launch Open Product Studio, or run open-product-studio serve. Manage the optional Studio CLI in the desktop app's settings.";
 
 export const isLegacyLifecycleCommand = (command: string | undefined): boolean =>
   legacyLifecycleCommands.some((name) => name === command);

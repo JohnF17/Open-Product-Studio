@@ -77,7 +77,7 @@ jobs:
         working-directory: scripts
         run: |
           vp test run --config ../vite.config.ts --dir . dev-runner.test.ts lib/public-config.test.ts
-          vp test run --config ../vite.config.ts --dir . build-desktop-artifact.test.ts -t 'omits upstream feeds'
+          vp test run --config ../vite.config.ts --dir . build-desktop-artifact.test.ts -t 'omits upstream feeds|preserves explicit false boolean flags'
       - name: Check Studio homes, telemetry environment and link formats
         working-directory: packages/shared
         run: vp test run --config ../../vite.config.ts --dir . src/devHome.test.ts src/desktopAppControl.test.ts src/otelEnvironment.test.ts src/promptLinks.test.ts src/threadLinks.test.ts
@@ -88,7 +88,7 @@ jobs:
           src/app/DesktopAppIdentity.test.ts src/app/DesktopClerk.test.ts
           src/app/DesktopEnvironment.test.ts src/app/DesktopStartupRecovery.test.ts
           src/app/DesktopUserData.test.ts src/backend/DesktopBackendConfiguration.test.ts
-          src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts
+          src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts src/updates/DesktopUpdates.test.ts
       - name: Check server configuration, telemetry, pairing and MCP approval
         working-directory: apps/server
         run: >-
