@@ -370,9 +370,8 @@ describe("server ownership", () => {
           assert.equal(result.failure._tag, "OlderBootServiceError");
           assert.equal(Runtime.getErrorExitCode(result.failure), 78);
           assert.include(result.failure.message, t3Home);
-          assert.include(result.failure.message, "t3 update");
-          assert.include(result.failure.message, "t3 service restart");
-          assert.include(result.failure.message, "No server was stopped");
+          assert.include(result.failure.message, "--base-dir with a new, empty directory");
+          assert.notMatch(result.failure.message, /t3 update|t3 service|npx t3/i);
         }
       }).pipe(Effect.provide(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))),
     );

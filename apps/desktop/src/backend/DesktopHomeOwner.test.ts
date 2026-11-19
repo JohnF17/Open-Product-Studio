@@ -96,6 +96,18 @@ describe("DesktopHomeOwner.readLiveHomeOwner", () => {
   );
 });
 
+it("offers a separate Studio home for an unknown, foreground or service owner", () => {
+  for (const owner of [
+    Option.none<DesktopHomeOwner.HomeOwner>(),
+    Option.some({ pid: 123, port: 1234 }),
+    Option.some({ pid: 123, port: 1234, serviceManaged: true, serverVersion: "1.0.0" }),
+  ]) {
+    const message = DesktopHomeOwner.homeOwnedMessage(owner);
+    assert.include(message, "STUDIO_HOME");
+    assert.notMatch(message, /T3CODE_HOME|t3 service|npx t3|t3 update/i);
+  }
+});
+
 describe("DesktopHomeOwner.awaitHomeOwnershipRelease", () => {
   it.effect("waits for a shutting-down owner to release the lock, then gives up", () =>
     withTempHome((userdata) =>
