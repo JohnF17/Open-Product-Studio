@@ -1,5 +1,3 @@
-import * as NodePath from "node:path";
-
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import type { DesktopUpdateState } from "@t3tools/contracts";
@@ -257,7 +255,7 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
         ? (installRecords.get(path) ?? previousInstallRecord)
         : undefined;
       if (installRecord !== undefined) return Effect.succeed(installRecord);
-      return path === NodePath.join("/missing/resources", "package-type") &&
+      return path.replaceAll("\\", "/") === "/missing/resources/package-type" &&
         options.packageType !== undefined
         ? Effect.succeed(options.packageType)
         : Effect.fail(
@@ -274,7 +272,7 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
       Effect.sync(() => {
         if (isInstallRecord(path)) installRecords.set(path, data);
         else {
-          if (NodePath.basename(path) === "desktop-update-restart") updateRestartMarkers.add(path);
+          if (path.split(/[\\/]/).at(-1) === "desktop-update-restart") updateRestartMarkers.add(path);
           updateMarkerContents.set(path, data);
         }
       }),
@@ -322,7 +320,7 @@ export function makeHarness(options: UpdatesHarnessOptions = {}) {
     updateRestartMarkers,
     updateInProgressMarker: () =>
       [...updateMarkerContents].find(
-        ([path]) => NodePath.basename(path) === "desktop-update-in-progress",
+        ([path]) => path.split(/[\\/]/).at(-1) === "desktop-update-in-progress",
       )?.[1],
     installRecords,
     previousInstallRecord: () => previousInstallRecord,

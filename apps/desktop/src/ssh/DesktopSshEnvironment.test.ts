@@ -1,6 +1,7 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 
 import * as DesktopSshEnvironment from "./DesktopSshEnvironment.ts";
 
@@ -14,6 +15,6 @@ describe("managed SSH setup", () => {
         assert.match(error.message, /Managed SSH setup is unavailable in Studio/);
       }
       yield* ssh.disconnectEnvironment(target);
-    }).pipe(Effect.provide(DesktopSshEnvironment.layer), Effect.provide(NodeServices.layer)),
+    }).pipe(Effect.provide(DesktopSshEnvironment.layer.pipe(Layer.provide(NodeServices.layer)))),
   );
 });

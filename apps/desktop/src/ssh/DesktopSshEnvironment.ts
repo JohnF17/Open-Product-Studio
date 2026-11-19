@@ -54,11 +54,15 @@ export const layer = Layer.effect(
       FileSystem.FileSystem | Path.Path | ChildProcessSpawner.ChildProcessSpawner
     >();
     return DesktopSshEnvironment.of({
-      discoverHosts: (input) => discoverSshHosts(input ?? {}).pipe(Effect.provide(context)),
-      resolveHost: (alias) => resolveSshTarget(alias).pipe(Effect.provide(context)),
+      discoverHosts: Effect.fn("DesktopSshEnvironment.discoverHosts")(
+        (input?: { readonly homeDir?: string }) => discoverSshHosts(input ?? {}).pipe(Effect.provide(context)),
+      ),
+      resolveHost: Effect.fn("DesktopSshEnvironment.resolveHost")(
+        (alias: string) => resolveSshTarget(alias).pipe(Effect.provide(context)),
+      ),
       // Saved SSH connections and direct IPC calls both reach this boundary.
       ensureEnvironment: managedSshUnavailable,
-      disconnectEnvironment: () => Effect.void,
+      disconnectEnvironment: Effect.fn("DesktopSshEnvironment.disconnectEnvironment")(() => Effect.void),
       closeAllTunnels: Effect.void,
     });
   }),
