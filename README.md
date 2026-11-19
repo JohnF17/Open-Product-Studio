@@ -2,7 +2,7 @@
 
 Turn a useful idea into a product people can use. Keep the files, choose the model, see the costs.
 
-**Studio includes a guided project workspace.** Create a Blank, Digital product, Video, Clipper, Replica or Day Trader working draft, move through its sheets, reopen it later and download editable JSON. The new guides produce an edit plan, an original behavior brief or a paper-practice journal. Their render, prototype and replay milestones are documented in the [Clipper](docs/CLIPPER.md) and [Replica and Day Trader](docs/REPLICA-AND-DAY-TRADER.md) plans. The agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
+**Studio includes a guided project workspace.** Create a Blank, Digital product, Video, Clipper, Replica, Day Trader or Affiliate storefront working draft, move through its sheets, reopen it later and download editable JSON. The new guides produce an edit plan, an original behavior brief or a paper-practice journal. Their render, prototype and replay milestones are documented in the [Clipper](docs/CLIPPER.md) and [Replica and Day Trader](docs/REPLICA-AND-DAY-TRADER.md) plans. Affiliate storefront can export a disclosed referral page, a Shopify section, or a React component from one reviewed shortlist. See the [storefront guide](docs/AFFILIATE-STOREFRONTS.md). On supported sheets the agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
 
 Open Product Studio is an Electron workspace for making products with your own AI tools. The roadmap tracks downloadable releases, complete product exports and publishing. New Project offers three starting points:
 
@@ -13,6 +13,8 @@ Open Product Studio is an Electron workspace for making products with your own A
 Projects share the T3-derived desktop shell, model selection, library and job history. Engineering milestones govern when each action becomes available. The [project experience](docs/PROJECT-EXPERIENCE.md) describes the planned creation flow.
 
 The intended experience is simple: let AI investigate the web and recommend choices at every stage, accept or change those choices, review the result, and export or deliberately publish your work. "Recommend and do safe work" handles bounded research and reversible drafting under your chosen budget. A guided first project teaches the interface while you use it. You can always skip the tour.
+
+**Make a reader copy.** In Digital product, write the manuscript and open Export. Enter the public title, review what readers will see, and download editable text or a print-friendly page. Open the page in a browser to save a PDF. In any project, Download private backup saves the editable work. Import backup in Projects opens a new copy for review. [Local project and export guide](docs/acceptance/WP08.md).
 
 ## Your tools, your choice
 

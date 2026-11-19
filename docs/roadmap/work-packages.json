@@ -495,7 +495,8 @@
         "Workspace, BusinessProject, BillingOrganization, provider connection, execution host, sender and merchant are separate typed references. Two projects with overlapping display names cannot share private notes, defaults, callbacks or authority through navigation state.",
         "For an integration row, require each unconditional producer plus each conditional producer whose capability participates in the selected host/action profile. Bind evidence to the selected adapter/version and ownership epoch. Exercise basic transfer without Dot and a transfer with mail enabled and missing mail evidence.",
         "Persist the starter category (blank, digital-product, video or clipper) separately from formats, style versions, module capabilities and entitlements. Persist the Clipper draft and its optional source revision and digest, selected ranges and editable variants across reopen, including the empty draft before source import. Support older projects without a category field, retain their artifacts and category-specific drafts on reopen, and preserve unknown future identifiers on round-trip. Import and duplicate carry content and references without inheriting connections or grants.",
-        "Persist Replica and Day Trader as planned starter categories and keep their category-scoped drafts separate from formats, capabilities and grants. Reopen empty and partial drafts with their optional source revision and cursor, and reject dispatch of unavailable or out-of-scope actions."
+        "Persist Replica and Day Trader as planned starter categories and keep their category-scoped drafts separate from formats, capabilities and grants. Reopen empty and partial drafts with their optional source revision and cursor, and reject dispatch of unavailable or out-of-scope actions.",
+        "Persist affiliate-storefront as a seventh starter with a project-scoped draft, selected handoff and stage cursor. An empty draft needs no catalog, merchant account or network grant."
       ],
       "owner": "domain architect",
       "reviewer": "data/authorization reviewer",
@@ -585,6 +586,15 @@
           ],
           "state": "not-run",
           "scope": "Exercise empty and partial drafts, category round-trip and direct dispatch denials on local fixtures."
+        },
+        {
+          "item": 10,
+          "phase": "component",
+          "producers": [
+            "WP03"
+          ],
+          "state": "not-run",
+          "scope": "Round-trip empty and partial affiliate drafts alongside older projects with their original categories."
         }
       ]
     },
@@ -1052,7 +1062,8 @@
         "Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.",
         "From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.",
         "Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B.",
-        "Offer Replica and Day Trader as peer New project choices that open empty, project-scoped workspaces. Resume the correct draft and step after switching projects or restarting. Explain planned actions and their milestones separately from input, rights and eligibility blockers. Starting or resuming requires no account or connection."
+        "Offer Replica and Day Trader as peer New project choices that open empty, project-scoped workspaces. Resume the correct draft and step after switching projects or restarting. Explain planned actions and their milestones separately from input, rights and eligibility blockers. Starting or resuming requires no account or connection.",
+        "Start and resume Affiliate Storefront through discover, compare, links, design, review and export. Keep each project's shortlist, evidence and handoff choice together when switching drafts."
       ],
       "owner": "frontend/accessibility maintainer",
       "reviewer": "novice UX and accessibility reviewer",
@@ -1186,6 +1197,25 @@
           ],
           "state": "not-run",
           "scope": "Verify persisted category, project isolation and empty/partial draft recovery across a switch and restart."
+        },
+        {
+          "item": 14,
+          "phase": "component",
+          "producers": [
+            "WP08"
+          ],
+          "state": "not-run",
+          "scope": "Exercise the empty category entry and six-stage guide on a project fixture."
+        },
+        {
+          "item": 14,
+          "phase": "integration",
+          "producers": [
+            "WP03",
+            "WP08"
+          ],
+          "state": "not-run",
+          "scope": "Switch between two partial storefront drafts, reopen each at its saved stage, and reach local export with connections disabled."
         }
       ]
     },
@@ -1337,7 +1367,8 @@
         "Version/hash/time/locator and analysis/redistribution permissions; stale and contradictory evidence retained.",
         "Malicious/missing/duplicated evidence fixtures; no invented source IDs; offline cache is visibly dated.",
         "Enforce request/byte/runtime budgets and safe retries; no bypass of verification/rate restrictions.",
-        "Use existing evidence import and research for Replica observations supplied by hand or inspected from permitted public sources. Record source, locator, rights, access limits and uncertainty, and keep unsupported observations explicit."
+        "Use existing evidence import and research for Replica observations supplied by hand or inspected from permitted public sources. Record source, locator, rights, access limits and uncertainty, and keep unsupported observations explicit.",
+        "Accept Affiliate Storefront candidates from manual notes, permitted merchant listing references and authorized program catalog or feed extracts. Retain each offer's merchant, source locator, observation date, usage rights and unknown terms."
       ],
       "owner": "research-quality maintainer",
       "reviewer": "source-support/domain reviewer",
@@ -1405,6 +1436,15 @@
           ],
           "state": "not-run",
           "scope": "Exercise manual, public, inaccessible and denied observation fixtures."
+        },
+        {
+          "item": 6,
+          "phase": "component",
+          "producers": [
+            "WP10"
+          ],
+          "state": "not-run",
+          "scope": "Import two dated offers for one product and a candidate with missing terms from local fixtures. Preserve their distinct provenance."
         }
       ],
       "externalGateApplicability": [
@@ -1459,7 +1499,8 @@
         "A supported guided CLI action needs at least one qualified Windows CLI/driver route for that build. For an unavailable route, keep the selected account/model/options, show the specific restriction and offer an explicit alternative selection or manual continuation.",
         "A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.",
         "Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable.",
-        "Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI."
+        "Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI.",
+        "Compare affiliate offers for the intended audience using sourced price, currency, availability, program eligibility, commission basis and limitations. Cite each observation and its date. Explain the shortlist and flag missing, stale or conflicting terms for review."
       ],
       "owner": "product/research maintainer",
       "reviewer": "independent domain and novice UX reviewer",
@@ -1616,6 +1657,25 @@
           ],
           "state": "not-run",
           "scope": "Trace a Replica brief to its permitted observations and preserve unresolved gaps."
+        },
+        {
+          "item": 15,
+          "phase": "component",
+          "producers": [
+            "WP11"
+          ],
+          "state": "not-run",
+          "scope": "Use two dated offer fixtures and verify that gaps survive the shortlist comparison."
+        },
+        {
+          "item": 15,
+          "phase": "integration",
+          "producers": [
+            "WP10",
+            "WP11"
+          ],
+          "state": "not-run",
+          "scope": "Compare offers with conflicting dates and a missing rate. Retain the cited observations and leave the unsupported estimate unknown."
         }
       ]
     },
@@ -1840,7 +1900,8 @@
         "Historical versions/claim links remain inspectable; stale evidence flags affected sections.",
         "Record script revisions, ordered storyboard scenes, approved asset references, narration and caption timings as project-scoped editable artifacts. Restore the storyboard after interruption and trace later renders to the approved scene revisions. The storyboard editor works before a renderer is available.",
         "Save the optional Video or Clipper style board as a reproducible revision with editable traits such as framing, typography, caption placement, color and pacing. Record the preset version or permitted reference revision, provenance and permitted use when present. Extract only general presentation traits from permitted references. If a reference is missing or denied, let the user continue by setting traits manually without that reference. Applying or revising traits preserves the source, selected cuts, storyboard, narration and caption wording. Save approvals against the exact style revision and sample inputs so changes require a new review.",
-        "At M2, save a Replica behavior brief as a versioned original specification and inert mockup with source and rights references. Reopen and edit those artifacts with packaged code execution, network access and side effects disabled."
+        "At M2, save a Replica behavior brief as a versioned original specification and inert mockup with source and rights references. Reopen and edit those artifacts with packaged code execution, network access and side effects disabled.",
+        "Version the storefront layout, product cards, creative asset references and link records. Bind the merchant destination, program-issued referral URL, relationship and reader-visible disclosure to each recommendation. Preserve those bindings in each handoff format."
       ],
       "owner": "content/data maintainer",
       "reviewer": "editorial and preview-security reviewer",
@@ -1927,6 +1988,15 @@
           ],
           "state": "not-run",
           "scope": "Exercise revision and inert preview contracts on a Replica fixture."
+        },
+        {
+          "item": 8,
+          "phase": "component",
+          "producers": [
+            "WP14"
+          ],
+          "state": "not-run",
+          "scope": "Edit a card and change its merchant or destination. The old review belongs to the prior revision."
         }
       ]
     },
@@ -2099,7 +2169,8 @@
         "Specialist subject matter requires named domain approval under E6; retain disagreements and corrections.",
         "Human review each product family; fixed original fixtures and no failing rubric dimension.",
         "Approvals bind exact artifact/input revision; changed content reopens affected review.",
-        "Review the exact Replica specification and inert mockup for source support, original presentation, rights and testable behavior. Block handoff of unsupported claims, copied assets or a visually indistinguishable proprietary interface."
+        "Review the exact Replica specification and inert mockup for source support, original presentation, rights and testable behavior. Block handoff of unsupported claims, copied assets or a visually indistinguishable proprietary interface.",
+        "Review each affiliate card against the dated evidence, asset rights, intended merchant, program link and nearby disclosure. Flag unsupported comparisons and hold affected cards out of the reviewed handoff until resolved or removed."
       ],
       "owner": "editorial-quality maintainer",
       "reviewer": "independent domain reviewer",
@@ -2175,6 +2246,25 @@
           ],
           "state": "not-run",
           "scope": "Review the versioned original specification and inert mockup against the behavior brief."
+        },
+        {
+          "item": 6,
+          "phase": "component",
+          "producers": [
+            "WP16"
+          ],
+          "state": "not-run",
+          "scope": "Check card-level disclosure and claim review against an inert local fixture."
+        },
+        {
+          "item": 6,
+          "phase": "integration",
+          "producers": [
+            "WP14",
+            "WP16"
+          ],
+          "state": "not-run",
+          "scope": "Exercise a mismatched merchant, absent disclosure and unsupported price claim on the exact preview revision."
         }
       ],
       "externalGateApplicability": [
@@ -2218,7 +2308,8 @@
         "Verify tagged PDF semantics for supported output or disclose the exact PDF limitation and provide a tested accessible DOCX/HTML alternative. Record format/reader/version evidence, not blanket format compliance.",
         "The M2 assistive-technology first-result journey includes unavailable-action explanation, quota/failure recovery, exact action review and outside-app reopening with M3 disabled; focus survives failure and partial work remains exportable.",
         "Record a build-keyed first-result pilot with a declared cohort, hardware, device and eligibility; score source-supported recommendation or abstention, independent edits, readable export and successful external reopen. Record time, abandonment and assistance by stage.",
-        "Export and reopen the reviewed M2 Replica specification and inert mockup outside Studio with editable source, readable output and rights-safe provenance. Exclude unlicensed reference material and keep the mockup inert in the export."
+        "Export and reopen the reviewed M2 Replica specification and inert mockup outside Studio with editable source, readable output and rights-safe provenance. Exclude unlicensed reference material and keep the mockup inert in the export.",
+        "Export the reviewed Affiliate Storefront revision locally as a Shopify hosted-store placement handoff for external links, a downloadable static site with permitted assets, or an implementation handoff for the user's chosen stack. Carry the editable card data, disclosures, destination mapping and evidence references. Hosted edits and deployment require separate actions."
       ],
       "owner": "document/platform maintainer",
       "reviewer": "accessibility/data reviewer",
@@ -2415,6 +2506,26 @@
           ],
           "state": "not-run",
           "scope": "Read back the original reviewed specification, mockup and permitted provenance in an external reader."
+        },
+        {
+          "item": 13,
+          "phase": "component",
+          "producers": [
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Inspect the three handoff manifests for the selected route and reviewed card revision."
+        },
+        {
+          "item": 13,
+          "phase": "integration",
+          "producers": [
+            "WP14",
+            "WP16",
+            "WP17"
+          ],
+          "state": "not-run",
+          "scope": "Read all three outputs outside Studio with networking disabled. Inspect link targets and disclosures, open the static index, and verify the chosen stack and setup instructions in its handoff."
         }
       ]
     },
@@ -4404,7 +4515,8 @@
         "Privacy/retention and revoked connection behavior; manual observations remain useful without connected sales data.",
         "Export charge/order, invoice/receipt, credit note/refund, provider transfer and bank-payout references separately. Report source-observed pending/held/available/in-transit/failed/returned/paid states and FX/settlement currency without asserting bank receipt or guaranteed earnings.",
         "No cross-currency sums or incomplete totals disguised as net profit; tax, fee, reserve, refund/dispute and data freshness definitions remain inspectable.",
-        "Manual authorized observations and independently accepted order or campaign adapters can each satisfy the input contract. With M4B disabled, import permitted feedback and produce source-complete observations without mailbox connection or send; E2/E3 apply only to affected external/financial inputs."
+        "Manual authorized observations and independently accepted order or campaign adapters can each satisfy the input contract. With M4B disabled, import permitted feedback and produce source-complete observations without mailbox connection or send; E2/E3 apply only to affected external/financial inputs.",
+        "Keep outbound clicks, program-attributed referrals and statement-backed commissions separate from the seller's own orders, refunds and sales revenue. Record program, period, currency, status and source for reported commissions. A click alone supplies no sale or earnings amount."
       ],
       "owner": "analytics maintainer",
       "reviewer": "data/product reviewer",
@@ -4522,6 +4634,15 @@
             "WP31"
           ],
           "state": "not-run"
+        },
+        {
+          "item": 8,
+          "phase": "component",
+          "producers": [
+            "WP31"
+          ],
+          "state": "not-run",
+          "scope": "Import a permitted fixture statement twice alongside click observations and merchant sales. Preserve pending and reversed commissions and reconcile the separate totals without double counting."
         }
       ]
     },

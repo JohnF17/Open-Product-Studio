@@ -68,14 +68,15 @@ class ProjectCategoryTests(unittest.TestCase):
                 self.assertIn(expected, check(candidate, self.roadmap))
 
     def test_design_builders_have_distinct_empty_start_routes(self):
-        for key, label in (("replica", "Replica"), ("day-trader", "Day Trader")):
+        for key, label in (("replica", "Replica"), ("day-trader", "Day Trader"),
+                           ("affiliate-storefront", "Affiliate Storefront")):
             with self.subTest(category=key):
                 self.assertEqual(self.catalog["categories"].get(key), {
                     "label": label, "sourceRequired": False, "entry": f"{key}-builder",
                 })
 
     def test_design_builders_reject_routing_and_permission_changes(self):
-        for key in ("replica", "day-trader"):
+        for key in ("replica", "day-trader", "affiliate-storefront"):
             for change, expected in (
                 (None, "Missing a first-class starting category"),
                 ({"entry": "video-builder"}, f"{key}: starting category must open its own entry point"),
@@ -117,11 +118,32 @@ class ProjectCategoryTests(unittest.TestCase):
                 mutate(candidate[group])
                 self.assertIn(expected, check(candidate, self.roadmap))
 
+    def test_affiliate_storefront_finishes_with_local_handoff(self):
+        stages = self.catalog["affiliateStorefrontStages"]
+        self.assertEqual([s["id"] for s in stages], ["discover", "compare", "links", "design", "review", "export"])
+        for mutate, expected in (
+            (lambda stages: stages.pop(2), "Affiliate Storefront builder must preserve the planned stage order"),
+            (lambda stages: stages[-1].update(optional=True), "export: invalid optional stage"),
+            (lambda stages: stages[2].update(capability="cap.commerce.orders", owner="WP29"),
+             "links: invalid Affiliate Storefront stage capability or owner"),
+            (lambda stages: stages[3].update(connectShopify=True),
+             "design: Affiliate Storefront stages only describe the stage and its capability"),
+        ):
+            with self.subTest(expected=expected):
+                candidate = copy.deepcopy(self.catalog)
+                mutate(candidate["affiliateStorefrontStages"])
+                self.assertIn(expected, check(candidate, self.roadmap))
+
     def test_design_builder_policy_requires_local_practice_and_scoped_references(self):
         for key, change in (
             ("clipper", {"executorsPerAction": 2}),
             ("clipper", {"proposalBindings": ["source-revision"]}),
             ("clipper", {"supoclip": "bundled-default"}),
+            ("affiliate-storefront", {"comparison": "unsourced-ranking"}),
+            ("affiliate-storefront", {"disclosure": "optional"}),
+            ("affiliate-storefront", {"destinations": ["hosted-checkout"]}),
+            ("affiliate-storefront", {"commissionEvidence": "infer-from-click"}),
+            ("affiliate-storefront", {"publication": "automatic"}),
             ("replica", {"references": "unrestricted"}),
             ("replica", {"publication": "automatic"}),
             ("day-trader", {"replay": "live"}),

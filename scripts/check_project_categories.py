@@ -32,6 +32,14 @@ DAY_TRADER_STAGES = {
     "journal": ("cap.content.versions", "WP14"),
     "export": ("cap.library.export", "WP17"),
 }
+AFFILIATE_STOREFRONT_STAGES = {
+    "discover": ("cap.evidence.import", "WP10"),
+    "compare": ("cap.strategy.opportunity", "WP11"),
+    "links": ("cap.content.versions", "WP14"),
+    "design": ("cap.content.versions", "WP14"),
+    "review": ("cap.product.qa", "WP16"),
+    "export": ("cap.library.export", "WP17"),
+}
 DESIGN_BUILDER_POLICY = {
     "clipper": {
         "editAuthority": "studio-project-variant",
@@ -55,6 +63,14 @@ DESIGN_BUILDER_POLICY = {
         "network": "disabled",
         "liveOrders": "disabled",
         "financialTransactions": "disabled",
+    },
+    "affiliate-storefront": {
+        "candidateSources": ["manual-notes", "merchant-listing-reference", "authorized-program-catalog"],
+        "comparison": "dated-source-per-claim-with-unknowns",
+        "disclosure": "record-relationship-and-display-next-to-referral-link",
+        "destinations": ["shopify-hosted-external-links-handoff", "downloadable-static-storefront", "chosen-stack-handoff"],
+        "commissionEvidence": "authorized-program-statement-separate-from-merchant-orders",
+        "publication": "outside-builder",
     },
 }
 
@@ -225,8 +241,12 @@ def check(catalog, roadmap):
     entry_points = {
         "blank": "workspace", "digital-product": "product-builder", "video": "video-builder",
         "clipper": "clipper-builder", "replica": "replica-builder", "day-trader": "day-trader-builder",
+        "affiliate-storefront": "affiliate-storefront-builder",
     }
-    fixed_labels = {"clipper": "Clipper", "replica": "Replica", "day-trader": "Day Trader"}
+    fixed_labels = {
+        "clipper": "Clipper", "replica": "Replica", "day-trader": "Day Trader",
+        "affiliate-storefront": "Affiliate Storefront",
+    }
     if not entry_points.keys() <= categories.keys():
         errors.append("Missing a first-class starting category")
     seen_entries = set()
@@ -261,6 +281,10 @@ def check(catalog, roadmap):
     errors.extend(check_stages(
         catalog.get("dayTraderStages"), "Day Trader", DAY_TRADER_STAGES, owners,
         expected_bindings=DAY_TRADER_STAGES, optional_stage=None,
+    ))
+    errors.extend(check_stages(
+        catalog.get("affiliateStorefrontStages"), "Affiliate Storefront", AFFILIATE_STOREFRONT_STAGES, owners,
+        expected_bindings=AFFILIATE_STOREFRONT_STAGES, optional_stage=None,
     ))
     for key, entry in entries.items():
         if not isinstance(entry, dict) or set(entry) != {"label", "kind", "cost", "capability"}:

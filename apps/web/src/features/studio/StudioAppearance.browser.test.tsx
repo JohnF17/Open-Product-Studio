@@ -67,7 +67,7 @@ it("repaints Studio from T3's appearance selector and preserves authored caption
   await expect.element(clipper).toBeVisible();
   const chooser = screen.container.querySelector(".ops-workspace")!;
   const lightCanvas = getComputedStyle(chooser).backgroundColor;
-  expect(chooser.querySelectorAll(".ops-choice")).toHaveLength(6);
+  expect(chooser.querySelectorAll(".ops-choice")).toHaveLength(7);
   expect(getComputedStyle(chooser).colorScheme).toBe("light");
   await clipper.click();
   await screen.getByRole("button", { name: "Next", exact: true }).click();

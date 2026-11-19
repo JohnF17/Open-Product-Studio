@@ -1,0 +1,65 @@
+.ops-cue-sheet > summary {
+  font-weight: 600;
+}
+.ops-cue-sheet > p {
+  margin: 8px 0 12px;
+}
+.ops-workspace .ops-cue-row {
+  min-width: 0;
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+}
+.ops-cue-row legend {
+  padding: 0 4px;
+  font-weight: 650;
+}
+.ops-cue-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.ops-cue-fields .ops-field {
+  margin: 0;
+}
+.ops-cue-fields .ops-field:first-child, .ops-cue-error {
+  grid-column: 1 / -1;
+}
+.ops-cue-fields input {
+  max-width: 12rem;
+  font-variant-numeric: tabular-nums;
+}
+.ops-cue-row .ops-link {
+  margin-top: 8px;
+}
+.ops-cue-error {
+  color: var(--ops-warning);
+  overflow-wrap: anywhere;
+}
+.ops-cue-list {
+  padding: 0;
+  list-style: none;
+}
+.ops-cue-list li {
+  margin: 10px 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--ops-line);
+  overflow-wrap: anywhere;
+}
+.ops-cue-list dl, .ops-cue-list dd {
+  margin: 0;
+}
+.ops-cue-list dt {
+  margin-top: 6px;
+  color: var(--ops-muted);
+  font-size: 0.85rem;
+}
+.ops-cue-list dd {
+  white-space: pre-wrap;
+}
+@container studio (max-width: 520px) {
+  .ops-cue-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

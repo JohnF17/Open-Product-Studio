@@ -156,6 +156,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Persist Replica and Day Trader as planned starter categories and keep their category-scoped drafts separate from formats, capabilities and grants. Reopen empty and partial drafts with their optional source revision and cursor, and reject dispatch of unavailable or out-of-scope actions.
 
+- Persist affiliate-storefront as a seventh starter with a project-scoped draft, selected handoff and stage cursor. An empty draft needs no catalog, merchant account or network grant.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -165,6 +167,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A8: **component**, producer WP03. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A9: **component**, producer WP03. Exercise empty and partial drafts, category round-trip and direct dispatch denials on local fixtures.
+
+- A10: **component**, producer WP03. Round-trip empty and partial affiliate drafts alongside older projects with their original categories.
 
 **Execution steps:**
 
@@ -420,6 +424,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Offer Replica and Day Trader as peer New project choices that open empty, project-scoped workspaces. Resume the correct draft and step after switching projects or restarting. Explain planned actions and their milestones separately from input, rights and eligibility blockers. Starting or resuming requires no account or connection.
 
+- Start and resume Affiliate Storefront through discover, compare, links, design, review and export. Keep each project's shortlist, evidence and handoff choice together when switching drafts.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP08. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -431,6 +437,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A13: **component**, producer WP08. Exercise the two workspace shells with labeled fixtures and gated actions.
 
 - A13: **integration**, producer WP03, WP08. Verify persisted category, project isolation and empty/partial draft recovery across a switch and restart.
+
+- A14: **component**, producer WP08. Exercise the empty category entry and six-stage guide on a project fixture.
+
+- A14: **integration**, producer WP03, WP08. Switch between two partial storefront drafts, reopen each at its saved stage, and reach local export with connections disabled.
 
 **Execution steps:**
 
@@ -530,11 +540,15 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Use existing evidence import and research for Replica observations supplied by hand or inspected from permitted public sources. Record source, locator, rights, access limits and uncertainty, and keep unsupported observations explicit.
 
+- Accept Affiliate Storefront candidates from manual notes, permitted merchant listing references and authorized program catalog or feed extracts. Retain each offer's merchant, source locator, observation date, usage rights and unknown terms.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP10. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A5: **component**, producer WP10. Exercise manual, public, inaccessible and denied observation fixtures.
+
+- A6: **component**, producer WP10. Import two dated offers for one product and a candidate with missing terms from local fixtures. Preserve their distinct provenance.
 
 **Execution steps:**
 
@@ -592,6 +606,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI.
 
+- Compare affiliate offers for the intended audience using sourced price, currency, availability, program eligibility, commission basis and limitations. Cite each observation and its date. Explain the shortlist and flag missing, stale or conflicting terms for review.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7, A8, A9, A10: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -605,6 +621,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A14: **component**, producer WP11. Exercise revisioned brief scenarios with supported, missing and stale observations.
 
 - A14: **integration**, producer WP10, WP11. Trace a Replica brief to its permitted observations and preserve unresolved gaps.
+
+- A15: **component**, producer WP11. Use two dated offer fixtures and verify that gaps survive the shortlist comparison.
+
+- A15: **integration**, producer WP10, WP11. Compare offers with conflicting dates and a missing rate. Retain the cited observations and leave the unsupported estimate unknown.
 
 **Execution steps:**
 
@@ -746,6 +766,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - At M2, save a Replica behavior brief as a versioned original specification and inert mockup with source and rights references. Reopen and edit those artifacts with packaged code execution, network access and side effects disabled.
 
+- Version the storefront layout, product cards, creative asset references and link records. Bind the merchant destination, program-issued referral URL, relationship and reader-visible disclosure to each recommendation. Preserve those bindings in each handoff format.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP14. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -755,6 +777,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A6: **component**, producer WP14. Use permitted, denied and missing reference fixtures. Reopen a style revision and verify trait edits preserve the source and content revisions and invalidate stale sample approval.
 
 - A7: **component**, producer WP14. Exercise revision and inert preview contracts on a Replica fixture.
+
+- A8: **component**, producer WP14. Edit a card and change its merchant or destination. The old review belongs to the prior revision.
 
 **Execution steps:**
 
@@ -852,6 +876,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Review the exact Replica specification and inert mockup for source support, original presentation, rights and testable behavior. Block handoff of unsupported claims, copied assets or a visually indistinguishable proprietary interface.
 
+- Review each affiliate card against the dated evidence, asset rights, intended merchant, program link and nearby disclosure. Flag unsupported comparisons and hold affected cards out of the reviewed handoff until resolved or removed.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4: **component**, producer WP16. Package-owned fixture/contract evidence; live activation needs applicable later gates.
@@ -859,6 +885,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A5: **component**, producer WP16. Exercise approvals and denials against exact Replica artifact and source revisions.
 
 - A5: **integration**, producer WP14, WP16. Review the versioned original specification and inert mockup against the behavior brief.
+
+- A6: **component**, producer WP16. Check card-level disclosure and claim review against an inert local fixture.
+
+- A6: **integration**, producer WP14, WP16. Exercise a mismatched merchant, absent disclosure and unsupported price claim on the exact preview revision.
 
 **Execution steps:**
 
@@ -912,6 +942,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Export and reopen the reviewed M2 Replica specification and inert mockup outside Studio with editable source, readable output and rights-safe provenance. Exclude unlicensed reference material and keep the mockup inert in the export.
 
+- Export the reviewed Affiliate Storefront revision locally as a Shopify hosted-store placement handoff for external links, a downloadable static site with permitted assets, or an implementation handoff for the user's chosen stack. Carry the editable card data, disclosures, destination mapping and evidence references. Hosted edits and deployment require separate actions.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A6, A7, A8, A9, A10: **component**, producer WP17. Synthetic contract/policy/denial fixtures only; actual integration, measured or release outcome is supplied by the separate phase below.
@@ -927,6 +959,10 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A12: **component**, producer WP17. Check the export manifest and denied reference fixtures.
 
 - A12: **integration**, producer WP14, WP16, WP17. Read back the original reviewed specification, mockup and permitted provenance in an external reader.
+
+- A13: **component**, producer WP17. Inspect the three handoff manifests for the selected route and reviewed card revision.
+
+- A13: **integration**, producer WP14, WP16, WP17. Read all three outputs outside Studio with networking disabled. Inspect link targets and disclosures, open the static index, and verify the chosen stack and setup instructions in its handoff.
 
 **Execution steps:**
 
@@ -1724,9 +1760,13 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Manual authorized observations and independently accepted order or campaign adapters can each satisfy the input contract. With M4B disabled, import permitted feedback and produce source-complete observations without mailbox connection or send; E2/E3 apply only to affected external/financial inputs.
 
+- Keep outbound clicks, program-attributed referrals and statement-backed commissions separate from the seller's own orders, refunds and sales revenue. Record program, period, currency, status and source for reported commissions. A click alone supplies no sale or earnings amount.
+
 **Evidence phase / producer (all not-run):**
 
 - A1, A2, A3, A4, A5, A6, A7: **component**, producer WP31. Package-owned fixture/contract evidence; live activation needs applicable later gates.
+
+- A8: **component**, producer WP31. Import a permitted fixture statement twice alongside click observations and merchant sales. Preserve pending and reversed commissions and reconcile the separate totals without double counting.
 
 **Execution steps:**
 

@@ -62,7 +62,7 @@ it.each(workingDraftCases)(
     const textbox = (name: string) => screen.getByRole("textbox", { name, exact: true });
 
     await expect.element(button(/^Day Trader/)).toBeVisible();
-    expect(container.querySelectorAll(".ops-choices button")).toHaveLength(6);
+    expect(container.querySelectorAll(".ops-choices button")).toHaveLength(7);
     const workspace = container.querySelector(".ops-workspace")!;
     expect(workspace.scrollWidth).toBeLessThanOrEqual(workspace.clientWidth);
     await button(new RegExp("^" + category)).click();
@@ -150,7 +150,7 @@ it.each(workingDraftCases)(
         await screen.getByText("Private backup", { exact: true }).click();
         await button("Download private draft").click();
         const backup = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
-        expect(backup.kind).toBe("private-working-draft");
+        expect(backup.schema).toBe("studio-project-backup/1");
         expect(Object.values(backup.fields)).toEqual(expect.arrayContaining([sheets[0][1], "Analysis only"]));
       }
     } finally {

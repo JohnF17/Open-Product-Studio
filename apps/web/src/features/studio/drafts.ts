@@ -1,9 +1,11 @@
 import * as Schema from "effect/Schema";
 
 import { randomUUID } from "../../lib/randomUUID";
+import { isVideoCueList, type VideoCue } from "./videoCues";
+import { type AffiliateDraft, affiliateSheets, createAffiliateDraft, isAffiliateDraft } from "./affiliateDraft";
 
 export type WorkingCategory = "clipper" | "replica" | "day-trader";
-export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
+export type Category = "blank" | "digital-product" | "video" | "affiliate-storefront" | WorkingCategory;
 export const styleNames = ["kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"] as const;
 export type VideoStyle = (typeof styleNames)[number];
 
@@ -12,12 +14,17 @@ export interface StudioDraft {
   id: string;
   workspaceId: string;
   revision: number;
+  restoredCopy?: number;
   updatedAt: number;
   category: Category;
   stage: string;
   style: VideoStyle;
   title: string;
   fields: Record<string, string>;
+  /** Inert text from private recovery. Only the backup serializer reads it. */
+  archivedFields?: Record<string, string>;
+  videoCues?: VideoCue[];
+  affiliate?: AffiliateDraft;
   tools: string[];
 }
 
@@ -52,6 +59,11 @@ export const categories: ReadonlyArray<{ id: Category; label: string; descriptio
     label: "Day Trader",
     description: "Plan an offline practice session and keep a decision journal.",
   },
+  {
+    id: "affiliate-storefront",
+    label: "Affiliate Storefront",
+    description: "Shortlist products and build a page with your affiliate links.",
+  },
 ];
 
 export const stages = {
@@ -71,6 +83,7 @@ export const stages = {
   clipper: ["source", "moments", "edit", "review", "export", "publish"],
   replica: ["reference", "brief", "design", "export", "prototype"],
   "day-trader": ["practice-data", "rules", "replay", "journal", "export"],
+  "affiliate-storefront": Object.keys(affiliateSheets),
 } as const satisfies Record<Category, readonly string[]>;
 
 export function draftStages(category: Category): readonly string[] {
@@ -89,6 +102,7 @@ export function createDraft(workspaceId: string, category: Category): StudioDraf
     style: "kinetic-type",
     title: "",
     fields: category === "digital-product" ? { format: "Ebook" } : {},
+    ...(category === "affiliate-storefront" ? { affiliate: createAffiliateDraft() } : {}),
     tools: [],
   };
 }
@@ -103,6 +117,7 @@ export function projectName(draft: StudioDraft): string {
       clipper: "Untitled clip",
       replica: "Untitled design",
       "day-trader": "Untitled practice study",
+      "affiliate-storefront": "Untitled storefront",
     }[draft.category]
   );
 }
@@ -123,12 +138,20 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     typeof d.revision === "number" &&
     Number.isSafeInteger(d.revision) &&
     d.revision >= 0 &&
+    (d.restoredCopy === undefined || (Number.isSafeInteger(d.restoredCopy) && d.restoredCopy > 0)) &&
     typeof d.updatedAt === "number" &&
     Number.isFinite(d.updatedAt) &&
     !!d.fields &&
     typeof d.fields === "object" &&
     !Array.isArray(d.fields) &&
     Object.values(d.fields).every((v) => typeof v === "string") &&
+    (d.archivedFields === undefined ||
+      (d.archivedFields !== null &&
+        typeof d.archivedFields === "object" &&
+        !Array.isArray(d.archivedFields) &&
+        Object.values(d.archivedFields).every((v) => typeof v === "string"))) &&
+    (d.videoCues === undefined || (d.category === "video" && isVideoCueList(d.videoCues))) &&
+    (d.category === "affiliate-storefront" ? isAffiliateDraft(d.affiliate) : d.affiliate === undefined) &&
     Array.isArray(d.tools) &&
     d.tools.every((t) => typeof t === "string")
   );
@@ -138,12 +161,14 @@ let database: Promise<IDBDatabase> | undefined;
 function openDatabase(): Promise<IDBDatabase> {
   if (database) return database;
   database = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("open-product-studio-drafts", 1);
+    const request = indexedDB.open("open-product-studio-drafts", 2);
     request.onupgradeneeded = () => {
-      const store = request.result.createObjectStore("projects", {
-        keyPath: ["workspaceId", "id"],
-      });
-      store.createIndex("workspace", "workspaceId");
+      const db = request.result;
+      if (!db.objectStoreNames.contains("projects")) {
+        const store = db.createObjectStore("projects", { keyPath: ["workspaceId", "id"] });
+        store.createIndex("workspace", "workspaceId");
+      }
+      if (!db.objectStoreNames.contains("restoreCounters")) db.createObjectStore("restoreCounters");
     };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -216,7 +241,35 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
   });
 }
 
-type Editable = Pick<StudioDraft, "title" | "fields" | "style" | "tools" | "stage" | "category">;
+/** Insert a restored draft without ever replacing a row with the same key. */
+export async function insertDraft(draft: StudioDraft): Promise<StudioDraft> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["projects", "restoreCounters"], "readwrite");
+    const counters = tx.objectStore("restoreCounters");
+    const last = counters.get(draft.workspaceId);
+    let saved: StudioDraft;
+    last.onsuccess = () => {
+      if (last.result !== undefined && (!Number.isSafeInteger(last.result) || last.result < 0 || last.result >= Number.MAX_SAFE_INTEGER)) {
+        tx.abort();
+        return;
+      }
+      const restoredCopy = (last.result ?? 0) + 1;
+      saved = { ...draft, revision: 1, restoredCopy };
+      try {
+        counters.put(restoredCopy, draft.workspaceId);
+        tx.objectStore("projects").add(saved);
+      } catch (cause) {
+        tx.abort();
+        reject(cause);
+      }
+    };
+    tx.onabort = () => reject(tx.error ?? new Error("Project restore did not commit."));
+    tx.oncomplete = () => resolve(saved);
+  });
+}
+
+type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "affiliate" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 
 /** One writer per open project. Coalesce keystrokes while the previous transaction commits. */

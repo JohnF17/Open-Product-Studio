@@ -4,6 +4,19 @@ This is core product functionality. It supersedes a brief-only assistant or a wo
 
 Recommendations run through versioned [harness roles and reply contracts](AGENT-HARNESS.md), with required evidence and validated accepted outcomes. M0C establishes those controls before M1. A broken reply gets bounded repair or an honest partial/abstention, not silently accepted prose. M3C councils optionally add independent positions, a challenge and synthesis with dissent; their advice cannot authorize tools/actions. Later Dot can request recommendations under a responsibility/wake budget without gaining broader authority.
 
+## Who chooses the model
+
+The current Studio handoff prepares a draft in T3's composer. Its native defaults and any user-configured usage-limit fallback apply there. A research prompt requests read-only work in words. Enforcing tool permissions and enforcing a pinned model belong to the qualified action runner. The proposed Guided experience starts from that selection and the project's approved connections. It offers a project preset at the first AI step, with the exact account, model, supported effort, host and spending limit visible before acceptance. An offline, manually edited project needs no preset.
+
+| Creator control | Behavior to qualify |
+| --- | --- |
+| **Guided** | Recommend the least costly qualified route that meets the action's tools, evidence, privacy and quality requirements. Explain the task-specific reason in one line. A project can remember an accepted preset. When two suitable routes cannot be distinguished on available evidence, offer the choice. |
+| **Advanced** | Use T3's native selection for a single action or pin a role for this project. Expose the options actually reported by that driver and model. Keep unsupported effort settings unavailable. Make the next run's exact route visible from either view. |
+| **Specialists and council** | Expand the proposed job to see each child's purpose, account, model, effort, tool access and share of the combined limit. Ordinary drafting can use one writer. Comparing contradictory source claims may justify an independent reviewer. A council is an optional, separately budgeted escalation. |
+| **Unavailable or over budget** | Pause the affected action and retain the draft and requested selection. Offer eligible alternatives with the new cost and data destination. A replacement, additional paid child, different host or expanded grant requires the creator's approval. Show provider-reported effective identity or mark it unknown. |
+
+Use measured task fixtures to evolve presets. For an affiliate project, linking a pasted source, validating a URL and generating the local website are deterministic. Ranking candidates may use a research-capable route over permitted evidence. Writing a short product card can reuse approved facts. A larger reasoning budget belongs where contradictory evidence or a complex comparison warrants it. A model choice never approves a merchant link, external publication or purchase. WP05 owns exact selection, WP53 owns route qualification, and WP11 owns recommendation evaluation. [Agent harness](AGENT-HARNESS.md) · [Affiliate storefront](AFFILIATE-STOREFRONTS.md)
+
 ## Recommendation contract
 
 Proposed service boundary:

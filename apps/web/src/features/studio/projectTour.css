@@ -1,0 +1,22 @@
+.ops-tour { margin: .25rem 0 .75rem; }
+.ops-tour-toggle { min-height: 2.5rem; }
+.ops-tour-panel {
+  max-width: 44rem;
+  padding: 1rem clamp(.8rem, 3cqi, 1.5rem);
+  border: 1px solid var(--ops-control-line);
+  border-inline-start: 3px solid var(--ops-selection);
+  border-radius: .75rem;
+  background: var(--ops-panel);
+  color: var(--ops-panel-ink);
+}
+.ops-tour-panel h3 { margin-block: .25rem; font-weight: 650; }
+.ops-tour-panel p { font-size: .925rem; }
+.ops-tour-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+.ops-tour-actions .ops-link { margin-inline-end: auto; }
+.ops-workspace:has(.ops-tour[data-tip="0"]) .ops-title,
+.ops-workspace:has(.ops-tour[data-tip="1"]) .ops-progress select,
+.ops-workspace:has(.ops-tour[data-tip="1"]):not(:has(.ops-progress)) .ops-panel:not([inert]) textarea,
+.ops-workspace:has(.ops-tour[data-tip="2"]) .ops-panel:not([inert]) .ops-step-head {
+  outline: 2px solid var(--ops-selection);
+  outline-offset: 3px;
+}
