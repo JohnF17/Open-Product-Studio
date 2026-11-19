@@ -1,6 +1,7 @@
 import catalogText from "../../../../../docs/roadmap/project-categories.json?raw";
 import type { StudioDraft, VideoStyle } from "./drafts";
 import { projectName } from "./drafts";
+import { workingGuide } from "./workingDraftGuides";
 
 type StyleDefinition = {
   label: string;
@@ -13,13 +14,17 @@ type StyleDefinition = {
 export const catalog = JSON.parse(catalogText) as {
   styles: Record<VideoStyle, StyleDefinition>;
   stackEntries: Record<string, { label: string; kind: string; cost: string }>;
+  clipperStages: readonly { id: string }[];
+  replicaStages: readonly { id: string }[];
+  dayTraderStages: readonly { id: string }[];
 };
 
-export const styleNames: readonly VideoStyle[] = ["kinetic-type", "product-demo", "3d-showcase"];
+export { styleNames } from "./drafts";
 export const styleDescriptions: Record<VideoStyle, string> = {
   "kinetic-type": "Let moving type, rhythm and a few precise words carry the story.",
   "product-demo": "Walk through a real product with screenshots and screen recordings.",
   "3d-showcase": "Build a visual study around a rendered model or an existing 3D shot.",
+  "stick-figure-explainer": "Use simple figures, expressive poses and a few props to explain one idea.",
 };
 
 export const stepNames: Record<string, string> = {
@@ -84,6 +89,19 @@ export function starterOptions(draft: StudioDraft): Starter[] {
         brief: "Compare the same task before and after one change, using real footage.",
       },
     ];
+  if (draft.style === "stick-figure-explainer")
+    return [
+      {
+        title: "Show a change of mind",
+        reason: "A change in posture can show the moment an idea clicks.",
+        brief: "Draw a figure trying to balance a backpack. Move one item at a time and hold on the pose that works.",
+      },
+      {
+        title: "Follow one object",
+        reason: "One familiar prop can connect several scenes.",
+        brief: "Follow a letter from one figure to the next. Pause at each handoff to explain what the recipient does.",
+      },
+    ];
   return [
     {
       title: "Explain one idea",
@@ -109,13 +127,27 @@ export function selectedTools(draft: StudioDraft): string[] {
   ];
 }
 
-export function exportDraft(draft: StudioDraft) {
-  const copy = {
+type ExportMode = "draft" | "brief" | "brief-with-observation";
+
+export function draftExport(draft: StudioDraft, mode?: ExportMode) {
+  const guide = workingGuide(draft.category);
+  const isBrief = draft.category === "replica" && mode !== "draft";
+  const briefKeys = ["brief", "acceptanceScenario", "interfaceSketch", "interactionSpec"];
+  if (mode === "brief-with-observation") briefKeys.push("observation");
+  const fields = isBrief
+    ? Object.fromEntries(briefKeys.flatMap((key) => {
+        const value = draft.fields[key];
+        return value?.trim() ? [[key, key === "observation" ? value.trim() : value]] : [];
+      }))
+    : draft.fields;
+  const kind = draft.category === "replica" && !isBrief ? "private-working-draft" : guide?.kind;
+  return {
     schema: "studio-working-draft/1",
     category: draft.category,
     title: projectName(draft),
     stage: draft.stage,
-    fields: draft.fields,
+    fields,
+    ...(kind ? { kind, content: "authored-notes" } : {}),
     ...(draft.category === "video"
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
@@ -123,15 +155,23 @@ export function exportDraft(draft: StudioDraft) {
         }
       : {}),
   };
-  const blob = new Blob([JSON.stringify(copy, null, 2)], { type: "application/json" });
+}
+
+export function exportDraft(draft: StudioDraft, mode?: ExportMode) {
+  const blob = new Blob([JSON.stringify(draftExport(draft, mode), null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
+  const suffix = draft.category === "replica"
+    ? mode === "draft" ? " - private draft.json" : " - brief.json"
+    : ".json";
   link.download =
     (projectName(draft)
       .replace(/[^\p{L}\p{N} _-]+/gu, " ")
       .trim()
-      .slice(0, 80) || "Studio draft") + ".json";
+      .slice(0, 80) || "Studio draft") + suffix;
   document.body.append(link);
   link.click();
   link.remove();

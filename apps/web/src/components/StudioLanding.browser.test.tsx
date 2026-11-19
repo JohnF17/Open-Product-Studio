@@ -10,7 +10,10 @@ import { act, render } from "../../test/render";
 import { DraftEditor, listDrafts, saveDraft } from "../features/studio/drafts";
 import StudioLanding from "./StudioLanding";
 
-const { workspace } = vi.hoisted(() => ({ workspace: crypto.randomUUID() }));
+const { workspace } = await vi.hoisted(async () => {
+  const { randomUUID } = await import("../lib/randomUUID");
+  return { workspace: randomUUID() };
+});
 vi.mock(import("../state/environments"), async (importOriginal) => ({
   ...(await importOriginal()),
   usePrimaryEnvironmentId: () => workspace as ReturnType<

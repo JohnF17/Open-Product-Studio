@@ -4,7 +4,7 @@ This is one integrated product, implemented through explicit releases. All modul
 
 ## Three independent kinds of progress
 
-Blank, Digital product and Video are the initial project categories. Category selection determines the starting workspace and guide. M0's registry and dashboard expose the choices and their milestone information. M1 supplies eligible research and recommendations, M2 delivers the first complete document workflows, M4A qualifies standalone video rendering and export, and M4C qualifies publishing to each supported destination. A Video project can finish with a reviewed local export while social publishing is unavailable. [Project experience](PROJECT-EXPERIENCE.md) · [Category catalog](roadmap/project-categories.json)
+Blank, Digital product, Video, Clipper, Replica and Day Trader each start with a local working draft. M2 targets the first reviewed Replica spec and inert mockup. M6B qualifies its optional isolated prototype and Day Trader's separate offline replay engine. The M0B Clipper entry can start empty. [Replica and Day Trader acceptance cases](REPLICA-AND-DAY-TRADER.md) WP14 and WP17 supply revisioned edits and source media at M2, WP19 supplies optional transcription at M3, and WP24 qualifies its first manual offline cut and local export at M4A. Social publication has its own M4C account gate. [Clipper acceptance cases](CLIPPER.md) Category selection determines the starting workspace and guide. M0's registry and dashboard expose the choices and their milestone information. M1 supplies eligible research and recommendations, M2 delivers the first complete document workflows, M4A qualifies standalone video rendering and export, and M4C qualifies publishing to each supported destination. A Video project can finish with a reviewed local export while social publishing is unavailable. [Project experience](PROJECT-EXPERIENCE.md) · [Category catalog](roadmap/project-categories.json)
 
 **Software availability:** `planned | available | disabled`. Track development separately as `not-started | in-progress | blocked | complete`. Development completion does not activate a feature in an installed version. `availableSince`, supported platform and feature version establish whether this installation has the capability.
 
@@ -35,7 +35,7 @@ The [canonical roadmap](ROADMAP.md) owns gate details and the [work-package regi
 | M5B | Optional Studio subscriptions/seats, prepaid service units, API workers and operations | Payer-bound checkout/portal/paid-through lifecycle; concurrent refund/spend; semantic payment dedupe/disputes; worker isolation, fenced restore and measured economics |
 | M5C | Responsive paired-device control | Scope, replay, revoke, offline/host-state tests |
 | M6A | Reviewed declarative extensions and isolated executable plugins | Supply-chain, confinement and revocation gates |
-| M6B | Small interactive products | Safe build/export and independent domain/accessibility review |
+| M6B | Small interactive products, Replica prototypes and Day Trader replay | Isolated build/export, verified behavior, deterministic offline replay and independent domain/accessibility review |
 | M6C | Collaborative editable content | Merge/convergence and authorization; serialized financial/action authority |
 | M7A | Licensed lead search/enrichment | Account/field/credit verification and privacy-safe jobs |
 | M7B | Advanced inbox/sender administration | Reply/attachment/category/OOO controls and approved provisioning |
