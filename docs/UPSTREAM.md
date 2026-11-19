@@ -2,9 +2,9 @@
 
 ## Selected foundation
 
-Recommended source baseline: [pingdotgg/t3code at 7d71f852a8edd298ffde67c295760c286a71a27c](https://github.com/pingdotgg/t3code/tree/7d71f852a8edd298ffde67c295760c286a71a27c). The first source import is downstream commit `8d14fde6896b3636915e38849416e1fedbec4b6c`. WP01 verifies the retained baseline and WP02 establishes the separate desktop identity.
+The active source baseline is [pingdotgg/t3code at bb234221](https://github.com/pingdotgg/t3code/tree/bb234221cefe1dfdc64d754ee14d0456c5d09ec6). The first downstream import, `8d14fde6896b3636915e38849416e1fedbec4b6c`, joined the original Studio planning tree with T3 Code `7d71f852`. See the [current source record](BASELINE.md) for qualification. WP01 verifies the retained baseline and WP02 establishes the separate desktop identity.
 
-The [upstream MIT license](https://github.com/pingdotgg/t3code/blob/7d71f852a8edd298ffde67c295760c286a71a27c/LICENSE) permits modification/distribution with its notice conditions. Preserve the T3 Tools Inc. copyright/permission text for substantial upstream code, original file notices and packaged license viewer. Distinct branding must not imply endorsement.
+The [upstream MIT license](https://github.com/pingdotgg/t3code/blob/bb234221cefe1dfdc64d754ee14d0456c5d09ec6/LICENSE) permits modification/distribution with its notice conditions. Preserve the T3 Tools Inc. copyright/permission text for substantial upstream code, original file notices and packaged license viewer. Distinct branding must not imply endorsement.
 
 The retained upstream source carries its MIT license and third-party notices. Original Studio planning files and their planning checks retain their Apache-2.0 terms. Use the [license scope map](../LICENSES/README.md) and [planning manifest](../LICENSES/planning-manifest.json) to identify these files and their original digests.
 
