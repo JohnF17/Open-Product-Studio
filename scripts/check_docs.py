@@ -29,7 +29,7 @@ REQUIRED = (
 )
 # private-research/ is intentionally local and excluded by .gitignore.
 IGNORED = {'.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build', 'private-research'}
-RESTRICTED = {'.pdf', '.vtt', '.srt', '.asar', '.mp4', '.mp3'}
+RESTRICTED = {'.pdf', '.vtt', '.srt', '.asar', '.mp4', '.webm', '.mp3'}
 # Mode 100644 blobs individually reviewed against the active baseline manifest.
 # A new path or a changed asset needs a new review, including its distribution rights.
 PINNED_MEDIA = {
@@ -44,6 +44,7 @@ LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 # Generated from the Studio renderer using a synthetic project. Capture provenance
 # and SHA-256 are in docs/acceptance/WP08/README.md. Review replacements explicitly.
 STUDIO_WINDOW_RECORDINGS = {
+    'docs/acceptance/WP08/categories/entry-resume-edit.webm': '8eb54d811e9c2667fef9334773d35f9ed686b07f',
     'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
 }
 

@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vite-plus/test";
+import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import StudioWorkspace, { type StudioAgentRequest } from "./StudioWorkspace";
 import { listDrafts } from "./drafts";
@@ -75,6 +76,12 @@ it.each(workingDraftCases)(
         await textbox("Mark out").fill("00:29");
       }
       if (category === "Clipper" && label === "Crop and framing") {
+        const png = await new Promise<Blob>((resolve) =>
+          document.createElement("canvas").toBlob((blob) => resolve(blob!), "image/png"),
+        );
+        await userEvent.upload(screen.getByLabelText("Use a permitted reference still (optional)"),
+          new File([png], "private-reference.png", { type: "image/png" }));
+        await expect.element(screen.getByRole("img", { name: "Selected reference frame" })).toBeVisible();
         await textbox("Caption text").fill("Keep both hands visible");
         await button("Headline").click();
         await button("Use this look").click();
@@ -105,6 +112,8 @@ it.each(workingDraftCases)(
         fields: { [exportField.key]: sheets[exportField.fromSheet]?.[1] },
       });
       if (category === "Clipper") {
+        expect(JSON.stringify(exported)).not.toContain("private-reference.png");
+        expect(JSON.stringify(exported)).not.toContain("blob:");
         expect(exported.fields).toMatchObject({
           markIn: "00:12",
           markOut: "00:29",
