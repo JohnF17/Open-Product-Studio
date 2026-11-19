@@ -49,7 +49,13 @@ import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
 import { DigitalProductManuscriptExport } from "./DigitalProductManuscriptExport";
 import { digitalProductFormats, writeDigitalProductField } from "./digitalProductExport";
-import { downloadProjectBackup, importProjectBackup, projectBackupErrorMessage } from "./projectBackup";
+import {
+  downloadProjectBackup,
+  importProjectBackup,
+  ProjectBackupConfirmation,
+  projectBackupErrorMessage,
+  type ProjectBackupRestoreOptions,
+} from "./projectBackup";
 import { ProjectTour } from "./ProjectTour";
 
 export interface StudioAgentRequest {
@@ -103,6 +109,11 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
   const [showChooser, setShowChooser] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState("");
+  const [confirmation, setConfirmation] = useState<{
+    file: File;
+    options: ProjectBackupRestoreOptions;
+    decision: ProjectBackupConfirmation;
+  } | null>(null);
   const backupInput = useRef<HTMLInputElement>(null);
   useLayoutEffect(() => {
     if (!activeEditor) return;
@@ -129,18 +140,29 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     };
   }, [workspaceId, retry]);
   function start(category: Category) {
+    setConfirmation(null);
     const next = new DraftEditor(createDraft(workspaceId, category));
     setEditor(next);
     void next.flush();
   }
-  async function restore(file: File) {
+  async function restore(file: File, options: ProjectBackupRestoreOptions = {}) {
     setImportError("");
+    setConfirmation(null);
     setImporting(true);
     try {
-      const saved = await importProjectBackup(file, workspaceId);
+      const saved = await importProjectBackup(file, workspaceId, options);
       setEditor(new DraftEditor(saved));
     } catch (error) {
-      setImportError(projectBackupErrorMessage(error, "The project could not be saved locally. Try importing the backup again."));
+      if (error instanceof ProjectBackupConfirmation) {
+        setConfirmation({ file, options, decision: error });
+      } else {
+        setImportError(
+          projectBackupErrorMessage(
+            error,
+            "The project could not be saved locally. Try importing the backup again.",
+          ),
+        );
+      }
     } finally {
       setImporting(false);
     }
@@ -228,6 +250,30 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
         </div>
         {importing && <p role="status">Importing project backup…</p>}
         {importError && <div className="ops-notice" role="alert">{importError}</div>}
+        {confirmation && (
+          <div className="ops-notice">
+            <p role="alert">{confirmation.decision.message}</p>
+            <div className="ops-actions">
+              <button
+                type="button"
+                className="ops-button"
+                onClick={() =>
+                  void restore(confirmation.file, {
+                    ...confirmation.options,
+                    [confirmation.decision.option]: true,
+                  })
+                }
+              >
+                {confirmation.decision.option === "allowPartialReplica"
+                  ? "Restore partial copy"
+                  : "Restore large backup"}
+              </button>
+              <button type="button" className="ops-link" onClick={() => setConfirmation(null)}>
+                Cancel restore
+              </button>
+            </div>
+          </div>
+        )}
         {error && (
           <div className="ops-notice" role="alert">
             {error}
@@ -267,7 +313,10 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                 <button
                   className="ops-project"
                   key={project.id}
-                  onClick={() => setEditor(new DraftEditor(project))}
+                  onClick={() => {
+                    setConfirmation(null);
+                    setEditor(new DraftEditor(project));
+                  }}
                   disabled={importing}
                 >
                   <span className={"ops-icon ops-icon-" + project.category}>
@@ -440,7 +489,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
   function saveBackup() {
     setBackupError("");
     try {
-      downloadProjectBackup(editor.snapshot().draft);
+      setBackupError(downloadProjectBackup(editor.snapshot().draft));
     } catch (error) {
       setBackupError(projectBackupErrorMessage(error, "The private backup could not be downloaded. Try again."));
     }

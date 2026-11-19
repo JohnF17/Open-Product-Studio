@@ -21,6 +21,8 @@ export interface StudioDraft {
   style: VideoStyle;
   title: string;
   fields: Record<string, string>;
+  /** Inert text from private recovery. Only the backup serializer reads it. */
+  archivedFields?: Record<string, string>;
   videoCues?: VideoCue[];
   affiliate?: AffiliateDraft;
   tools: string[];
@@ -143,6 +145,11 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     typeof d.fields === "object" &&
     !Array.isArray(d.fields) &&
     Object.values(d.fields).every((v) => typeof v === "string") &&
+    (d.archivedFields === undefined ||
+      (d.archivedFields !== null &&
+        typeof d.archivedFields === "object" &&
+        !Array.isArray(d.archivedFields) &&
+        Object.values(d.archivedFields).every((v) => typeof v === "string"))) &&
     (d.videoCues === undefined || (d.category === "video" && isVideoCueList(d.videoCues))) &&
     (d.category === "affiliate-storefront" ? isAffiliateDraft(d.affiliate) : d.affiliate === undefined) &&
     Array.isArray(d.tools) &&

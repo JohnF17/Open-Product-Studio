@@ -160,6 +160,8 @@ it("keeps extra authored strings inert across private and legacy backup round tr
   source.fields = {
     notes: "  Original notes\r\n",
     earlySceneNotes: "  Keep the previous transitions\r\n",
+    approvalNotes: "Ask the illustrator about the cover.",
+    tokenBudget: "A chapter about budgeting for inference.",
     pronunciationHints: "",
     apiKey: "discard-token",
     providerRefreshToken: "discard-credential",
@@ -169,6 +171,8 @@ it("keeps extra authored strings inert across private and legacy backup round tr
   };
   const expected = {
     earlySceneNotes: source.fields.earlySceneNotes,
+    approvalNotes: source.fields.approvalNotes,
+    tokenBudget: source.fields.tokenBudget,
     pronunciationHints: "",
   };
   const backup = JSON.parse(await projectBackupBlob(source).text());
@@ -220,7 +224,10 @@ it("shows the missing private Replica data before saving an ambiguous partial co
   await expect.element(importButton).toBeEnabled();
   await userEvent.upload(input, file);
   const warning = screen.getByRole("alert");
-  await expect.element(warning).toHaveTextContent(/source locations.*rights.*open questions/i);
+  await expect.element(warning).toBeVisible();
+  expect(warning.element().textContent).toContain(
+    "Private source locations, rights notes and open questions are missing.",
+  );
   expect(await listDrafts(scope)).toEqual([]);
 
   await screen.getByRole("button", { name: "Cancel restore" }).click();
@@ -241,7 +248,7 @@ it("recovers a large Video backup with all cues after the user confirms the file
   const cues = Array.from({ length: 1_001 }, (_, index) => ({
     ...cue,
     id: `cue-${index + 1}`,
-    narration: ("???\r\n").repeat(1_100) + index,
+    narration: ("\u{10400}\u5b57\r\n").repeat(1_100) + index,
   }));
   source.videoCues = cues;
   await saveDraft(source, 0);
@@ -256,11 +263,20 @@ it("recovers a large Video backup with all cues after the user confirms the file
 
   await using screen = await render(<StudioWorkspace workspaceId={scope} />, { router: false });
   await expect.element(screen.getByRole("button", { name: "Import backup" })).toBeEnabled();
-  await userEvent.upload(screen.getByLabelText("Select a private backup"), file);
-  await expect.element(screen.getByRole("alert")).toHaveTextContent(/memory/i);
+  // Keep the large synthetic file in Chromium rather than serializing it over the test RPC.
+  const input = screen.getByLabelText("Select a private backup").element() as HTMLInputElement;
+  const selection = new DataTransfer();
+  selection.items.add(file);
+  input.files = selection.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  const warning = screen.getByRole("alert");
+  await expect.element(warning).toBeVisible();
+  expect(warning.element().textContent).toContain("Studio will load it into memory");
+  expect(read).not.toHaveBeenCalled();
   expect(await listDrafts(scope)).toEqual([]);
   await screen.getByRole("button", { name: "Restore large backup" }).click();
   await expect.element(screen.getByRole("button", { name: "Projects" })).toBeVisible();
+  expect(read).toHaveBeenCalledTimes(1);
   const [restored] = await listDrafts(scope);
   expect(restored?.videoCues).toHaveLength(cues.length);
   expect(await projectBackupBlob(restored!).text()).toBe(await blob.text());
@@ -306,6 +322,7 @@ it("copies only known data and clears injected review state in a private backup"
   const incoming = {
     ...current,
     fields: JSON.parse('{"__proto__":{"polluted":true},"approved":"yes","shareObservation":"yes"}'),
+    archivedFields: JSON.parse('{"__proto__":"blocked","provider_refresh_token":"blocked","oauthToken":"blocked","grants":"blocked"}'),
     affiliate: {
       ...current.affiliate,
       reviewed: true,
@@ -321,6 +338,7 @@ it("copies only known data and clears injected review state in a private backup"
   };
   const restored = await importProjectBackup(jsonFile(incoming), scope);
   expect(restored.fields).toEqual({});
+  expect(restored.archivedFields).toBeUndefined();
   expect(restored.affiliate?.reviewed).toBe(false);
   expect(restored.affiliate).not.toHaveProperty("credential");
   expect(restored.affiliate?.candidates).toEqual([
@@ -353,7 +371,9 @@ it("rejects invalid JSON, unsupported schemas, invalid content and oversize file
   }
   const oversized = new File([new Uint8Array(PROJECT_BACKUP_MAX_BYTES + 1)], "large.json");
   const read = vi.spyOn(oversized, "text");
-  await expect(importProjectBackup(oversized, scope)).rejects.toThrow(/too large/i);
+  await expect(
+    importProjectBackup(oversized, scope, { allowLargeBackup: true }),
+  ).rejects.toThrow(/too large/i);
   expect(read).not.toHaveBeenCalled();
   expect(await listDrafts(scope)).toEqual([]);
 });
