@@ -165,7 +165,7 @@ const guides: {
   clipper: {
     kind: "edit-plan",
     download: "Download edit plan",
-    agentScope: "Suggest three ways to make the written clip plan clearer for an editor.",
+    agentScope: "Help make the written clip plan clearer for an editor.",
     sheets: {
       source: {
         label: "Source",
@@ -234,7 +234,7 @@ const guides: {
   replica: {
     kind: "design-brief",
     download: "Download design brief",
-    agentScope: "Suggest three ways to clarify an original behavior brief or make its requirements easier to test.",
+    agentScope: "Help clarify an original behavior brief or make its requirements easier to test.",
     sheets: {
       reference: {
         label: "Observation and rights",
@@ -269,7 +269,7 @@ const guides: {
       export: {
         label: "Brief export",
         title: "Export your design brief",
-        detail: "Download a JSON handoff with your observations, permissions, proposed behavior and written sketch.",
+        detail: "Share the proposed behavior, acceptance scenario and original sketch. The source location and private permissions stay in your working draft.",
       },
       prototype: {
         label: "Prototype",

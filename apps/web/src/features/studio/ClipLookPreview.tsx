@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./clipLook.css";
 
 const looks = [
@@ -8,6 +8,10 @@ const looks = [
 ] as const;
 
 type Look = (typeof looks)[number]["id"];
+
+export function clipLookName(id: string | undefined) {
+  return looks.find((look) => look.id === id)?.name ?? "No saved look";
+}
 
 export function ClipLookPreview({
   fields,
@@ -20,6 +24,17 @@ export function ClipLookPreview({
   const [candidate, setCandidate] = useState<Look>(saved ?? "quiet");
   const [reference, setReference] = useState<{ url: string; name: string } | null>(null);
   const [error, setError] = useState("");
+  const caption = useRef<HTMLElement>(null);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const node = caption.current;
+    if (!node) return;
+    const measure = () => setOverflows(node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [candidate, fields.captionLine]);
   const [undo, setUndo] = useState<{ previous: string; applied: Look } | null>(null);
   useEffect(() => () => {
     if (reference) URL.revokeObjectURL(reference.url);
@@ -47,7 +62,7 @@ export function ClipLookPreview({
               setReference(null);
             }} />
           )}
-          <figcaption>{fields.captionLine?.trim() || "One small change"}</figcaption>
+          <figcaption ref={caption}>{fields.captionLine?.trim() || "One small change"}</figcaption>
         </figure>
         <div className="ops-look-controls">
           <label className="ops-field">
@@ -72,8 +87,9 @@ export function ClipLookPreview({
             Remove {reference.name}
           </button>}
           {error && <p role="alert">{error}</p>}
+          {overflows && <p role="status">This caption exceeds the frame. Shorten it or choose a smaller look.</p>}
           <div className="ops-look-presets">
-            <button type="button" className="ops-button" disabled={candidate === saved} onClick={() => {
+            <button type="button" className="ops-button" disabled={candidate === saved || overflows} onClick={() => {
               setUndo({ previous: fields.captionLook ?? "", applied: candidate });
               writeField("captionLook", candidate);
             }}>{candidate === saved ? "Look saved" : "Use this look"}</button>

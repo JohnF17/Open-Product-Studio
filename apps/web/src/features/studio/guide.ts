@@ -113,15 +113,27 @@ export function selectedTools(draft: StudioDraft): string[] {
   ];
 }
 
-export function draftExport(draft: StudioDraft) {
+type ExportMode = "draft" | "brief" | "brief-with-observation";
+
+export function draftExport(draft: StudioDraft, mode?: ExportMode) {
   const guide = workingGuide(draft.category);
+  const isBrief = draft.category === "replica" && mode !== "draft";
+  const briefKeys = ["brief", "acceptanceScenario", "interfaceSketch", "interactionSpec"];
+  if (mode === "brief-with-observation") briefKeys.push("observation");
+  const fields = isBrief
+    ? Object.fromEntries(briefKeys.flatMap((key) => {
+        const value = draft.fields[key];
+        return value?.trim() ? [[key, key === "observation" ? value.trim() : value]] : [];
+      }))
+    : draft.fields;
+  const kind = draft.category === "replica" && !isBrief ? "private-working-draft" : guide?.kind;
   return {
     schema: "studio-working-draft/1",
     category: draft.category,
     title: projectName(draft),
     stage: draft.stage,
-    fields: draft.fields,
-    ...(guide ? { kind: guide.kind, content: "authored-notes" } : {}),
+    fields,
+    ...(kind ? { kind, content: "authored-notes" } : {}),
     ...(draft.category === "video"
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
@@ -131,18 +143,21 @@ export function draftExport(draft: StudioDraft) {
   };
 }
 
-export function exportDraft(draft: StudioDraft) {
-  const blob = new Blob([JSON.stringify(draftExport(draft), null, 2)], {
+export function exportDraft(draft: StudioDraft, mode?: ExportMode) {
+  const blob = new Blob([JSON.stringify(draftExport(draft, mode), null, 2)], {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
+  const suffix = draft.category === "replica"
+    ? mode === "draft" ? " - private draft.json" : " - brief.json"
+    : ".json";
   link.download =
     (projectName(draft)
       .replace(/[^\p{L}\p{N} _-]+/gu, " ")
       .trim()
-      .slice(0, 80) || "Studio draft") + ".json";
+      .slice(0, 80) || "Studio draft") + suffix;
   document.body.append(link);
   link.click();
   link.remove();

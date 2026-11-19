@@ -1,3 +1,7 @@
+import * as Schema from "effect/Schema";
+
+import { randomUUID } from "../../lib/randomUUID";
+
 export type WorkingCategory = "clipper" | "replica" | "day-trader";
 export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
 export type VideoStyle = "kinetic-type" | "product-demo" | "3d-showcase";
@@ -75,7 +79,7 @@ export function draftStages(category: Category): readonly string[] {
 export function createDraft(workspaceId: string, category: Category): StudioDraft {
   return {
     schema: 1,
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     workspaceId,
     revision: 0,
     updatedAt: Date.now(),
@@ -174,7 +178,12 @@ export async function listDrafts(workspaceId: string): Promise<StudioDraft[]> {
   });
 }
 
-export class DraftConflict extends Error {}
+export class DraftConflict extends Schema.TaggedError<
+  DraftConflict,
+  { readonly brand: unique symbol }
+>()("DraftConflict", { message: Schema.String }) {}
+
+const isDraftConflict = Schema.is(DraftConflict);
 
 export async function saveDraft(draft: StudioDraft, expectedRevision: number): Promise<number> {
   const db = await openDatabase();
@@ -197,7 +206,11 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
       store.put({ ...draft, revision: expectedRevision + 1 });
     };
     tx.onabort = () =>
-      reject(conflict ? new DraftConflict("This project changed in another window.") : tx.error);
+      reject(
+        conflict
+          ? new DraftConflict({ message: "This project changed in another window." })
+          : tx.error,
+      );
     tx.oncomplete = () => resolve(expectedRevision + 1);
   });
 }
@@ -255,7 +268,7 @@ export class DraftEditor {
           }
         }
       } catch (error) {
-        this.set(this.view.draft, error instanceof DraftConflict ? "conflict" : "error");
+        this.set(this.view.draft, isDraftConflict(error) ? "conflict" : "error");
       }
     };
     this.pending = write().then(() => {

@@ -1,11 +1,11 @@
 import { MessageId, ProjectId, ThreadId } from "@t3tools/contracts";
 import { isMacPlatform } from "@t3tools/shared/keybindings";
 import { type CxOptions, cx } from "class-variance-authority";
-import * as Hex from "effect/encoding/Hex";
 import { msg } from "gt-react";
 import { extendTailwindMerge } from "tailwind-merge";
 import { DraftId } from "../composerDraftStore";
 import { m, type MessageResolver } from "../i18n/messages";
+import { randomUUID } from "./randomUUID";
 
 // Register extra font sizes and background images so tailwind-merge does not
 // treat text-2xs or bg-composer-seam-below as colors.
@@ -40,13 +40,7 @@ export function getLocalFileManagerName(platform: string, resolve: MessageResolv
   return resolve(msg("Files", { $context: "the Linux file manager app" }));
 }
 
-export function randomUUID(): string {
-  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
-  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
-  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
-  const hex = Hex.encode(bytes);
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
+export { randomUUID };
 
 export const newProjectId = (): ProjectId => ProjectId.make(randomUUID());
 

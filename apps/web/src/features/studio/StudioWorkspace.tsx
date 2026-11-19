@@ -29,6 +29,7 @@ import {
 } from "./drafts";
 import {
   catalog,
+  draftExport,
   exportDraft,
   selectedTools,
   starterOptions,
@@ -38,7 +39,7 @@ import {
 } from "./guide";
 import { workingGuide } from "./workingDraftGuides";
 import "./studio.css";
-import { ClipLookPreview } from "./ClipLookPreview";
+import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
 
 export interface StudioAgentRequest {
   workspaceId: string;
@@ -264,10 +265,12 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
   const nextSheet = nextStage ? guide?.sheets[nextStage] : undefined;
   const isWorkingExport = !!guide && draft.stage === "export";
   const canAskAgent = !guide || !!(guide.agentScope && sheet?.fields && !sheet.optional);
-  const [shareSheetNotes, setShareSheetNotes] = useState(false);
+  const [approvedExcerpts, setApprovedExcerpts] = useState<string | null>(null);
   const questionNotes = sheet?.fields
     ?.filter(({ key }) => draft.fields[key]?.trim())
     .map(({ key, label }) => ({ label, text: draft.fields[key]!.trim().slice(0, 600) })) ?? [];
+  const excerptSnapshot = JSON.stringify([draft.id, draft.stage, draft.title, questionNotes]);
+  const shareSheetNotes = approvedExcerpts === excerptSnapshot;
   const [motion, setMotion] = useState<{ from: string; direction: "forward" | "back" } | null>(
     null,
   );
@@ -298,7 +301,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
     return () => window.clearTimeout(timer);
   }, [motion]);
   function navigate(to: number) {
-    setShareSheetNotes(false);
+    setApprovedExcerpts(null);
     if (to < 0 || to >= route.length || to === index) return;
     agentRequest.current?.abort();
     setMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -317,7 +320,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
     const context = {
       category: draft.category,
       step: draft.stage,
-      title: draft.title,
+      title: projectName(draft),
     };
     const prompt = [
       guide?.agentScope
@@ -391,7 +394,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
                 ? "A newer draft exists. Export your edits before reopening the saved copy."
                 : "Your edits are in this window. Retry saving or download a copy."}
             </span>
-            <button className="ops-link" onClick={() => exportDraft(draft)}>
+            <button className="ops-link" onClick={() => exportDraft(draft, "draft")}>
               Download draft
             </button>
             {status === "error" && (
@@ -483,14 +486,15 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
                       ? "Opens a draft in the composer for you to review."
                       : "Includes the project name, brief, audience and current step."}
                   </small>
-                  {guide && questionNotes.length > 0 && (
+                  {guide && (
                     <details className="ops-agent-context">
                       <summary>Choose what to include</summary>
-                      <label>
+                      <p>{projectName(draft)} · {sheet?.label}</p>
+                      {questionNotes.length > 0 && <label>
                         <input type="checkbox" checked={shareSheetNotes}
-                          onChange={(event) => setShareSheetNotes(event.target.checked)} />
+                          onChange={(event) => setApprovedExcerpts(event.target.checked ? excerptSnapshot : null)} />
                         Include these excerpts with the project name and step
-                      </label>
+                      </label>}
                       {questionNotes.map(({ label, text }) => <p key={label}><strong>{label}</strong> · {text}</p>)}
                     </details>
                   )}
@@ -619,6 +623,10 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
         {draft.category === "clipper" && stage === "edit" && (
           <ClipLookPreview fields={draft.fields} writeField={writeField} />
         )}
+        {draft.category === "clipper" && stage === "review" && (draft.fields.captionLine || draft.fields.captionLook) && (
+          <Reference label={`Caption · ${clipLookName(draft.fields.captionLook)}`}
+            value={draft.fields.captionLine || "No caption text entered"} expanded />
+        )}
         {!!references?.length && (
           <details className="ops-reference ops-earlier-notes" open={stage === "review"}>
             <summary>Earlier notes</summary>
@@ -645,11 +653,13 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
             {sheet.advanced.fields.map(({ key, label, example }) => field(key, label, example, 2))}
           </details>
         )}
-        {stage === "export" && (
+        {stage === "export" && (draft.category === "replica" ? (
+          <ReplicaHandoff draft={draft} />
+        ) : (
           <button className="ops-button ops-primary" onClick={() => exportDraft(draft)}>
             <ArrowDownToLine size={16} /> {guide.download}
           </button>
-        )}
+        ))}
       </>
     );
   }
@@ -975,10 +985,41 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
   );
 }
 
-function Reference({ label, value }: { label: string; value: string | undefined }) {
+function ReplicaHandoff({ draft }: { draft: StudioDraft }) {
+  const [approvedNote, setApprovedNote] = useState<string | null>(null);
+  const observation = draft.fields.observation?.trim();
+  const includeNote = !!observation && approvedNote === observation;
+  const mode = includeNote ? "brief-with-observation" : "brief";
+  return (
+    <>
+      <details className="ops-reference">
+        <summary>Review brief contents</summary>
+        {observation && <label>
+          <input type="checkbox" checked={includeNote}
+            onChange={(event) => setApprovedNote(event.target.checked ? observation : null)} />
+          Include this observation that I have permission to share
+          <span className="ops-observation">{observation}</span>
+        </label>}
+        <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+          {JSON.stringify(draftExport(draft, mode), null, 2)}
+        </pre>
+      </details>
+      <button className="ops-button ops-primary" onClick={() => exportDraft(draft, mode)}>
+        <ArrowDownToLine size={16} /> Download design brief
+      </button>
+      <details className="ops-reference">
+        <summary>Private backup</summary>
+        <p>Includes all source locations, permission notes and working fields.</p>
+        <button className="ops-link" onClick={() => exportDraft(draft, "draft")}>Download private draft</button>
+      </details>
+    </>
+  );
+}
+
+function Reference({ label, value, expanded }: { label: string; value: string | undefined; expanded?: boolean }) {
   if (!value?.trim()) return null;
   return (
-    <details className="ops-reference">
+    <details className="ops-reference" open={expanded}>
       <summary>{label}</summary>
       <p>{value}</p>
     </details>

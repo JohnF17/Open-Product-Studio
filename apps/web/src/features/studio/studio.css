@@ -750,6 +750,11 @@
   overflow-wrap: anywhere;
   padding: 10px 0;
 }
+.ops-observation {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
 .ops-note {
   padding: 16px;
   border: 1px dashed var(--ops-line);

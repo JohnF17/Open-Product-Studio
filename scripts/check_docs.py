@@ -44,7 +44,7 @@ LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 # Generated from the Studio renderer using a synthetic project. Capture provenance
 # and SHA-256 are in docs/acceptance/WP08/README.md. Review replacements explicitly.
 STUDIO_WINDOW_RECORDINGS = {
-    'docs/acceptance/WP08/categories/entry-resume-edit.webm': '8eb54d811e9c2667fef9334773d35f9ed686b07f',
+    'docs/acceptance/WP08/categories/entry-resume-edit.webm': 'c1c23949fcc7599f83619df7bc8ee934616193e1',
     'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
 }
 

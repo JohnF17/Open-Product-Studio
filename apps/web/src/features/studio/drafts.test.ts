@@ -41,7 +41,7 @@ describe("Studio working drafts", () => {
     ["replica", "design-brief"],
     ["day-trader", "practice-journal"],
   ] as const)("exports %s as authored notes with an explicit artifact type", (category, kind) => {
-    const fields = { notes: "Written by the project owner" };
+    const fields = { brief: "Written by the project owner" };
     const draft = { ...createDraft("one", category), stage: "export", fields };
     expect(draftExport(draft)).toEqual({
       schema: "studio-working-draft/1",
@@ -52,6 +52,19 @@ describe("Studio working drafts", () => {
       kind,
       content: "authored-notes",
     });
+  });
+
+  it("keeps private source fields out of a Replica handoff, including when sharing an observation", () => {
+    const fields = {
+      referenceNote: "/private/source", referenceRights: "Analysis only", observation: "One count changed",
+      brief: "Track open tasks", interfaceSketch: "A list with a total", privateFutureField: "Secret",
+    };
+    const draft = { ...createDraft("one", "replica"), fields };
+    expect(draftExport(draft).fields).toEqual({ brief: fields.brief, interfaceSketch: fields.interfaceSketch });
+    expect(draftExport(draft, "brief-with-observation").fields).toEqual({
+      brief: fields.brief, interfaceSketch: fields.interfaceSketch, observation: fields.observation,
+    });
+    expect(draftExport(draft, "draft").fields).toEqual(fields);
   });
 
   it("coalesces rapid edits and only advances a committed revision", async () => {
@@ -85,7 +98,7 @@ describe("Studio working drafts", () => {
     let calls = 0;
     const editor = new DraftEditor(createDraft("one", "video"), async () => {
       calls++;
-      throw new DraftConflict("Changed elsewhere");
+      throw new DraftConflict({ message: "Changed elsewhere" });
     });
     editor.update({ title: "My cut" });
     await editor.flush();

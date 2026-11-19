@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vite-plus/test";
 import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
+import { randomUUID } from "../../lib/randomUUID";
 import StudioWorkspace, { type StudioAgentRequest } from "./StudioWorkspace";
 import { listDrafts } from "./drafts";
 
@@ -48,7 +49,7 @@ const workingDraftCases = [
 it.each(workingDraftCases)(
   "edits, reopens and exports a $category working draft",
   async ({ category, sheets, download, kind, exportField, optional }) => {
-    const workspaceId = crypto.randomUUID();
+    const workspaceId = randomUUID();
     const onAskAgent = vi.fn(async () => {});
     const container = document.createElement("div");
     container.style.width = "320px";
@@ -72,6 +73,14 @@ it.each(workingDraftCases)(
     await textbox("Project name").fill("Working study");
     for (const [index, [label, sample]] of sheets.entries()) {
       await textbox(label).fill(sample);
+      if (category === "Replica" && label === "Reference and location") {
+        await textbox("Observed behavior").fill("The count updates immediately");
+        await textbox("Rights and use limits").fill("Analysis only");
+      }
+      if (category === "Clipper" && label === "Review notes") {
+        await expect.element(screen.getByText("Caption · Callout", { exact: true })).toBeVisible();
+        await expect.element(screen.getByText("Keep both hands visible", { exact: true })).toBeVisible();
+      }
       if (category === "Clipper" && label === "Mark in") {
         await textbox("Mark out").fill("00:29");
       }
@@ -82,6 +91,10 @@ it.each(workingDraftCases)(
         await userEvent.upload(screen.getByLabelText("Use a permitted reference still (optional)"),
           new File([png], "private-reference.png", { type: "image/png" }));
         await expect.element(screen.getByRole("img", { name: "Selected reference frame" })).toBeVisible();
+        await textbox("Caption text").fill("A long caption ".repeat(10));
+        await button("Headline").click();
+        await expect.element(screen.getByText(/This caption exceeds the frame/)).toBeVisible();
+        await expect.element(button("Use this look")).toBeDisabled();
         await textbox("Caption text").fill("Keep both hands visible");
         await button("Headline").click();
         await button("Use this look").click();
@@ -127,6 +140,20 @@ it.each(workingDraftCases)(
         expect(exported).not.toHaveProperty("fills");
       }
       expect(clickLink).toHaveBeenCalledTimes(1);
+      if (category === "Replica") {
+        expect(Object.keys(exported.fields).sort()).toEqual(["brief", "interfaceSketch"]);
+        await screen.getByText("Review brief contents", { exact: true }).click();
+        await screen.getByRole("checkbox", { name: /permission to share/ }).click();
+        await button(download).click();
+        const shared = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
+        expect(Object.keys(shared.fields).sort()).toEqual(["brief", "interfaceSketch", "observation"]);
+        expect(shared.fields.observation).toBe("The count updates immediately");
+        await screen.getByText("Private backup", { exact: true }).click();
+        await button("Download private draft").click();
+        const backup = JSON.parse(await (createUrl.mock.calls.at(-1)![0] as Blob).text());
+        expect(backup.kind).toBe("private-working-draft");
+        expect(Object.values(backup.fields)).toEqual(expect.arrayContaining([sheets[0][1], "Analysis only"]));
+      }
     } finally {
       createUrl.mockRestore();
       clickLink.mockRestore();
@@ -147,7 +174,7 @@ it.each(workingDraftCases)(
 );
 
 it("preserves an editable video brief through forward, backward and project navigation", async () => {
-  await using screen = await render(<StudioWorkspace workspaceId={crypto.randomUUID()} />, {
+  await using screen = await render(<StudioWorkspace workspaceId={randomUUID()} />, {
     router: false,
   });
   const button = (name: string | RegExp) =>
@@ -175,7 +202,7 @@ it("preserves an editable video brief through forward, backward and project navi
 it("prepares a Replica question with only the excerpts explicitly included on this sheet", async () => {
   const requests: StudioAgentRequest[] = [];
   await using screen = await render(
-    <StudioWorkspace workspaceId={crypto.randomUUID()} onAskAgent={async (request) => { requests.push(request); }} />,
+    <StudioWorkspace workspaceId={randomUUID()} onAskAgent={async (request) => { requests.push(request); }} />,
     { router: false },
   );
   const button = (name: string | RegExp) => screen.getByRole("button", { name, exact: typeof name === "string" });
@@ -185,20 +212,25 @@ it("prepares a Replica question with only the excerpts explicitly included on th
   await expect.poll(() => requests.length).toBe(1);
   expect(requests[0]!.prompt).not.toContain("The open count");
   await screen.getByText("Choose what to include", { exact: true }).click();
-  await screen.getByRole("checkbox", { name: /Include these excerpts/ }).check();
+  await screen.getByRole("checkbox", { name: /Include these excerpts/ }).click();
   await button("Ask agent for options").click();
   await expect.poll(() => requests.length).toBe(2);
   expect(requests[1]!.prompt).toContain("The open count falls by one");
+  await screen.getByRole("textbox", { name: "Observed behavior" }).fill("Revised private observation");
+  await expect.element(screen.getByRole("checkbox", { name: /Include these excerpts/ })).not.toBeChecked();
+  await button("Ask agent for options").click();
+  await expect.poll(() => requests.length).toBe(3);
+  expect(requests[2]!.prompt).not.toContain("Revised private observation");
   await button("Next").click();
   await screen.getByRole("textbox", { name: "Proposed behavior" }).fill("Keep an accessible total");
   await button("Ask agent for options").click();
-  await expect.poll(() => requests.length).toBe(3);
-  expect(requests[2]!.prompt).not.toContain("Keep an accessible total");
-  expect(requests[2]!.prompt).not.toContain("The open count");
+  await expect.poll(() => requests.length).toBe(4);
+  expect(requests[3]!.prompt).not.toContain("Keep an accessible total");
+  expect(requests[3]!.prompt).not.toContain("The open count");
 });
 
 it("hands saved context to the agent and cancels requests on step changes and project exit", async () => {
-  const workspace = crypto.randomUUID();
+  const workspace = randomUUID();
   const requests: StudioAgentRequest[] = [];
   const handoff = async (request: StudioAgentRequest) => {
     requests.push(request);
