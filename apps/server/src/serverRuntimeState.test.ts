@@ -187,7 +187,11 @@ describe("server ownership", () => {
             Effect.flip,
           );
           assert.equal(refused._tag, "ServerAlreadyRunningError");
-          assert.include(refused.message, "do not delete it while a server is running");
+          assert.include(refused.message, "--base-dir with a new, empty directory");
+          assert.include(
+            refused.message,
+            "Leave the running server and its server-owner.sqlite lock in place.",
+          );
           assert.equal(yield* fs.readFileString(statePath), before);
         }),
       );

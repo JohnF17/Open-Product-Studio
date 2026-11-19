@@ -100,8 +100,10 @@ export const make = Effect.fn("cloud.server_self_update.make")(function* () {
   );
   return ServerSelfUpdate.of({
     update,
-    commitDesktopUpdate: (requestId, onHandoffAccepted) =>
-      checkAvailable.pipe(Effect.andThen(() => desktop.commit(requestId, onHandoffAccepted))),
+    commitDesktopUpdate: Effect.fn("ServerSelfUpdate.commitDesktopUpdate")(
+      (requestId: string, onHandoffAccepted?: () => Effect.Effect<void>) =>
+        checkAvailable.pipe(Effect.andThen(() => desktop.commit(requestId, onHandoffAccepted))),
+    ),
   });
 });
 

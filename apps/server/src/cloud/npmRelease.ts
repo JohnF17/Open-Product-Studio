@@ -23,10 +23,11 @@ const decodeInput = Schema.decodeUnknownEffect(ServerNpmReleaseInput);
 export const layer = Layer.succeed(
   NpmRelease,
   NpmRelease.of({
-    get: (input) =>
+    get: Effect.fn("NpmRelease.get")((input: ServerNpmReleaseInput) =>
       decodeInput(input).pipe(
         Effect.as(null),
         Effect.mapError(() => new ServerNpmReleaseError({ reason: "Invalid release version or track." })),
       ),
+    ),
   }),
 );
