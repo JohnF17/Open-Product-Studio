@@ -62,6 +62,8 @@ Apply per-user/tenant/provider concurrency and request limits, email verificatio
 
 See [CI.md](CI.md). Never run untrusted PR code with production credentials. AI review receives untrusted content as data, has no shell/write/secret authority, and cannot merge its own output. Pin build actions, lock dependencies, verify provenance, scan changes for secrets and unsafe workflow patterns, and review new binaries/native modules.
 
+The documentation and upstream-intake jobs fetch GitHub's event SHA from the public repository without a token. They leave submodules uninitialized and verify the checked-out commit before running repository code. Scheduled and manual intake jobs accept only the default branch.
+
 Plugin installation is an authority grant, not a cosmetic setting. Ship bundled declarative modules first. External modules need publisher identity, exact version/hash, license, required capabilities, review, revocation and an update policy. Do not auto-execute newly downloaded plugins.
 
 ## Release gates

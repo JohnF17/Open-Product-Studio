@@ -17,10 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-11-12
-        with:
-          fetch-depth: 0
-          persist-credentials: false
+      - name: Check out the public event commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GIT_TERMINAL_PROMPT=0
+          git init --quiet
+          git -c credential.helper= fetch --quiet --no-tags --no-recurse-submodules \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Test documentation policy
         run: python3 -m unittest discover -s tests -v
       - name: Check project documents

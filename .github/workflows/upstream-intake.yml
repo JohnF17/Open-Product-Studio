@@ -20,12 +20,17 @@ jobs:
     env:
       GIT_TERMINAL_PROMPT: '0'
     steps:
-      - id: trusted_checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
+      - name: Check out the public event commit
+        id: trusted_checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GIT_TERMINAL_PROMPT=0
+          git init --quiet
+          git -c credential.helper= fetch --quiet --no-tags --no-recurse-submodules \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout --quiet --detach --no-recurse-submodules FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Compare official main to the retained baseline
         shell: bash
         run: |

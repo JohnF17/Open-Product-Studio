@@ -4,13 +4,13 @@
 
 The unit suite also checks the [project category catalog](roadmap/project-categories.json) against the canonical package and capability IDs. It exercises independent project entry points, a local starter video style, required versus optional tools, and a reviewed export before optional publishing. Run `python -B scripts/check_project_categories.py` for just the catalog check.
 
-`.github/workflows/docs.yml` is an actual read-only PR/push workflow. It uses a revision-pinned checkout action with persisted Git credentials disabled, no repository secrets, a five-minute timeout, and hosted ephemeral runners. It runs `python3 -m unittest discover -s tests -v`, `python3 scripts/check_docs.py`, `python3 scripts/check_roadmap.py` and `python3 scripts/check_agents.py` without installing dependencies.
+`.github/workflows/docs.yml` runs on pull requests and pushes to `main` with read-only permissions and a five-minute timeout on a hosted Ubuntu runner. It fetches the exact event SHA over public HTTPS with its ancestry and checks out a detached HEAD. For a pull request this SHA identifies GitHub's test merge commit. Git receives no token and leaves inherited gitlinks uninitialized. The job runs the Python unit suite and the documentation, roadmap, agent-contract and project-category checks without installing dependencies.
 
 The structural check verifies required files and local Markdown targets, rejects private files in the public candidate, and restricts research and media assets. Five inherited media blobs have an explicit path and digest allowance. Required Studio documents and changed Markdown get link checks. The check recognizes ordinary inline Markdown links. Factual sourcing, remote links, anchors, secrets, provider terms and runtime security require separate review.
 
 The roadmap check validates package/capability ownership, required acceptance/role fields, milestone/external IDs, dangling or cyclic dependencies and local evidence references for accepted work. It also checks the feature inventory ID manifest, source IDs, software-to-package/milestone links and reverse requirement mappings, retaining explicit human/unverified dispositions. A design-only register cannot claim accepted implementation. These checks cannot decide whether a human reviewer is independent, a source supports a claim or an evidence file tells the truth. The application gate must later verify runtime behavior and accepted release records.
 
-GitHub execution has not occurred because no remote repository was created. Local commands can prove this check locally; they cannot prove branch protection or a hosted workflow run.
+The [first hosted documentation job](https://github.com/JohnF17/Open-Product-Studio/actions/runs/44502885104/job/135486919842) stopped during checkout when the checkout action tried to enumerate an inherited gitlink without a root submodule URL. Review the hosted check on the revision being merged and verify branch protection separately.
 
 `python3 scripts/check_agents.py` also runs in the workflow. It checks the design-only role/reply/tool references, bounded repair metadata, exact-model/authority invariants, advisory council settings and one disabled Dot with no initial external actions. Mutation tests exercise those guards. This is metadata coherence, not runtime tool confinement, prompt-injection resistance, actual schema-conformant model output or live service acceptance. WP52-66 require those tests with implementation.
 
@@ -50,7 +50,7 @@ Run deterministic checks first. Use Sol xhigh for scoped review and Astra high f
 
 AI review is advisory initially. Require human triage of every claimed blocker and preserve disagreement. Only consider a blocking AI policy after a benchmark of known seeded defects and false positives, with a documented appeal path and maintainer override. The reviewer cannot merge, edit workflows, dismiss findings, or turn on its own tools. A clever CI bot is another security boundary.
 
-## Hosting settings to configure when a remote exists
+## Hosting settings to verify
 
 Require current checks, independent review, stale-approval dismissal, signed-off commits, no force-push to main, restricted bypass and protected release tags. Assign real maintainers to CODEOWNERS for auth, billing, provider execution, CI, remote grants and security documents. No fake team handles are added now. Enable private vulnerability reporting and a verified contact before public contributions.
 
@@ -66,7 +66,7 @@ Merge only the reviewed revision with current required checks. Release jobs use 
 
 The import archives upstream workflows for independent review. Studio's documentation gate reads the pinned tree to recognize unchanged upstream documents. A missing pin fails this gate, so CI fetches repository history. Package smoke tests, notices and signed update checks have their own evidence requirements. See the [Windows baseline record](BASELINE.md).
 
-The [upstream intake workflow](../.github/workflows/upstream-intake.yml) specifies daily checks at 06:17 UTC and manual runs on the default branch. It reads official main, the five most recent published releases and published repository advisories. Both command blocks ran locally on November 19. Hosted scheduling, dependency-advisory coverage and branch protection still require qualification. A failed source fetch marks the run incomplete. The [upstream intake policy](UPSTREAM.md) assigns weekly human review of changes, urgent security triage, and revision-specific migration, license and performance checks.
+The [upstream intake workflow](../.github/workflows/upstream-intake.yml) specifies daily checks at 06:17 UTC and manual runs on the default branch. Its checkout uses the same anonymous fetch of the exact event commit. The job then reads official main, the five most recent published releases and published repository advisories. Both inspection command blocks ran locally on November 19. Hosted scheduling, dependency-advisory coverage and branch protection still require qualification. A failed source fetch marks the run incomplete. The [upstream intake policy](UPSTREAM.md) assigns weekly human review of changes, urgent security triage, and revision-specific migration, license and performance checks.
 
 ## Integrated lifecycle evidence to implement
 
