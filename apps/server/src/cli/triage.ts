@@ -19,7 +19,7 @@ import { buildTriageLaunchPrompt } from "../triage/triagePrompt.ts";
 import { describeServerProcess, writeTriageSession } from "../triage/triageSession.ts";
 import { baseDirFlag } from "./config.ts";
 import { interactiveStdin } from "./consoleStdin.ts";
-import { resolveCliCommand } from "./invocation.ts";
+import { resolveHostCliHint } from "./invocation.ts";
 
 interface TriageAgent {
   readonly id: "claude" | "codex" | "antigravity";
@@ -155,7 +155,7 @@ export const triageCommand = Command.make("triage", {
   model: modelFlag,
 }).pipe(
   Command.withDescription(
-    "Investigate a T3 Code problem on this machine with Claude Code, Codex, or Antigravity, and help file a good issue.",
+    "Investigate an Open Product Studio problem on this machine with Claude Code, Codex, or Antigravity, and help file a good issue.",
   ),
   Command.withHandler((flags) =>
     Effect.gen(function* () {
@@ -171,7 +171,7 @@ export const triageCommand = Command.make("triage", {
         entry: {
           kind: "cli",
           cliVersion: packageJson.version,
-          launchedAs: yield* resolveCliCommand("triage"),
+          launchedAs: yield* resolveHostCliHint("triage", flags.baseDir),
         },
         server: yield* describeServerProcess(paths.serverRuntimeStatePath),
       });
