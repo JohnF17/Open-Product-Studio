@@ -42,10 +42,11 @@ PINNED_MEDIA = {
 LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 
 # Generated from the Studio renderer using a synthetic project. Capture provenance
-# and SHA-256 are in docs/acceptance/WP08/README.md. Review replacements explicitly.
+# and SHA-256 are in the receipts under docs/acceptance/WP08. Review replacements explicitly.
 STUDIO_WINDOW_RECORDINGS = {
     'docs/acceptance/WP08/categories/entry-resume-edit.webm': '81fb9c80d556428648f0a9f10d7c6e062c9e884a',
     'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
+    'docs/acceptance/WP08/video-cues/video-cue-sheet.webm': '41e1cf9b556e932df60fbb34298d544bd555e658',
 }
 
 

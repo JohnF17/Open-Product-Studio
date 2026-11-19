@@ -2,6 +2,7 @@ import catalogText from "../../../../../docs/roadmap/project-categories.json?raw
 import type { StudioDraft, VideoStyle } from "./drafts";
 import { projectName } from "./drafts";
 import { workingGuide } from "./workingDraftGuides";
+import { exportCueSheet } from "./videoCues";
 
 type StyleDefinition = {
   label: string;
@@ -152,6 +153,7 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
           plannedTools: selectedTools(draft),
+          ...(draft.videoCues?.length ? { cueSheet: exportCueSheet(draft.videoCues) } : {}),
         }
       : {}),
   };

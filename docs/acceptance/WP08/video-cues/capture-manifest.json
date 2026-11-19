@@ -1,0 +1,34 @@
+{
+  "studioSourceSha256": "9807c8095dd96099db31202f1c39682169f7ac164326684ed38e1fb33641e058",
+  "studioSourceFilesSha256": {
+    "apps/web/src/features/studio/ClipLookPreview.tsx": "c527535b94dff8ea4905d8ff4b2ae3ab18b2a5f21944028c0ea525d8ff28eb41",
+    "apps/web/src/features/studio/StudioWorkspace.tsx": "a429b3aed468dd0f6f8a5f57ad3ede79b1ce58c62b482f0decac5dde233969ca",
+    "apps/web/src/features/studio/VideoCueSheet.tsx": "426901db42965ebfd7c7b9da7de91c2ddb47249591214f81ae1ca862e1fcda78",
+    "apps/web/src/features/studio/clipLook.css": "777802542ebda4ab60a5aca6bf5b3581b047dc0740b1fcba7d3eaeb46f39ee59",
+    "apps/web/src/features/studio/drafts.ts": "b9e3473d33f82a2b43d82a28576e9435395d6b60e2d9155c86e595498fa45ea1",
+    "apps/web/src/features/studio/guide.ts": "efec8d06150acff47f24184640f3a4d5d70ad815e94195b830922714a4f6760c",
+    "apps/web/src/features/studio/studio.css": "246636af2a94157851514a0f079cff6aa6514610bae0526d04389df4c846b09e",
+    "apps/web/src/features/studio/videoCues.css": "e04bc9e19251b1c1b537d9ecb3e80fd447ca32098d4be7e51e2c5b5f644bfc20",
+    "apps/web/src/features/studio/videoCues.ts": "ad2d8f02f4d4d94780f42143f68c425a4b1e4ddfe95fb3d5b33a830f27cb584d",
+    "apps/web/src/features/studio/workingDraftGuides.ts": "4af5c8e1114e9adf3675c231d8fb10a0e3d118c9b61dbbc9f011d08d8a8f6d85",
+    "apps/web/src/index.css": "56bf2e9f13723da30dfe09b2564c8e1bfe021cc6c403bc89763619a78098f38e",
+    "apps/web/src/lib/randomUUID.ts": "4800f0b71e8d21a8fdc2601bc3b2eb317e7cd83c1ac16bc69ec97798ce43fe91",
+    "docs/roadmap/project-categories.json": "1db676f30a1d6c4050abe3353d8567a9f4438469713664b476c024138ec84582",
+    "pnpm-lock.yaml": "73ba22b9064104de1c68c034929a6f3a79d50ca755858e70d1b7925c809dc451"
+  },
+  "t3AppearanceSourceCommit": "bb234221cefe1dfdc64d754ee14d0456c5d09ec6",
+  "compiledT3StylesheetSha256": "00872f897f38805ef85dddfbe5f6842b60351666ec1914ca0f7afa4139504c98",
+  "compiledT3AppearanceFunctionsSha256": "181eafa490d5e72f7a79463d314b41b5efa39ea77adf38d49b2fe53f0b03e4dc",
+  "artifactsSha256": {
+    "video-cue-sheet.webm": "dbacc298275c76c3b48043daf62994150e3d597119306d283df6c16cd140239b",
+    "cue-sheet-light.png": "3c744e87adff70dab41f2e3f08af8864b3f15e976f1a82e4db2efcaac57c0545",
+    "cue-sheet-dark.png": "a6029bc17df03ceefae4a2b87dc22c19fe6d04073e2038a08add5a7041ed0691"
+  },
+  "video": {
+    "width": 1240,
+    "height": 940,
+    "fps": 25,
+    "decodedFrames": 233,
+    "seconds": 9.32
+  }
+}

@@ -41,6 +41,7 @@ import {
 import { workingGuide } from "./workingDraftGuides";
 import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
+import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 
 export interface StudioAgentRequest {
   workspaceId: string;
@@ -910,6 +911,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
             : "One shot per line. These become your storyboard preview.",
           4,
         )}
+        <VideoCueSheet cues={draft.videoCues ?? []} onChange={(videoCues) => editor.update({ videoCues })} />
       </>
     );
   if (stage === "assets")
@@ -935,7 +937,7 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
       <>
         <Heading
           title="Preview the storyboard"
-          detail="This text preview uses your saved shot list. Video rendering is planned for M4A."
+          detail="Review your saved storyboard here. Video rendering is planned for M4A."
         />
         {shots.length > 0 ? (
           <ol className="ops-shot-list">
@@ -946,9 +948,10 @@ function Step({ stage, draft, editor, writeField }: StepProps) {
               </li>
             ))}
           </ol>
-        ) : (
+        ) : !draft.videoCues?.length && (
           <p className="ops-note">Add shots in the Storyboard step to see them here.</p>
         )}
+        {!!draft.videoCues?.length && <VideoCuePreview cues={draft.videoCues} />}
       </>
     );
   }

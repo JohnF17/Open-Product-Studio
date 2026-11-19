@@ -58,6 +58,57 @@ describe("Studio working drafts", () => {
     expect(starterOptions(draft)[0]?.brief).toMatch(/figure/i);
   });
 
+  const firstCue = { id: "a", timestamp: "0:00", action: "Open the envelope.", narration: "", caption: "", sound: "" };
+  const secondCue = { id: "b", timestamp: "0:02.5", action: "", narration: "Read the letter.", caption: "Hello", sound: "Paper rustles" };
+
+  it("retains unfinished cue text and gives other tools the planned starts in milliseconds", () => {
+    const draft = createDraft("one", "video");
+    expect(draftExport(draft)).not.toHaveProperty("cueSheet");
+    expect(draftExport({ ...draft, videoCues: [] })).not.toHaveProperty("cueSheet");
+    const planned = { ...draft, videoCues: [firstCue, secondCue] };
+    expect(isStudioDraft(planned, "one")).toBe(true);
+    expect(draftExport(planned)).toMatchObject({
+      cueSheet: { timing: "ready", cues: [{ ...firstCue, startMs: 0 }, { ...secondCue, startMs: 2500 }] },
+      fields: {},
+    });
+    const unfinished = { ...secondCue, timestamp: "0:" };
+    const partial = { ...draft, videoCues: [firstCue, unfinished] };
+    expect(isStudioDraft(partial, "one")).toBe(true);
+    expect(draftExport(partial).cueSheet).toEqual({
+      timing: "draft", cues: [{ ...firstCue, startMs: 0 }, { ...unfinished, startMs: null }],
+    });
+  });
+
+  it.each([
+    ["", null, "draft"],
+    ["0:60", null, "draft"],
+    ["0:9", null, "draft"],
+    ["-1:12", null, "draft"],
+    ["1:60:05", null, "draft"],
+    ["1:03.0000", null, "draft"],
+    ["9007199254740992:00", null, "draft"],
+    ["00:01", 1000, "draft"],
+    ["00:02.500", 2500, "draft"],
+    ["00:02.501", 2501, "ready"],
+    ["1:02:03.04", 3723040, "ready"],
+  ] as const)("checks the next cue at %j without reranking or dropping it", (timestamp, startMs, timing) => {
+    const next = { ...firstCue, timestamp };
+    const draft = { ...createDraft("one", "video"), videoCues: [secondCue, next] };
+    expect(draftExport(draft).cueSheet).toEqual({
+      timing, cues: [{ ...secondCue, startMs: 2500 }, { ...next, startMs }],
+    });
+  });
+
+  it("rejects malformed cue collections and keeps cues within the Video project", () => {
+    const draft = createDraft("one", "video");
+    for (const videoCues of [null, {}, ["text"], [firstCue, firstCue], [{ ...firstCue, id: "" }], [{ ...firstCue, timestamp: 2 }]]) {
+      expect(isStudioDraft({ ...draft, videoCues }, "one")).toBe(false);
+    }
+    const replica = { ...createDraft("one", "replica"), videoCues: [firstCue] };
+    expect(isStudioDraft(replica, "one")).toBe(false);
+    expect(draftExport(replica)).not.toHaveProperty("cueSheet");
+  });
+
   it.each([
     ["clipper", "edit-plan"],
     ["replica", "design-brief"],

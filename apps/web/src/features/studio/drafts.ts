@@ -1,6 +1,7 @@
 import * as Schema from "effect/Schema";
 
 import { randomUUID } from "../../lib/randomUUID";
+import { isVideoCueList, type VideoCue } from "./videoCues";
 
 export type WorkingCategory = "clipper" | "replica" | "day-trader";
 export type Category = "blank" | "digital-product" | "video" | WorkingCategory;
@@ -18,6 +19,7 @@ export interface StudioDraft {
   style: VideoStyle;
   title: string;
   fields: Record<string, string>;
+  videoCues?: VideoCue[];
   tools: string[];
 }
 
@@ -129,6 +131,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     typeof d.fields === "object" &&
     !Array.isArray(d.fields) &&
     Object.values(d.fields).every((v) => typeof v === "string") &&
+    (d.videoCues === undefined || (d.category === "video" && isVideoCueList(d.videoCues))) &&
     Array.isArray(d.tools) &&
     d.tools.every((t) => typeof t === "string")
   );
@@ -216,7 +219,7 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
   });
 }
 
-type Editable = Pick<StudioDraft, "title" | "fields" | "style" | "tools" | "stage" | "category">;
+type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 
 /** One writer per open project. Coalesce keystrokes while the previous transaction commits. */
