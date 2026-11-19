@@ -74,7 +74,8 @@ async function launch(index) {
     env,
     timeout: 120000,
     args: [
-      "--user-data-dir=" + path.join(env.APPDATA, "open-product-studio"),
+      // Isolate Chromium's earliest startup, then verify Studio selects its own profile.
+      "--user-data-dir=" + path.join(user, "Chromium-bootstrap"),
       "--disable-background-networking",
       "--disable-component-update",
       "--disable-gpu-disk-cache",
