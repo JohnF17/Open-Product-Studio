@@ -1,5 +1,6 @@
 import * as Schema from "effect/Schema";
 import {
+  getLocalStorageItem,
   readLocalStorageValue,
   useLocalStorage,
   writeLocalStorageValue,
@@ -25,13 +26,21 @@ export function getDefaultBuilderDraftRoute(
   return t3Available && category !== "day-trader" ? "t3" : "local";
 }
 
+export function useBuilderDraftRoutePreference(workspaceId: string, category: Category) {
+  const [saved] = useLocalStorage(routeKey(workspaceId, category), null, draftRouteSchema);
+  return allowedRoute(category, saved);
+}
+
 export function useBuilderDraftRoute(
   workspaceId: string,
   category: Category,
   defaultRoute: BuilderDraftRoute = "local",
 ): BuilderDraftRoute {
-  const [saved] = useLocalStorage(routeKey(workspaceId, category), null, draftRouteSchema);
-  return allowedRoute(category, saved) ?? allowedRoute(category, defaultRoute) ?? "local";
+  return (
+    useBuilderDraftRoutePreference(workspaceId, category) ??
+    allowedRoute(category, defaultRoute) ??
+    "local"
+  );
 }
 
 export function setBuilderDraftRoute(
@@ -43,4 +52,14 @@ export function setBuilderDraftRoute(
   const key = routeKey(workspaceId, category);
   writeLocalStorageValue(key, route, null, draftRouteSchema);
   return readLocalStorageValue(key, null, draftRouteSchema) === route;
+}
+
+export function resetBuilderDraftRoute(workspaceId: string, category: Category) {
+  const key = routeKey(workspaceId, category);
+  writeLocalStorageValue(key, null, null, draftRouteSchema);
+  try {
+    return getLocalStorageItem(key, draftRouteSchema) === null;
+  } catch {
+    return false;
+  }
 }

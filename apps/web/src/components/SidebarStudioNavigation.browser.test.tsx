@@ -1,8 +1,7 @@
-import { ProjectId, ThreadId } from "@t3tools/contracts";
+import { EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
 import type * as Context from "effect/Context";
 import {
   dispatchedCommands,
-  ENVIRONMENT_ID,
   installFakeEnvironment,
   type FakeDriver,
 } from "../../test/fakeEnvironment";
@@ -17,7 +16,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { expect, it, vi } from "vite-plus/test";
-import { page } from "vite-plus/test/browser";
+import { page, userEvent } from "vite-plus/test/browser";
 import { render } from "../../test/render";
 import { createDraft, saveDraft } from "../features/studio/drafts";
 import { studioProjectHash } from "../features/studio/projectNavigation";
@@ -26,7 +25,7 @@ import Sidebar from "./Sidebar";
 import StudioLanding from "./StudioLanding";
 import { SidebarProvider } from "./ui/sidebar";
 
-const workspace = ENVIRONMENT_ID;
+const workspace = EnvironmentId.make("studio-sidebar-" + randomUUID());
 vi.mock("../../../../packages/client-runtime/src/connection/driver.ts", async (importOriginal) => {
   const [actual, { fakeDriver }, Layer] = await Promise.all([
     importOriginal<{ readonly ConnectionDriver: Context.Key<unknown, FakeDriver> }>(),
@@ -55,13 +54,24 @@ it("opens the saved builder from its category in the real sidebar, then finishes
   await using _viewport = {
     [Symbol.asyncDispose]: () => page.viewport(previousViewport.width, previousViewport.height),
   };
+  const settledPreference = "t3code:sidebar:settled-expanded";
+  const previousSettledPreference = localStorage.getItem(settledPreference);
+  localStorage.removeItem(settledPreference);
+  using _settledPreference = {
+    [Symbol.dispose]: () => {
+      if (previousSettledPreference === null) localStorage.removeItem(settledPreference);
+      else localStorage.setItem(settledPreference, previousSettledPreference);
+    },
+  };
   using _environment = installFakeEnvironment([]);
   const project = {
     ...createDraft(workspace, "clipper"),
     title: "Sidebar clip " + randomUUID(),
     stage: "review",
   };
+  const secondProject = { ...createDraft(workspace, "clipper"), title: "Second saved clip" };
   await saveDraft(project, 0);
+  await saveDraft(secondProject, 0);
   await saveDraft({ ...project, workspaceId: "elsewhere", title: "Other workspace clip" }, 0);
   const root = createRootRoute({
     beforeLoad: () => ({ authGateState: { status: "authenticated" } }),
@@ -86,10 +96,13 @@ it("opens the saved builder from its category in the real sidebar, then finishes
   await using screen = await render(<RouterProvider router={router} />, { router: false });
   const settled = screen.getByTestId("sidebar-settled-shelf-toggle");
   await expect.element(settled).toBeVisible();
-  if (settled.element().getAttribute("aria-expanded") !== "true") await settled.click();
-  const row = screen
-    .getByRole("list", { name: "Clipper projects" })
-    .getByRole("link", { name: project.title });
+  await expect.element(settled).toHaveAttribute("aria-expanded", "false");
+  (settled.element() as HTMLButtonElement).focus();
+  await userEvent.keyboard("{Enter}");
+  await expect.element(settled).toHaveAttribute("aria-expanded", "true");
+  const clipProjects = screen.getByRole("list", { name: "Clipper projects" });
+  await expect.element(clipProjects.getByRole("link", { name: secondProject.title })).toBeVisible();
+  const row = clipProjects.getByRole("link", { name: project.title });
   await expect.element(row).toBeVisible();
   expect(row.element().getAttribute("href")).toBe("/#" + studioProjectHash(workspace, project.id));
   await expect

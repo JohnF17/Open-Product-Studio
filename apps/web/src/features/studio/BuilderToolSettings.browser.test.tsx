@@ -169,3 +169,53 @@ it("shows registered skill names for an available T3 account and expands the rem
   );
   await expect.element(ui.getByText("Scene planner", { exact: true })).not.toBeInTheDocument();
 });
+
+it("resets an unavailable pin to automatic availability without affecting other scopes", async () => {
+  const workspaceId = randomUUID();
+  const otherWorkspaceId = randomUUID();
+  expect(setBuilderDraftRoute(workspaceId, "video", "t3")).toBe(true);
+  expect(setBuilderDraftRoute(workspaceId, "digital-product", "t3")).toBe(true);
+  expect(setBuilderDraftRoute(otherWorkspaceId, "video", "t3")).toBe(true);
+
+  const view = (deviceAvailable: boolean, t3Available: boolean) => (
+    <>
+      <BuilderToolSettings
+        workspaceId={workspaceId}
+        category="video"
+        expanded
+        deviceAvailable={deviceAvailable}
+        t3Available={t3Available}
+      />
+      <DraftRoute
+        workspaceId={workspaceId}
+        category="digital-product"
+        label="other category route"
+      />
+      <DraftRoute workspaceId={otherWorkspaceId} category="video" label="other workspace route" />
+    </>
+  );
+  await using ui = await render(view(true, false), { router: false });
+  const t3 = ui.getByRole("radio", { name: "T3 chat" });
+  const device = ui.getByRole("radio", { name: "On-device AI" });
+  const reset = ui.getByRole("button", { name: "Reset to default" });
+  await expect.element(t3).toBeChecked();
+  await expect.element(t3).toBeDisabled();
+
+  await reset.click();
+  await expect.element(device).toBeChecked();
+  await expect.element(device).toHaveFocus();
+  await expect.element(reset).not.toBeInTheDocument();
+
+  await ui.rerender(view(false, true));
+  await expect.element(t3).toBeChecked();
+  await ui.rerender(view(false, false));
+  await expect.element(ui.getByRole("radio", { name: "Local starter" })).toBeChecked();
+  await expect.element(reset).not.toBeInTheDocument();
+
+  await expect
+    .element(ui.getByRole("status", { name: "other category route" }))
+    .toHaveTextContent("t3");
+  await expect
+    .element(ui.getByRole("status", { name: "other workspace route" }))
+    .toHaveTextContent("t3");
+});

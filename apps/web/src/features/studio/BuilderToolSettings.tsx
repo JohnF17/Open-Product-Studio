@@ -1,11 +1,12 @@
 import { msg, T, useGT, useMessages } from "gt-react";
 import { ChevronDown, Settings2 } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { supportsFootageExport } from "./clipFootageRender";
 import {
   getDefaultBuilderDraftRoute,
+  resetBuilderDraftRoute,
   setBuilderDraftRoute,
-  useBuilderDraftRoute,
+  useBuilderDraftRoutePreference,
   type BuilderDraftRoute,
 } from "./builderToolPreferences";
 import { getBuilderStepTools } from "./builderToolRegistry";
@@ -48,9 +49,11 @@ export function BuilderToolSettings({
   const [selected, setSelected] = useState<Category>("digital-product");
   const current = category ?? selected;
   const defaultRoute = getDefaultBuilderDraftRoute(current, { deviceAvailable, t3Available });
-  const route = useBuilderDraftRoute(workspaceId, current, defaultRoute);
+  const savedRoute = useBuilderDraftRoutePreference(workspaceId, current);
+  const route = savedRoute ?? defaultRoute;
   const local = getBuilderStepTools(current, stage);
   const id = useId();
+  const routeFields = useRef<HTMLFieldSetElement>(null);
   const [failed, setFailed] = useState(false);
   const choices = [
     {
@@ -80,6 +83,17 @@ export function BuilderToolSettings({
 
   function savePreference(route: BuilderDraftRoute) {
     setFailed(!setBuilderDraftRoute(workspaceId, current, route));
+  }
+
+  function resetPreference() {
+    const reset = resetBuilderDraftRoute(workspaceId, current);
+    setFailed(!reset);
+    if (reset) {
+      // The reset control leaves the tree. Continue keyboard navigation at the automatic choice.
+      routeFields.current
+        ?.querySelector<HTMLInputElement>(`input[value="${defaultRoute}"]`)
+        ?.focus();
+    }
   }
 
   const body = (
@@ -144,7 +158,7 @@ export function BuilderToolSettings({
         )}
       </dl>
 
-      <fieldset className="min-w-0 space-y-1">
+      <fieldset ref={routeFields} className="min-w-0 space-y-1">
         <legend className="mb-1 text-sm font-medium">
           <T>Preferred drafting tool</T>
         </legend>
@@ -164,6 +178,7 @@ export function BuilderToolSettings({
               className="mt-1 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               type="radio"
               name={id}
+              value={choice.id}
               checked={route === choice.id}
               disabled={!choice.available}
               onChange={() => savePreference(choice.id)}
@@ -180,6 +195,15 @@ export function BuilderToolSettings({
             </span>
           </label>
         ))}
+        {savedRoute !== null && (
+          <button
+            type="button"
+            className="rounded-sm px-2 py-1 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            onClick={resetPreference}
+          >
+            {gt("Reset to default")}
+          </button>
+        )}
         {failed && (
           <p role="alert" className="text-sm text-destructive">
             <T>Studio could not save this preference.</T>
