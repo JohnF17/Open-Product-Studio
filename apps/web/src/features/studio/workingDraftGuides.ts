@@ -170,7 +170,7 @@ const guides: {
       source: {
         label: "Source",
         title: "Note your source recording",
-        detail: "Describe a recording you can use. Studio saves the note locally. Media import is planned for M2.",
+        detail: "Describe a recording you can use. On the Moment sheet you can open a local copy and mark the passage you want.",
         fields: clipperSource,
       },
       moments: {
@@ -204,7 +204,7 @@ const guides: {
       export: {
         label: "Edit-plan export",
         title: "Export your edit plan",
-        detail: "Download your source note, timecodes and edit instructions as JSON. Video rendering and playable exports are planned for M4A.",
+        detail: "Save your edit plan or download a timed caption for your recording or trimmed clip. Video rendering is planned for M4A.",
       },
       publish: {
         label: "Publishing prep",
