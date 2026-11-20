@@ -1,8 +1,11 @@
+// @effect-diagnostics nodeBuiltinImport:off globalTimers:off -- The standalone driver must bound child diagnostics and wait for process and pipe closure after a hard stop.
 import { spawn, type ChildProcessByStdio } from "node:child_process";
+import { win32 } from "node:path";
 import type { Readable } from "node:stream";
 
 type FailureCode = "cancelled" | "timeout" | "spawn" | "read" | "output-limit" | "exit" | "termination";
 
+// @effect-diagnostics-next-line extendsNativeError:off - shared with the dependency-free Node qualification command.
 export class LocalProcessError extends Error {
   readonly code: FailureCode;
   readonly exitCode: number | null;
@@ -34,8 +37,11 @@ export async function runBoundedProcess(
   if (signal?.aborted) throw new LocalProcessError("cancelled");
 
   const env: NodeJS.ProcessEnv = { LANG: "C", LC_ALL: "C" };
-  if (process.platform === "win32" && process.env.SystemRoot) {
-    env.SystemRoot = process.env.SystemRoot;
+  if (process.platform === "win32") {
+    const root = process.env.SystemRoot;
+    if (!root || !/^[a-z]:\\[^;\x00-\x1f]+$/i.test(root) || win32.normalize(root) !== root) throw new LocalProcessError("spawn");
+    env.SystemRoot = root;
+    env.PATH = win32.join(root, "System32") + ";" + root;
   }
 
   return new Promise((resolve, reject) => {

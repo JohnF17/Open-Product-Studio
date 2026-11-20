@@ -1,3 +1,4 @@
+// @effect-diagnostics nodeBuiltinImport:off -- The standalone qualification command and desktop share the same file-handle and digest checks.
 import { createHash } from "node:crypto";
 import { lstat, mkdtemp, open, realpath, rmdir, unlink } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
@@ -56,6 +57,7 @@ type ErrorCode =
   | "invalid-path" | "invalid-cut" | "binary-mismatch" | "source-mismatch"
   | "unsupported-source" | "invalid-output" | "filesystem" | "cleanup";
 
+// @effect-diagnostics-next-line extendsNativeError:off - shared with the dependency-free Node qualification command.
 export class PortraitRenderError extends Error {
   readonly code: ErrorCode;
   readonly phase: Phase;

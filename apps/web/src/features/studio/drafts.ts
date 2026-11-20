@@ -52,6 +52,7 @@ export interface StudioDraft {
   workspaceId: string;
   revision: number;
   restoredCopy?: number;
+  finished?: boolean;
   updatedAt: number;
   category: Category;
   stage: string;
@@ -147,7 +148,7 @@ export function createDraft(workspaceId: string, category: Category): StudioDraf
   };
 }
 
-export function projectName(draft: StudioDraft): string {
+export function projectName(draft: Pick<StudioDraft, "title" | "category">): string {
   return (
     draft.title.trim() ||
     {
@@ -179,6 +180,7 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
     Number.isSafeInteger(d.revision) &&
     d.revision >= 0 &&
     (d.restoredCopy === undefined || (Number.isSafeInteger(d.restoredCopy) && d.restoredCopy > 0)) &&
+    (d.finished === undefined || typeof d.finished === "boolean") &&
     typeof d.updatedAt === "number" &&
     Number.isFinite(d.updatedAt) &&
     !!d.fields &&
@@ -248,6 +250,45 @@ export async function listDrafts(workspaceId: string): Promise<StudioDraft[]> {
   });
 }
 
+export async function readDraft(workspace: string, id: string): Promise<StudioDraft | undefined> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const query = db.transaction("projects").objectStore("projects").get([workspace, id]);
+    query.onsuccess = () => resolve(isStudioDraft(query.result, workspace) ? query.result : undefined);
+    query.onerror = () => reject(query.error);
+  });
+}
+
+// Notify only after commit. Other windows receive an invalidation, never authored content.
+const changes = new EventTarget();
+const changeKey = "open-product-studio:project-list-change";
+export function notifyProjectChange(workspace: string) {
+  changes.dispatchEvent(new CustomEvent("change", { detail: workspace }));
+  try {
+    localStorage.setItem(changeKey, JSON.stringify([workspace, randomUUID()]));
+  } catch {
+    // Local observers still receive changes when browser storage is restricted.
+  }
+}
+export function subscribeProjectChanges(workspace: string, notify: () => void) {
+  const local = (event: Event) => {
+    if ((event as CustomEvent<unknown>).detail === workspace) notify();
+  };
+  const remote = (event: StorageEvent) => {
+    if (event.key !== changeKey || !event.newValue) return;
+    try {
+      const value: unknown = JSON.parse(event.newValue);
+      if (Array.isArray(value) && value.length === 2 && value[0] === workspace) notify();
+    } catch { /* Ignore malformed signals. */ }
+  };
+  changes.addEventListener("change", local);
+  window.addEventListener("storage", remote);
+  return () => {
+    changes.removeEventListener("change", local);
+    window.removeEventListener("storage", remote);
+  };
+}
+
 /** An episode only needs one pinned snapshot, even in a workspace with large media drafts. */
 export async function readLocalSeriesBrief(workspaceId: string, seriesId: string): Promise<VideoSeriesBrief | undefined> {
   const db = await openDatabase();
@@ -285,17 +326,18 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
     const store = tx.objectStore("projects");
     const read = store.get([draft.workspaceId, draft.id]);
     let conflict = false;
+    let listChanged = false;
     read.onsuccess = () => {
       const existing: unknown = read.result;
-      if (
-        existing === undefined
-          ? expectedRevision !== 0
-          : !isStudioDraft(existing, draft.workspaceId) || existing.revision !== expectedRevision
-      ) {
+      const valid = isStudioDraft(existing, draft.workspaceId);
+      if (existing === undefined ? expectedRevision !== 0 : !valid || existing.revision !== expectedRevision) {
         conflict = true;
         tx.abort();
         return;
       }
+      listChanged = !valid ||
+        existing.category !== draft.category || existing.stage !== draft.stage || existing.title !== draft.title ||
+        !!existing.finished !== !!draft.finished;
       store.put({ ...draft, revision: expectedRevision + 1 });
     };
     tx.onabort = () =>
@@ -304,7 +346,10 @@ export async function saveDraft(draft: StudioDraft, expectedRevision: number): P
           ? new DraftConflict({ message: "This project changed in another window." })
           : tx.error,
       );
-    tx.oncomplete = () => resolve(expectedRevision + 1);
+    tx.oncomplete = () => {
+      if (listChanged) notifyProjectChange(draft.workspaceId);
+      resolve(expectedRevision + 1);
+    };
   });
 }
 
@@ -332,11 +377,14 @@ export async function insertDraft(draft: StudioDraft): Promise<StudioDraft> {
       }
     };
     tx.onabort = () => reject(tx.error ?? new Error("Project restore did not commit."));
-    tx.oncomplete = () => resolve(saved);
+    tx.oncomplete = () => {
+      notifyProjectChange(saved.workspaceId);
+      resolve(saved);
+    };
   });
 }
 
-type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "seriesBrief" | "seriesBriefOwner" | "seriesHistory" | "affiliate" | "style" | "tools" | "stage" | "category">;
+type Editable = Pick<StudioDraft, "title" | "finished" | "fields" | "videoCues" | "seriesBrief" | "seriesBriefOwner" | "seriesHistory" | "affiliate" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 
 /** One writer per open project. Coalesce keystrokes while the previous transaction commits. */

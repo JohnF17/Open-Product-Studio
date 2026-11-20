@@ -319,10 +319,21 @@ function concealPendingQuitWindow(
   window.setOpacity(0);
 }
 
+function overlayAppearance(shouldUseDarkColors: boolean) {
+  return {
+    color: TITLEBAR_COLOR,
+    height: TITLEBAR_HEIGHT,
+    symbolColor: shouldUseDarkColors ? TITLEBAR_DARK_SYMBOL_COLOR : TITLEBAR_LIGHT_SYMBOL_COLOR,
+  };
+}
+
 function getWindowTitleBarOptions(
   shouldUseDarkColors: boolean,
   platform: NodeJS.Platform,
 ): WindowTitleBarOptions {
+  // Let Windows own the non-client caption, Snap target and system menu.
+  if (platform === "win32") return { titleBarStyle: "default" };
+
   if (platform === "darwin") {
     return {
       titleBarStyle: "hiddenInset",
@@ -335,11 +346,7 @@ function getWindowTitleBarOptions(
 
   return {
     titleBarStyle: "hidden",
-    titleBarOverlay: {
-      color: TITLEBAR_COLOR,
-      height: TITLEBAR_HEIGHT,
-      symbolColor: shouldUseDarkColors ? TITLEBAR_DARK_SYMBOL_COLOR : TITLEBAR_LIGHT_SYMBOL_COLOR,
-    },
+    titleBarOverlay: overlayAppearance(shouldUseDarkColors),
   };
 }
 
@@ -355,9 +362,8 @@ function syncWindowAppearance(
     }
 
     window.setBackgroundColor(getInitialWindowBackgroundColor(shouldUseDarkColors));
-    const { titleBarOverlay } = getWindowTitleBarOptions(shouldUseDarkColors, platform);
-    if (hasTitleBarOverlay && typeof titleBarOverlay === "object") {
-      window.setTitleBarOverlay(titleBarOverlay);
+    if (hasTitleBarOverlay && platform !== "darwin") {
+      window.setTitleBarOverlay(overlayAppearance(shouldUseDarkColors));
     }
   });
 }

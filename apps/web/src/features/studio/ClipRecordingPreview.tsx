@@ -2,6 +2,8 @@ import { Film, Play, Square, Upload } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { formatClipTime, parseClipTime, readClipRange } from "./clipTimes";
 import "./clipRecordingPreview.css";
+import { clipVideoAccept, localVideoType, openClipSourceFile, primeClipPlayback } from "./clipperEvidence";
+import type { SourceVideo } from "./ClipperSource";
 
 interface MarkProps {
   fields: Record<string, string>;
@@ -11,24 +13,7 @@ interface MarkProps {
 
 type Mark = "markIn" | "markOut";
 
-// Only expose media containers to the native player. A renamed playlist or HTML file
-// must never get a source URL, even if its extension or OS MIME type looks like video.
-async function localVideoType(file: File) {
-  const header = new Uint8Array(await file.slice(0, 65536).arrayBuffer());
-  if (header[0] === 0x1a && header[1] === 0x45 && header[2] === 0xdf && header[3] === 0xa3) return "video/webm";
-  const view = new DataView(header.buffer);
-  for (let offset = 0; offset + 8 <= header.length;) {
-    const size = view.getUint32(offset);
-    const type = String.fromCharCode(...header.subarray(offset + 4, offset + 8));
-    if (size < 8 || offset + size > file.size) break;
-    if (type === "ftyp" && size >= 16) return "video/mp4";
-    if (type !== "free" && type !== "skip" && type !== "wide") break;
-    offset += size;
-  }
-  return null;
-}
-
-function Player({ url, fields, writeField, onDuration }: MarkProps & { url: string }) {
+function Player({ url, fields, writeField, onDuration, selectionAttempt }: MarkProps & { url: string; selectionAttempt: number }) {
   const video = useRef<HTMLVideoElement>(null);
   const previewButton = useRef<HTMLButtonElement>(null);
   const focusPreview = useRef(false);
@@ -53,10 +38,11 @@ function Player({ url, fields, writeField, onDuration }: MarkProps & { url: stri
     }
   }, [confirmed]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = video.current;
+    setPlaying(false);
     return () => { ++playRequest.current; node?.pause(); };
-  }, []);
+  }, [selectionAttempt]);
 
   useEffect(() => {
     const node = video.current;
@@ -108,7 +94,7 @@ function Player({ url, fields, writeField, onDuration }: MarkProps & { url: stri
   }, [playing, confirmed]);
 
   function readDuration(node: HTMLVideoElement) {
-    const ms = Math.floor(node.duration * 1000);
+    const ms = Math.round(node.duration * 1000);
     const measured = Number.isSafeInteger(ms) && ms > 0 ? ms : undefined;
     setDuration(measured);
     onDuration?.(measured);
@@ -150,7 +136,7 @@ function Player({ url, fields, writeField, onDuration }: MarkProps & { url: stri
   return (
     <>
       <video ref={video} className="ops-recording-player" controls playsInline disableRemotePlayback preload="metadata"
-        src={url} aria-label="Local recording" onLoadedMetadata={(e) => readDuration(e.currentTarget)}
+        src={url} aria-label="Local recording" onLoadedMetadata={({ currentTarget }) => { primeClipPlayback(currentTarget); readDuration(currentTarget); }}
         onDurationChange={(e) => readDuration(e.currentTarget)}
         onPause={() => { ++playRequest.current; }} onEnded={stopPreview}
         onError={() => { stopPreview(); setMediaError("This recording could not be played. Choose a compatible MP4 or WebM, or enter the marks below by hand."); }} />
@@ -192,55 +178,109 @@ function Player({ url, fields, writeField, onDuration }: MarkProps & { url: stri
   );
 }
 
-function OpenRecording({ file, ...props }: MarkProps & { file: File }) {
-  const [url, setUrl] = useState("");
+function OpenRecording({ file, verified, ...props }: MarkProps & { file: File; verified: boolean; selectionAttempt: number }) {
+  const [opened, setOpened] = useState<{ file: File; url: string } | null>(null);
   const [error, setError] = useState("");
-  useEffect(() => {
+  useLayoutEffect(() => {
     let active = true;
     let owned = "";
+    setError("");
     async function open() {
       try {
-        const type = await localVideoType(file);
+        const type = verified ? file.type : await localVideoType(file);
         if (!active) return;
         if (!type) {
           setError("Choose a compatible MP4 or WebM video. You can also enter the marks below by hand.");
           return;
         }
         owned = URL.createObjectURL(file.slice(0, file.size, type));
-        setUrl(owned);
+        setOpened({ file, url: owned });
       } catch {
         if (active) setError("The file could not be read. Choose the recording again.");
       }
     }
     void open();
     return () => { active = false; if (owned) URL.revokeObjectURL(owned); };
-  }, [file]);
+  }, [file, verified]);
   if (error) return <p role="alert">{error}</p>;
-  return url ? <Player url={url} {...props} /> : <p role="status">Opening recording…</p>;
+  return opened?.file === file ? <Player key={opened.url} url={opened.url} {...props} /> : <p role="status">Opening recording…</p>;
 }
 
-export function ClipRecordingPreview(props: MarkProps) {
-  const [picked, setPicked] = useState<{ file: File; key: number } | null>(null);
-  const sequence = useRef(0);
+interface RecordingProps extends MarkProps {
+  sourceFile?: File | undefined;
+  mediaRevision?: string | undefined;
+  onSourceVideoChange?: ((video: SourceVideo | null) => void) | undefined;
+}
+
+export function ClipRecordingPreview({ sourceFile, mediaRevision, onSourceVideoChange, ...props }: RecordingProps) {
+  const [local, setLocal] = useState<{ file: File; mediaRevision?: string | undefined } | null>(
+    !onSourceVideoChange && sourceFile ? { file: sourceFile, mediaRevision } : null,
+  );
+  const [selectionAttempt, setSelectionAttempt] = useState(0);
+  const [opening, setOpening] = useState(false);
+  const [error, setError] = useState("");
+  const candidate = useRef<AbortController | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const file = onSourceVideoChange ? sourceFile : local?.file;
+  const revision = onSourceVideoChange ? mediaRevision : local?.mediaRevision;
+
+  useLayoutEffect(() => {
+    setOpening(false);
+    setError("");
+    return () => { candidate.current?.abort(); candidate.current = null; };
+  }, [sourceFile, mediaRevision]);
+
+  async function choose(next: File) {
+    candidate.current?.abort();
+    const request = new AbortController();
+    candidate.current = request;
+    setSelectionAttempt((previous) => previous + 1);
+    setOpening(true);
+    setError("");
+    try {
+      const verified = await openClipSourceFile(next, request.signal);
+      request.signal.throwIfAborted();
+      if (onSourceVideoChange) onSourceVideoChange(verified);
+      else setLocal(verified);
+      props.onDuration?.(verified.durationMs);
+    } catch (cause) {
+      if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : "The recording could not be opened.");
+    } finally {
+      if (candidate.current === request) { candidate.current = null; setOpening(false); }
+    }
+  }
+
+  function remove() {
+    candidate.current?.abort();
+    candidate.current = null;
+    setOpening(false);
+    setError("");
+    if (onSourceVideoChange) onSourceVideoChange(null);
+    else setLocal(null);
+    props.onDuration?.(undefined);
+    input.current?.focus();
+  }
+
   return (
     <section className="ops-recording" aria-label="Recording preview">
       <div className="ops-recording-header">
         <div><Film size={18} aria-hidden="true" /><h3>Recording preview</h3></div>
-        {picked && <button type="button" className="ops-link" onClick={() => { setPicked(null); props.onDuration?.(undefined); input.current?.focus(); }}>Remove recording</button>}
+        {file && <button type="button" className="ops-link" onClick={remove}>Remove recording</button>}
       </div>
-      <p>Choose a recording you have permission to use. The file stays on this sheet. Studio saves your written marks with the project.</p>
+      <p>Choose a recording you have permission to use. Studio saves your written marks with the project. Video stays in memory.</p>
       <label className="ops-recording-picker">
         <Upload size={16} aria-hidden="true" /> Choose a local recording
-        <input type="file" ref={input} accept=".mp4,.m4v,.webm,video/mp4,video/webm" onChange={(e) => {
-          const file = e.currentTarget.files?.[0];
+        <input type="file" ref={input} accept={clipVideoAccept} onChange={(e) => {
+          const next = e.currentTarget.files?.[0];
           e.currentTarget.value = "";
-          if (file) { props.onDuration?.(undefined); setPicked({ file, key: ++sequence.current }); }
+          if (next) void choose(next);
         }} />
       </label>
-      {picked && <>
-        <p className="ops-recording-name">{picked.file.name}</p>
-        <OpenRecording key={picked.key} file={picked.file} {...props} />
+      {opening && <p role="status">Checking the selected recording…</p>}
+      {error && <p role="alert">{error}</p>}
+      {file && <>
+        <p className="ops-recording-name">{file.name}</p>
+        <OpenRecording key={revision} file={file} verified={!!revision} selectionAttempt={selectionAttempt} {...props} />
       </>}
     </section>
   );

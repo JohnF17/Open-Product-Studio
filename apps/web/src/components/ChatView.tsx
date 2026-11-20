@@ -767,7 +767,8 @@ export default function ChatView(props: ChatViewProps) {
   const [scrollToEndClearance, setScrollToEndClearance] = useState(0);
   const fanoutSelectionsAtom = draftFanoutSelectionsAtom(routeThreadKey);
   const { sendInFlight: sendInFlightRef } = draftSendState(routeThreadKey);
-  const multipleModelSelections = useAtomValue(fanoutSelectionsAtom);
+  const fanoutSelections = useAtomValue(fanoutSelectionsAtom);
+  const multipleModelSelections = draftThread?.requireAvailableModel ? null : fanoutSelections;
   const setMultipleModelSelections = (
     selections: SetStateAction<ReadonlyArray<ModelSelection> | null>,
   ) => {
@@ -816,7 +817,7 @@ export default function ChatView(props: ChatViewProps) {
         fallbackDraftProject ?? undefined,
       ).settings.defaultModelSelection
     : null;
-  const draftModelResolution = draftThread
+  const draftModelResolution = draftThread && !draftThread.requireAvailableModel
     ? resolveNewThreadModelSelection({
         defaultSelection:
           draftDefaultModelSelection ??
@@ -1323,7 +1324,8 @@ export default function ChatView(props: ChatViewProps) {
   // rule out a started thread: one whose machine is offline never loads its
   // messages, so it would otherwise be offered a machine picker that does nothing.
   const canChangeEnvironment =
-    hasMultipleEnvironments && !envLocked && draftId !== null && !draftThread?.promotedTo;
+    hasMultipleEnvironments && !envLocked && draftId !== null &&
+    !draftThread?.promotedTo && !draftThread?.requireAvailableModel;
 
   const loadBalancingSettings = useClientSettings((settings) => ({
     loadBalancingEnabled: settings.loadBalancingEnabled,
@@ -1364,6 +1366,10 @@ export default function ChatView(props: ChatViewProps) {
   const activeThreadModelInstanceId = activeThread?.modelSelection.instanceId;
   const { selectedProviderEntry, requestedDriverKind } = resolveComposerProviderSelection({
     entries: providerInstanceEntries,
+    exactInstanceId: draftThread?.pinProviderSelection
+      ? (selectedProviderByThreadId ??
+        (draftThread.requireAvailableModel ? NO_PROVIDER_MODEL_SELECTION.instanceId : null))
+      : null,
     candidateInstanceIds: [
       selectedProviderByThreadId,
       activeRuntime?.providerInstanceId,

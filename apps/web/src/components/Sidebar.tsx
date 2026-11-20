@@ -87,7 +87,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
-import { type AnyRouter, useRouter } from "@tanstack/react-router";
+import { type AnyRouter, useRouteContext, useRouter } from "@tanstack/react-router";
 
 import {
   isAtomCommandInterrupted,
@@ -272,6 +272,9 @@ import {
   type SidebarSweepAction,
 } from "./sidebar/SidebarThreadRow";
 import { SidebarDraftBlock } from "./sidebar/SidebarDraftBlock";
+import { SidebarFinishedProjects, SidebarStudioCategories } from "./sidebar/SidebarStudioProjects";
+import { useStudioProjects } from "../features/studio/projectIndex";
+import { studioProjectShelves } from "../features/studio/projectShelves";
 import {
   SidebarProjectFolderHeader,
   sidebarFolderRowId,
@@ -1193,6 +1196,14 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const scopedProjectGroups = revealWidensScope ? [] : chosenProjectGroups;
   const scopedProjectRefs = scopedProjectGroups.flatMap((project) => project.memberProjectRefs);
   const scopedProjectKeys = revealWidensScope ? null : chosenScopeProjectKeys;
+  const studioAuthenticated = useRouteContext({
+    strict: false, select: context => context.authGateState?.status === "authenticated",
+  });
+  const studioWorkspace = isElectron && studioAuthenticated && chosenProjectScopeKeys.length === 0 &&
+    (!routeTarget || (routeThreadRef?.environmentId ?? routeDraftThread?.environmentId) === primaryEnvironmentId)
+    ? primaryEnvironmentId : null;
+  const studioProjects = useStudioProjects(studioWorkspace);
+  const studioShelves = studioProjectShelves(studioWorkspace, studioProjects, threads);
   const threadSearch = useThreadSearch(
     connectedEnvironmentIds,
     threadSearchQuery,
@@ -1957,6 +1968,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     // Boring mode keeps a pinned open project or one the user filtered to, so it can start a thread.
     if (
       !hasProjectFolders &&
+      studioProjects.length === 0 &&
       pinnedThreads.length +
         activeThreads.length +
         workingThreads.length +
@@ -1973,7 +1985,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     const activeRows = rowsOf(activeThreads, "active");
     items.push({ kind: "marker", marker: "active-placeholder" });
     items.push(...activeRows);
-    if (workingThreads.length > 0) {
+    if (workingThreads.length > 0 || studioShelves.working.length > 0) {
       items.push({ kind: "marker", marker: "working-header" });
       items.push(...rowsOf(visibleWorkingThreads, "working"));
     }
@@ -3308,6 +3320,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           {!isSearchingThreads &&
           !hasProjectFolders &&
           visibleDraftSessionCount === 0 &&
+          studioProjects.length === 0 &&
           pinnedThreads.length +
             activeThreads.length +
             workingThreads.length +
@@ -3604,11 +3617,14 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 className="mt-auto"
                                 label={gt("Working", { $context: "sidebar section" })}
                                 count={workingThreads.length}
+                                projectCount={studioShelves.working.length}
                                 toggle={{
                                   expanded: workingShelfExpanded,
                                   onToggle: toggleWorkingShelf,
                                 }}
                               />,
+                              <SidebarStudioCategories key="working-studio" workspace={studioWorkspace}
+                                rows={workingShelfExpanded ? studioShelves.working : studioShelves.working.filter(p => p.project.editing)} />,
                             );
                             break;
                           case "snoozed-header":
@@ -3636,6 +3652,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 )}
                                 label={gt("Settled", { $context: "sidebar section" })}
                                 count={settledCount}
+                                projectCount={studioShelves.settled.length}
                                 dragging={from !== null}
                                 isDropTarget={dragTargetSection === "settled"}
                                 toggle={{
@@ -3643,6 +3660,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                   onToggle: toggleSettledShelf,
                                 }}
                               />,
+                              <SidebarStudioCategories key="settled-studio" workspace={studioWorkspace}
+                                rows={settledShelfExpanded ? studioShelves.settled : studioShelves.settled.filter(p => p.project.editing)} />,
                             );
                             break;
                           case "settled-placeholder":
@@ -3696,6 +3715,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                         </button>
                       </li>
                     ) : null}
+                    <SidebarFinishedProjects rows={studioShelves.finished} workspace={studioWorkspace} />
                   </ul>
                 </SortableContext>
               </DndContext>

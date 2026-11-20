@@ -33,6 +33,8 @@ RESTRICTED = {'.pdf', '.vtt', '.srt', '.asar', '.mp4', '.webm', '.mp3'}
 # Mode 100644 blobs individually reviewed against the active baseline manifest.
 # A new path or a changed asset needs a new review, including its distribution rights.
 PINNED_MEDIA = {
+    # Original synthetic VP8/Opus color and 440 Hz tone for the local Clipper export tests.
+    'apps/web/src/features/studio/clipFootageTone.fixture.webm':'fa33aaf47a938366a86df65d53094b422ce875d7',
     '.repos/alchemy-effect/website/public/blog/beta-77/alchemy-cli.mp4':'b724dd6b740caafc245c56740305bc8dcf3db498',
     'apps/web/src/assets/notification-completion.mp3':'1955f5eb05f16bf90d2290dc14f46eaa210f4958',
     'apps/web/src/assets/notification-input.mp3':'07e10da3bd574a1d8f2f913644bfae69c6ba5c55',
@@ -44,11 +46,18 @@ LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 # Generated from the Studio renderer using a synthetic project. Capture provenance
 # and SHA-256 are in the receipts under docs/acceptance/WP08. Review replacements explicitly.
 STUDIO_WINDOW_RECORDINGS = {
+    'docs/acceptance/WP24/assisted-intake/assisted-builder.webm': 'dc3827f8c439b23b57c9fc6ee34d3dcad56367ec',
+    # Two original, synthetic source-derived files reviewed alongside the viewport recording.
+    'docs/acceptance/WP24/assisted-intake/daybreak.webm': '4537278dce87745e3c537b6f08f9b961fa0058a0',
+    'docs/acceptance/WP24/assisted-intake/nightfall.webm': '7860d79825428778d243119bfd9db7dc490b34fb',
+    'docs/acceptance/WP24/sample-review/playback.webm': '8fbd71dda09ebefe31975d8da45c4cb9816a1420',
     'docs/acceptance/WP24/clipper-marks/desktop-marks.webm': '9fd4c0b5b81089b79aeab8c4ef65051a6c75a3dc',
     'docs/acceptance/WP11/video-series/desktop-series.webm': 'b1b531253e7668a3668ddfc9790240bdde7f6f9a',
     'docs/acceptance/WP08/style-audition/desktop-motion.webm': 'c03dcc95c797cbb0dfd069beb3a762b4125fd174',
     'docs/acceptance/WP08/affiliate/builder-window.webm': '974c363bb1656cd7e46e588600b8a8e2ddf8b658',
     'docs/acceptance/WP08/categories/entry-resume-edit.webm': '81fb9c80d556428648f0a9f10d7c6e062c9e884a',
+    # Small original silent portrait used to verify decoded video in the Clipper browser test.
+    'apps/web/src/features/studio/fixtures/clipper-sample-review.mp4': 'cbe2bec1180a101b00ed938025334111a3dbaa0e',
     'docs/acceptance/WP08/builder-window.mp4': '83266c9147a27423aad09c8ee8ceac069797bb7c',
     'docs/acceptance/WP08/manuscript/delivery-window.webm': '503b230134bd6df4946d8cd457be5bf093471fb5',
     'docs/acceptance/WP08/tour/tour-window.webm': '386e24ec2f1073283d2bce0c67ed9531cc4e87a1',

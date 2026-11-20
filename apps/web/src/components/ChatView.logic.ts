@@ -492,12 +492,15 @@ export function buildLocalDraftThread(
 export function resolveComposerProviderSelection(input: {
   entries: ReadonlyArray<ProviderInstanceEntry>;
   candidateInstanceIds: ReadonlyArray<ProviderInstanceId | null | undefined>;
+  exactInstanceId?: ProviderInstanceId | null | undefined;
   lockedProvider: ProviderDriverKind | null;
   lockedInstanceId: ProviderInstanceId | null | undefined;
 }) {
-  const requestedInstanceId = input.candidateInstanceIds.find(
-    (candidate) => candidate != null && candidate !== NO_PROVIDER_MODEL_SELECTION.instanceId,
-  );
+  const requestedInstanceId =
+    input.exactInstanceId ??
+    input.candidateInstanceIds.find(
+      (candidate) => candidate != null && candidate !== NO_PROVIDER_MODEL_SELECTION.instanceId,
+    );
   const requestedDriverKind =
     input.lockedProvider ??
     input.entries.find((entry) => entry.instanceId === requestedInstanceId)?.driverKind ??
@@ -514,6 +517,7 @@ export function resolveComposerProviderSelection(input: {
     lockedContinuationGroupKey === null;
   const compatibleEntries = input.entries.filter(
     (entry) =>
+      (!input.exactInstanceId || entry.instanceId === input.exactInstanceId) &&
       (!input.lockedProvider || entry.driverKind === input.lockedProvider) &&
       (!lockedContinuationGroupKey || entry.continuationGroupKey === lockedContinuationGroupKey) &&
       (!requiresExactInstance || entry.instanceId === input.lockedInstanceId),

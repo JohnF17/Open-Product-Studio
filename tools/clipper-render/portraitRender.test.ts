@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { before, test, type TestContext } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { createPortraitRenderDriver, verifyQualifiedFfmpeg } from "./portraitRender.ts";
+import { createPortraitRenderDriver, verifyQualifiedFfmpeg } from "../../scripts/lib/clipper/portraitRender.ts";
 import { qualificationReceipt } from "./qualify.ts";
 
 const binaryPath = process.env.CLIP_RENDER_TEST_FFMPEG;

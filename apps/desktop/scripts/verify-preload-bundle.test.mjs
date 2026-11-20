@@ -1,12 +1,13 @@
-import { assert, describe, it } from "vite-plus/test";
+import { assert, describe, expect, it } from "vite-plus/test";
 
-import { verifyPreloadBundle } from "./verify-preload-bundle.mjs";
+import { verifyClipperSaveReply, verifyPreloadBundle } from "./verify-preload-bundle.mjs";
 
 const validPreload = `
   const electron = require("electron");
   const PICK_FOLDER_CHANNEL = "desktop:pick-folder";
   electron.contextBridge.exposeInMainWorld("__clerk_internal_electron_passkeys", {});
   electron.contextBridge.exposeInMainWorld("desktopBridge", {
+    clipperSample: (request) => electron.ipcRenderer.invoke("desktop:clipper-sample", request),
     getClientPlatform: () => process.platform,
     getLocalEnvironmentBootstraps: () => [],
     getPathForFile: () => "",
@@ -15,6 +16,18 @@ const validPreload = `
 `;
 
 describe("desktop preload bundle verifier", () => {
+  it("checks passkey exposure against the build flavor", () => {
+    const local = validPreload.replace(/electron\.contextBridge\.exposeInMainWorld\("__clerk_internal_electron_passkeys", \{\}\);/, "");
+    assert.doesNotThrow(() => verifyPreloadBundle(local, { hosted: false }));
+    assert.throws(() => verifyPreloadBundle(local, { hosted: true }), /passkeys/);
+    assert.throws(() => verifyPreloadBundle(validPreload, { hosted: false }), /hosted passkey/);
+  });
+
+  it("requires a non-retryable result after a lost save reply", async () => {
+    const guarded = validPreload.replace('invoke("desktop:clipper-sample", request),', 'invoke("desktop:clipper-sample", request).catch(() => ({status:"uncertain"})),');
+    await verifyClipperSaveReply(guarded);
+    await expect(verifyClipperSaveReply(guarded.replace('status:"uncertain"', 'status:"failed"'))).rejects.toThrow(/uncertain outcome/);
+  });
   it("rejects required API names that only appear in strings", () => {
     assert.throws(
       () =>

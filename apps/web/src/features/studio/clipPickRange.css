@@ -1,0 +1,10 @@
+.ops-pick-range { margin-block: 8px; }
+.ops-pick-editor:not([hidden]) { display: grid; justify-items: start; gap: 8px; padding-block: 10px; }
+.ops-pick-times {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.ops-pick-times .ops-field { margin: 0; min-width: 0; }
+.ops-pick-editor .ops-recording-player { max-height: 260px; }

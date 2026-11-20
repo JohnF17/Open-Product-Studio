@@ -241,6 +241,18 @@ async function launch(index) {
     await page.evaluate(() => document.fonts.ready);
     const win = await app.browserWindow(page);
     await win.evaluate((w) => w.setContentSize(1240, 830));
+    const chrome = await win.evaluate((w) => ({
+      minimize: w.isMinimizable(),
+      maximize: w.isMaximizable(),
+      close: w.isClosable(),
+      captionAndBorders: w.getBounds().height - w.getContentBounds().height,
+    }));
+    assert.ok(chrome.minimize && chrome.maximize && chrome.close, "Standard window actions are unavailable");
+    assert.ok(chrome.captionAndBorders > 0, "Expected the Windows system frame outside the client area");
+    observation.windowControls = chrome;
+    const commands = page.getByRole("group", { name: "Workspace commands", exact: true });
+    await commands.getByRole("button", { name: "Open command palette" }).waitFor();
+    await commands.getByRole("link", { name: "Open settings" }).waitFor();
     assert.match(page.url(), /^open-product-studio:\/\/app\//);
     page.setDefaultTimeout(15000);
     if (index === 0) {

@@ -88,9 +88,16 @@ jobs:
           vp test run --project unit
           src/app/DesktopAppIdentity.test.ts src/app/DesktopClerk.test.ts
           src/app/DesktopEnvironment.test.ts src/app/DesktopStartupRecovery.test.ts
+          src/app/DesktopApp.test.ts src/window/DesktopWindow.test.ts src/backend/DesktopServerExposure.test.ts
           src/app/DesktopUserData.test.ts src/backend/DesktopBackendConfiguration.test.ts
           src/backend/DesktopHomeOwner.test.ts src/wsl/DesktopWslBackend.test.ts src/updates/DesktopUpdates.test.ts
           src/ssh/DesktopSshEnvironment.test.ts
+          src/ipc/methods/clipperSample.test.ts src/ipc/methods/clipperSampleVolume.test.ts
+      - name: Check offline Clipper host and Save As behavior
+        if: runner.os == 'Windows'
+        run: |
+          node --test tools/clipper-render/*.test.ts
+          (cd packages/contracts && vp test run --config ../../vite.config.ts --dir . src/clipperSampleIpc.test.ts)
       - name: Check server configuration, telemetry, pairing and MCP approval
         working-directory: apps/server
         run: >-

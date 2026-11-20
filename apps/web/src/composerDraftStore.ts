@@ -408,6 +408,8 @@ const PersistedDraftThreadState = Schema.Struct({
   environmentId: Schema.String,
   projectId: ProjectId,
   logicalProjectKey: Schema.optionalKey(Schema.String),
+  pinProviderSelection: Schema.optionalKey(Schema.Literal(true)),
+  requireAvailableModel: Schema.optionalKey(Schema.Literal(true)),
   environmentSelection: Schema.optionalKey(Schema.Literals(["auto", "manual"])),
   loadBalancedEnvironmentId: Schema.optionalKey(Schema.NullOr(Schema.String)),
   createdAt: Schema.String,
@@ -507,6 +509,9 @@ export interface DraftSessionState {
   environmentId: EnvironmentId;
   projectId: ProjectId;
   logicalProjectKey: string;
+  /** Use the chosen provider account and model even when an alternative is available. */
+  pinProviderSelection?: true;
+  requireAvailableModel?: true;
   environmentSelection?: "auto" | "manual";
   loadBalancedEnvironmentId?: EnvironmentId | null;
   createdAt: string;
@@ -580,6 +585,9 @@ interface ComposerDraftStoreState {
     projectRef: ScopedProjectRef,
     draftId: DraftId,
     options?: {
+      /** Register a pinned, independent draft without replacing the project's existing draft. */
+      mapProject?: false;
+      requireAvailableModel?: true;
       threadId?: ThreadId;
       branch?: string | null;
       worktreePath?: string | null;
@@ -1752,6 +1760,8 @@ function createDraftThreadState(
     environmentId: projectRef.environmentId,
     projectId: projectRef.projectId,
     logicalProjectKey,
+    ...(existingThread?.pinProviderSelection ? { pinProviderSelection: true } : {}),
+    ...(existingThread?.requireAvailableModel ? { requireAvailableModel: true } : {}),
     ...(environmentSelection ? { environmentSelection } : {}),
     ...(options?.loadBalancedEnvironmentId !== undefined
       ? { loadBalancedEnvironmentId: options.loadBalancedEnvironmentId }
@@ -1814,6 +1824,8 @@ function draftThreadsEqual(left: DraftThreadState | undefined, right: DraftThrea
     left.environmentId === right.environmentId &&
     left.projectId === right.projectId &&
     left.logicalProjectKey === right.logicalProjectKey &&
+    left.pinProviderSelection === right.pinProviderSelection &&
+    left.requireAvailableModel === right.requireAvailableModel &&
     left.environmentSelection === right.environmentSelection &&
     left.loadBalancedEnvironmentId === right.loadBalancedEnvironmentId &&
     left.createdAt === right.createdAt &&
@@ -1986,6 +1998,8 @@ function normalizePersistedDraftThreads(
         worktreePath: normalizedWorktreePath,
         envMode: normalizeDraftThreadEnvMode(candidateDraftThread.envMode, normalizedWorktreePath),
         startFromOrigin,
+        ...(candidateDraftThread.pinProviderSelection === true ? { pinProviderSelection: true } : {}),
+        ...(candidateDraftThread.requireAvailableModel === true ? { requireAvailableModel: true } : {}),
         ...(candidateDraftThread.environmentSelection === "manual" ||
         candidateDraftThread.environmentSelection === "auto"
           ? { environmentSelection: candidateDraftThread.environmentSelection }
@@ -2765,6 +2779,8 @@ function toHydratedDraftThreadState(
     worktreePath: persistedDraftThread.worktreePath,
     envMode: persistedDraftThread.envMode,
     startFromOrigin: persistedDraftThread.startFromOrigin,
+    ...(persistedDraftThread.pinProviderSelection ? { pinProviderSelection: true } : {}),
+    ...(persistedDraftThread.requireAvailableModel ? { requireAvailableModel: true } : {}),
     ...(persistedDraftThread.environmentSelection
       ? { environmentSelection: persistedDraftThread.environmentSelection }
       : {}),
@@ -2907,6 +2923,20 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
               existingThread,
               options,
             );
+            if (options?.mapProject === false) {
+              return existingThread
+                ? state
+                : {
+                    draftThreadsByThreadKey: {
+                      ...state.draftThreadsByThreadKey,
+                      [draftId]: {
+                        ...nextDraftThread,
+                        pinProviderSelection: true,
+                        ...(options.requireAvailableModel ? { requireAvailableModel: true } : {}),
+                      },
+                    },
+                  };
+            }
             const hasSameLogicalMapping = previousThreadKeyForLogicalProject === draftId;
             const hasNoStaleMappingsForDraft = Object.entries(
               state.logicalProjectDraftThreadKeyByLogicalProjectKey,
@@ -3046,6 +3076,8 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
               environmentId: nextProjectRef.environmentId,
               projectId: nextProjectRef.projectId,
               logicalProjectKey: existing.logicalProjectKey,
+              ...(existing.pinProviderSelection ? { pinProviderSelection: true } : {}),
+              ...(existing.requireAvailableModel ? { requireAvailableModel: true } : {}),
               ...(environmentSelection ? { environmentSelection } : {}),
               loadBalancedEnvironmentId:
                 options.loadBalancedEnvironmentId === undefined

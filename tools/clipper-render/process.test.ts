@@ -4,9 +4,24 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
-import { runBoundedProcess } from "./process.ts";
+import { runBoundedProcess } from "../../scripts/lib/clipper/process.ts";
 
 const options = { cwd: process.cwd(), timeoutMs: 3_000, maxOutputBytes: 256 };
+
+test("native Windows children receive only the system search locations", { skip: process.platform !== "win32" }, async () => {
+  const original = process.env.PATH;
+  const marker = join(tmpdir(), "studio-parent-path-marker");
+  process.env.PATH = marker + ";" + original;
+  try {
+    const result = await runBoundedProcess(process.execPath, ["-e", "process.stdout.write(process.env.PATH)"], options);
+    const root = process.env.SystemRoot!;
+    assert.equal(result.stdout, join(root, "System32") + ";" + root);
+    assert.ok(!result.stdout.includes(marker));
+  } finally {
+    if (original === undefined) delete process.env.PATH;
+    else process.env.PATH = original;
+  }
+});
 
 test("cancellation kills an active child and waits for its close", async () => {
   const controller = new AbortController();

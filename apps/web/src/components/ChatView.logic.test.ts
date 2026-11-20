@@ -759,6 +759,21 @@ describe("resolveComposerProviderSelection", () => {
     ).toBeNull();
   });
 
+  it("keeps a pinned draft account unavailable instead of choosing another account", () => {
+    const selected = entry("codex", "codex-work", { enabled: false });
+    const personal = entry("codex", "codex-personal");
+    const selection = resolveComposerProviderSelection({
+      entries: [selected, personal],
+      candidateInstanceIds: [selected.instanceId, personal.instanceId],
+      exactInstanceId: selected.instanceId,
+      lockedProvider: null,
+      lockedInstanceId: null,
+    });
+
+    expect(selection.selectedProviderEntry).toBeUndefined();
+    expect(selection.unavailableProviderInstanceId).toBe(selected.instanceId);
+  });
+
   it("does not continue an existing Antigravity thread in another profile after deletion", () => {
     const missingInstanceId = ProviderInstanceId.make("google_work");
     const selection = resolveComposerProviderSelection({

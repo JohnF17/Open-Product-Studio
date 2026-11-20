@@ -3,8 +3,9 @@ import { link, lstat, mkdir, mkdtemp, open, readFile, realpath, rm, rmdir, unlin
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { createPortraitRenderDriver, PortraitRenderError, type StagedPortrait, verifyQualifiedFfmpeg } from "./portraitRender.ts";
-import { LocalProcessError, runBoundedProcess } from "./process.ts";
+import { PortraitRenderError, type StagedPortrait } from "../../scripts/lib/clipper/portraitRender.ts";
+import { LocalProcessError } from "../../scripts/lib/clipper/process.ts";
+import { renderStudioSample } from "../../scripts/lib/clipper/studioSample.ts";
 
 const usage = "node tools/clipper-render/qualify.ts --ffmpeg <absolute-file> --sha256 <trusted-SHA-256> --out <new-absolute-directory>";
 const cut = { startFrame: 30, endFrameExclusive: 90 } as const;
@@ -86,22 +87,13 @@ async function publish(dest: string, mp4: Buffer, receipt: string, signal: Abort
 
 async function qualify(ffmpeg: string, sha256: string, output: string, signal: AbortSignal) {
   const dest = await newOutputPath(output);
-  const binary = { path: await verifyQualifiedFfmpeg({ path: ffmpeg, sha256 }, signal), sha256 };
+  const binary = { path: ffmpeg, sha256 };
   const temporaryParent = await realpath(tmpdir());
   if (!localPath(temporaryParent)) throw new Error("Choose a local temporary directory.");
   const work = await mkdtemp(join(temporaryParent, "ops-portrait-qualify-"));
   let quarantine = false;
   try {
-    const source = join(work, "fixture.webm");
-    await runBoundedProcess(binary.path, [
-      "-nostdin", "-hide_banner", "-xerror", "-v", "error", "-n", "-f", "lavfi",
-      "-i", "testsrc2=duration=5:size=800x450:rate=24", "-map", "0:v:0", "-an",
-      "-c:v", "libvpx-vp9", "-threads", "2", "-deadline", "realtime", "-cpu-used", "8",
-      "-pix_fmt", "yuv420p", "-f", "webm", "-fs", "4194304", source,
-    ], { cwd: work, timeoutMs: 15_000, maxOutputBytes: 32_768, signal });
-    const result = await createPortraitRenderDriver(binary).render({
-      source: { path: source, sha256: hash(await readFile(source)) }, jobDirectory: work, cut, signal,
-    });
+    const result = await renderStudioSample(binary, work, cut, signal);
     const mp4 = await readFile(result.path);
     if (mp4.length !== result.bytes || hash(mp4) !== result.sha256) throw new Error("Staged artifact changed before publication.");
     const receipt = qualificationReceipt(result);

@@ -62,3 +62,65 @@
   .ops-look-layout { grid-template-columns: 1fr; }
   .ops-look-frame { width: 104px; }
 }
+
+.ops-clip-sample,
+.ops-clip-sample-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.ops-clip-sample-controls[hidden] {
+  display: none;
+}
+
+.ops-clip-sample-status:empty {
+  position: absolute;
+}
+
+.ops-clip-sample-controls > p,
+.ops-clip-sample-status {
+  color: var(--ops-muted);
+  font-size: 0.85rem;
+}
+
+.ops-clip-sample-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.ops-clip-sample-range input {
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-clip-sample-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ops-clip-sample-actions button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ops-clip-sample-player {
+  display: block;
+  width: min(100%, 220px);
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  background: var(--ops-bg);
+  object-fit: contain;
+}
+
+.ops-clip-sample-player:focus-visible {
+  outline: 2px solid var(--ops-selection);
+  outline-offset: 3px;
+}
+
+@container studio (max-width: 420px) {
+  .ops-clip-sample-range {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,7 +3,7 @@ import {
   scopeProjectRef,
   scopeThreadRef,
 } from "@t3tools/client-runtime/environment";
-import { DEFAULT_SERVER_SETTINGS, type ScopedProjectRef, type ThreadId } from "@t3tools/contracts";
+import { DEFAULT_SERVER_SETTINGS, type ModelSelection, type ScopedProjectRef, type ThreadId } from "@t3tools/contracts";
 import { type AnyRouter, useRouter } from "@tanstack/react-router";
 import {
   composerDraftHasUserContent,
@@ -14,6 +14,7 @@ import {
   useComposerDraftStore,
 } from "../composerDraftStore";
 import { newDraftId, newThreadId } from "../lib/utils";
+import { randomUUID } from "../lib/randomUUID";
 import { orderItemsByPreferredIds } from "../components/Sidebar.logic";
 import {
   deriveLogicalProjectKeyFromSettings,
@@ -102,11 +103,20 @@ export function createNewThreadHandler(router: AnyRouter) {
       replace?: boolean;
       /** Composer text for the draft, set before it shows. A draft with user text keeps it. */
       prompt?: string;
+      /** Stage an independent, environment-pinned composer with reviewed user content. */
+      freshDraft?: {
+        prompt: string;
+        image?: File;
+        /** A follow-up's sent route, or null when the user must choose a route. */
+        modelSelection?: ModelSelection | null;
+      };
       /** Cancels a pending opener when its owning form or project changes. */
       signal?: AbortSignal;
     },
   ): Promise<{ draftId: DraftId; threadId: ThreadId } | null> => {
     if (options?.signal?.aborted) return Promise.resolve(null);
+    const freshDraft = options?.freshDraft;
+    const requireAvailableModel = freshDraft?.modelSelection !== undefined;
     const projects = readProjects();
     const projectGroupingSettings = selectProjectGroupingSettings(getClientSettings());
     // Read at call time; status pushes replace the config map and would recreate every sidebar handler.
@@ -114,6 +124,7 @@ export function createNewThreadHandler(router: AnyRouter) {
     const targetServerSettings =
       environmentServerConfigs.get(projectRef.environmentId)?.settings ?? DEFAULT_SERVER_SETTINGS;
     const {
+      addImages,
       getComposerDraft,
       getDraftSessionByLogicalProjectKey,
       getDraftSession,
@@ -123,6 +134,8 @@ export function createNewThreadHandler(router: AnyRouter) {
       setLogicalProjectDraftThreadId,
       setModelSelection,
       setPrompt,
+      stickyActiveProvider,
+      stickyModelSelectionByProvider,
     } = useComposerDraftStore.getState();
     // Never over text the user wrote: a draft can gain some while this awaits.
     const seedPrompt = (draftId: DraftId) => {
@@ -165,30 +178,38 @@ export function createNewThreadHandler(router: AnyRouter) {
         candidate.environmentId === projectRef.environmentId,
     );
     const abandonedSinceRequest = () =>
-      options?.signal?.aborted || routeChangedSinceRequest() || (project !== undefined && readProject(projectRef) === null);
+      options?.signal?.aborted ||
+      routeChangedSinceRequest() ||
+      (project !== undefined && readProject(projectRef) === null);
     const projectSettings = resolveProjectSettings(
       targetServerSettings,
       project?.id ?? null,
       project,
     );
     const configuredDefaultModelSelection = projectSettings.settings.defaultModelSelection ?? null;
-    const fallbackResolution = resolveNewThreadModelSelection({
-      defaultSelection:
-        configuredDefaultModelSelection ??
-        (carryModelSelection || useComposerDraftStore.getState().stickyActiveProvider !== null
-          ? null
-          : resolveProjectDefaultProviderModelSelection(
-              environmentServerConfigs.get(projectRef.environmentId)?.providers ?? [],
-              targetServerSettings,
-              projectRef.projectId,
-            )),
-      fallbackSelection: targetServerSettings.fallbackModelSelection ?? null,
-      providers: environmentServerConfigs.get(projectRef.environmentId)?.providers ?? [],
-      settings: targetServerSettings,
-      projectId: projectRef.projectId,
-      now: Date.now(),
-    });
-    const projectDefaultModelSelection = fallbackResolution.fallback
+    const exactFreshSelection =
+      carryModelSelection ??
+      (stickyActiveProvider ? stickyModelSelectionByProvider[stickyActiveProvider] : null) ??
+      configuredDefaultModelSelection;
+    const fallbackResolution = freshDraft
+      ? null
+      : resolveNewThreadModelSelection({
+          defaultSelection:
+            configuredDefaultModelSelection ??
+            (carryModelSelection || stickyActiveProvider !== null
+              ? null
+              : resolveProjectDefaultProviderModelSelection(
+                  environmentServerConfigs.get(projectRef.environmentId)?.providers ?? [],
+                  targetServerSettings,
+                  projectRef.projectId,
+                )),
+          fallbackSelection: targetServerSettings.fallbackModelSelection ?? null,
+          providers: environmentServerConfigs.get(projectRef.environmentId)?.providers ?? [],
+          settings: targetServerSettings,
+          projectId: projectRef.projectId,
+          now: Date.now(),
+        });
+    const projectDefaultModelSelection = fallbackResolution?.fallback
       ? fallbackResolution.selection
       : configuredDefaultModelSelection;
     const defaultRuntimeMode = projectSettings.settings.defaultRuntimeMode;
@@ -239,7 +260,7 @@ export function createNewThreadHandler(router: AnyRouter) {
     // Another opener (home's own first-project draft) may have reached this project's draft first.
     // Matches lag the location during a navigation, so compare against the location.
     const resultIfAbandoned = () => {
-      if (options?.signal?.aborted) return null;
+      if (freshDraft || options?.signal?.aborted) return null;
       const draft = getDraftSessionByLogicalProjectKey(logicalProjectKey);
       if (draft === null || draft.promotedTo != null || readProject(projectRef) === null) {
         return null;
@@ -267,7 +288,7 @@ export function createNewThreadHandler(router: AnyRouter) {
       readThreadShell(storedDraftThreadRef) === null
         ? storedDraftThread
         : null;
-    if (storedDraftThreadRef && reusableStoredDraftThread === null) {
+    if (!freshDraft && storedDraftThreadRef && reusableStoredDraftThread === null) {
       markPromotedDraftThreadByRef(storedDraftThreadRef);
     }
     const emptyStoredDraftThread =
@@ -280,7 +301,7 @@ export function createNewThreadHandler(router: AnyRouter) {
         ? getDraftThread(currentRouteTarget.threadRef)
         : getDraftSession(currentRouteTarget.draftId)
       : null;
-    if (emptyStoredDraftThread) {
+    if (!freshDraft && emptyStoredDraftThread) {
       return (async () => {
         const isDraftAlreadyOpen =
           currentRouteTarget?.kind === "draft" &&
@@ -375,6 +396,7 @@ export function createNewThreadHandler(router: AnyRouter) {
     }
 
     if (
+      !freshDraft &&
       latestActiveDraftThread &&
       currentRouteTarget?.kind === "draft" &&
       latestActiveDraftThread.logicalProjectKey === logicalProjectKey &&
@@ -414,6 +436,7 @@ export function createNewThreadHandler(router: AnyRouter) {
       // Reuse drafts registered while awaiting so their pending navigation cannot lose them.
       const racedDraft = getDraftSessionByLogicalProjectKey(logicalProjectKey);
       if (
+        !freshDraft &&
         racedDraft &&
         racedDraft.draftId !== storedDraftThread?.draftId &&
         readThreadShell(scopeThreadRef(racedDraft.environmentId, racedDraft.threadId)) === null
@@ -436,6 +459,8 @@ export function createNewThreadHandler(router: AnyRouter) {
       setLogicalProjectDraftThreadId(logicalProjectKey, projectRef, draftId, {
         threadId,
         createdAt,
+        ...(freshDraft ? { mapProject: false, environmentSelection: "manual" } : {}),
+        ...(requireAvailableModel ? { requireAvailableModel: true } : {}),
         branch: options?.branch ?? null,
         worktreePath: options?.worktreePath ?? null,
         envMode: initialEnvMode,
@@ -448,17 +473,47 @@ export function createNewThreadHandler(router: AnyRouter) {
         runtimeMode: defaultRuntimeMode,
         ...(carryInteractionMode ? { interactionMode: carryInteractionMode } : {}),
       });
-      applyStickyState(draftId);
-      const modelSelectionOverride = resolveModelSelectionOverride(draftId);
+      if (!requireAvailableModel) applyStickyState(draftId);
+      const modelSelectionOverride = requireAvailableModel
+        ? freshDraft?.modelSelection
+        : freshDraft
+          ? exactFreshSelection
+          : resolveModelSelectionOverride(draftId);
       if (modelSelectionOverride) {
-        setModelSelection(draftId, modelSelectionOverride, { replaceOptions: true });
+        setModelSelection(draftId, modelSelectionOverride, {
+          replaceOptions: true,
+          ...(freshDraft ? { explicit: true } : {}),
+        });
       }
-      seedPrompt(draftId);
+      if (freshDraft) {
+        setPrompt(draftId, freshDraft.prompt);
+        const { image } = freshDraft;
+        if (image) {
+          addImages(draftId, [
+            {
+              type: "image",
+              id: randomUUID(),
+              name: image.name,
+              mimeType: image.type,
+              sizeBytes: image.size,
+              previewUrl: URL.createObjectURL(image),
+              file: image,
+            },
+          ]);
+        }
+      } else {
+        seedPrompt(draftId);
+      }
       await router.navigate({
         to: "/draft/$draftId",
         params: { draftId },
         replace: options?.replace ?? false,
       });
+      // A blocked navigation leaves the independent draft recoverable from the sidebar.
+      if (freshDraft) {
+        const target = getCurrentRouteTarget();
+        if (target?.kind !== "draft" || target.draftId !== draftId) return null;
+      }
       return { draftId, threadId };
     })();
   };

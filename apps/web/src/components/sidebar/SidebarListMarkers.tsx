@@ -115,6 +115,7 @@ export function SidebarSectionHeader(props: {
   label: string;
   /** A muted trailing count. */
   count: number;
+  projectCount?: number;
   className?: string;
   dragging?: boolean;
   isDropTarget?: boolean;
@@ -138,7 +139,12 @@ export function SidebarSectionHeader(props: {
         expanded={props.toggle.expanded}
         tone={props.isDropTarget ? "accent" : props.dragging ? "emphasized" : "muted"}
         data-testid={`sidebar-${shelf}-shelf-toggle`}
-        accessory={<span className="font-normal tabular-nums">{props.count}</span>}
+        accessory={<span className="font-normal tabular-nums">
+          {props.projectCount
+            ? [props.count ? `${props.count} ${props.count === 1 ? "thread" : "threads"}` : "",
+                `${props.projectCount} ${props.projectCount === 1 ? "project" : "projects"}`].filter(Boolean).join(" · ")
+            : props.count}
+        </span>}
       >
         {props.label}
       </CollapsibleSectionHeader>

@@ -7,6 +7,7 @@ import * as NodeVM from "node:vm";
 import { parse } from "acorn";
 
 const expectedDesktopBridgeApis = [
+  "clipperSample",
   "getClientPlatform",
   "getLocalEnvironmentBootstraps",
   "getPathForFile",
@@ -122,7 +123,7 @@ const executeBundle = (source, sandboxModules) => {
   );
 };
 
-export const verifyPreloadBundle = (source) => {
+export const verifyPreloadBundle = (source, { hosted = true } = {}) => {
   const runtimeImports = inspectBundle(source);
   const exposedGlobals = new Map();
   const sandboxModules = createSandboxModules(exposedGlobals);
@@ -143,15 +144,36 @@ export const verifyPreloadBundle = (source) => {
     (api) => typeof desktopBridge?.[api] !== "function",
   );
   if (!exposedGlobals.has("desktopBridge")) missingApis.unshift("desktopBridge exposure");
-  if (!exposedGlobals.has(clerkPasskeysGlobal)) missingApis.push(`${clerkPasskeysGlobal} exposure`);
+  if (hosted && !exposedGlobals.has(clerkPasskeysGlobal)) missingApis.push(`${clerkPasskeysGlobal} exposure`);
+  if (!hosted && exposedGlobals.has(clerkPasskeysGlobal)) throw new Error("An offline preload exposed the hosted passkey bridge.");
 
   if (missingApis.length > 0) {
     throw new Error(`Desktop preload bundle is missing executable APIs: ${missingApis.join(", ")}`);
   }
 };
 
+export async function verifyClipperSaveReply(source) {
+  const globals = new Map();
+  const modules = createSandboxModules(globals);
+  let publications = 0;
+  executeBundle(source, modules);
+  modules.get("electron").ipcRenderer.invoke = async (channel, request) => {
+    if (channel !== "desktop:clipper-sample" || request.action !== "save") throw new Error("Unexpected sample invocation.");
+    publications++;
+    throw new Error("Synthetic reply loss after publication");
+  };
+  const id = "01a261f3-3009-4302-8ae2-920a3488a0fe";
+  const result = await globals.get("desktopBridge").clipperSample({ action: "save", projectId: id, token: id });
+  if (publications !== 1 || result?.status !== "uncertain") {
+    throw new Error("A lost native save acknowledgement must preserve an uncertain outcome.");
+  }
+}
+
 if (process.argv[1] && NodeURL.pathToFileURL(process.argv[1]).href === import.meta.url) {
   const preloadUrl = new URL("../dist-electron/preload.cjs", import.meta.url);
   const source = await NodeFSP.readFile(preloadUrl, "utf8");
-  verifyPreloadBundle(source);
+  const hosted = process.argv.includes("--hosted") ||
+    (process.env.STUDIO_ENABLE_HOSTED_CONNECTIONS === "1" && Boolean(process.env.T3CODE_CLERK_PUBLISHABLE_KEY?.trim()));
+  verifyPreloadBundle(source, { hosted });
+  await verifyClipperSaveReply(source);
 }

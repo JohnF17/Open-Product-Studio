@@ -7,18 +7,20 @@ import {
 } from "@tanstack/react-router";
 import { expect, it, vi } from "vite-plus/test";
 import { act, render } from "../../test/render";
-import { DraftEditor, listDrafts, saveDraft } from "../features/studio/drafts";
+import { createDraft, DraftEditor, listDrafts, saveDraft } from "../features/studio/drafts";
+import { studioProjectHash } from "../features/studio/projectNavigation";
 import StudioLanding from "./StudioLanding";
+import { usePrimaryEnvironmentId } from "../state/environments";
 
-const { workspace } = await vi.hoisted(async () => {
+const { workspace, directWorkspace } = await vi.hoisted(async () => {
   const { randomUUID } = await import("../lib/randomUUID");
-  return { workspace: randomUUID() };
+  return { workspace: randomUUID(), directWorkspace: randomUUID() };
 });
 vi.mock(import("../state/environments"), async (importOriginal) => ({
   ...(await importOriginal()),
-  usePrimaryEnvironmentId: () => workspace as ReturnType<
+  usePrimaryEnvironmentId: vi.fn(() => workspace as ReturnType<
     typeof import("../state/environments").usePrimaryEnvironmentId
-  >,
+  >),
 }));
 vi.mock("../hooks/useScratchProject", () => ({
   useScratchProject: () => ({ scratchWorkspaceRootFor: () => null }),
@@ -26,7 +28,31 @@ vi.mock("../hooks/useScratchProject", () => ({
 vi.mock("../hooks/useHandleNewThread", () => ({ useNewThreadHandler: () => vi.fn() }));
 vi.mock("./WorkspacePageHeader", () => ({ WorkspacePageHeader: () => null }));
 
+it("resumes the requested saved builder and follows project and home navigation in place", async () => {
+  const workspace = directWorkspace;
+  vi.mocked(usePrimaryEnvironmentId).mockReturnValue(workspace as ReturnType<typeof usePrimaryEnvironmentId>);
+  const original = { ...createDraft(workspace, "video"), title: "Direct open", stage: "storyboard" };
+  const next = { ...createDraft(workspace, "blank"), title: "Second builder" };
+  await saveDraft(original, 0);
+  await saveDraft(next, 0);
+  const root = createRootRoute();
+  const studio = createRoute({ getParentRoute: () => root, path: "/", component: StudioLanding });
+  const router = createRouter({
+    routeTree: root.addChildren([studio]),
+    history: createMemoryHistory({ initialEntries: ["/#" + studioProjectHash(workspace, original.id)] }),
+  });
+  await using screen = await render(<RouterProvider router={router} />, { router: false });
+  const title = screen.getByRole("textbox", { name: "Project name" });
+  await expect.element(title).toHaveValue(original.title);
+  await act(() => router.navigate({ to: "/", hash: studioProjectHash(workspace, next.id) }));
+  await expect.element(title).toHaveValue(next.title);
+  await screen.getByRole("button", { name: "Projects", exact: true }).click();
+  await expect.element(screen.getByRole("button", { name: /Second builder/ })).toBeVisible();
+  expect(router.state.location.hash).toBe("");
+});
+
 it("keeps a conflicting edit in the window until the user explicitly leaves it", async () => {
+  vi.mocked(usePrimaryEnvironmentId).mockReturnValue(workspace as ReturnType<typeof usePrimaryEnvironmentId>);
   const root = createRootRoute();
   const studio = createRoute({ getParentRoute: () => root, path: "/", component: StudioLanding });
   const settings = createRoute({
@@ -40,6 +66,7 @@ it("keeps a conflicting edit in the window until the user explicitly leaves it",
   });
   await using screen = await render(<RouterProvider router={router} />, { router: false });
   const chooser = screen.getByRole("region", { name: "Open Product Studio" });
+
   await expect.element(chooser.getByRole("heading", { name: "New project" })).toBeVisible();
   const brandMark = chooser.element().querySelector<HTMLImageElement>(".ops-identity img");
   expect(brandMark?.getAttribute("alt")).toBe("");
@@ -53,13 +80,21 @@ it("keeps a conflicting edit in the window until the user explicitly leaves it",
   await name.fill("Keep this unsaved edit");
   await expect.element(screen.getByRole("alert")).toBeVisible();
   using guardFlush = vi.spyOn(DraftEditor.prototype, "flush");
-  await act(() => { void router.navigate({ to: "/settings" }); });
+  const originalHash = router.state.location.hash;
+  const sibling = createDraft(workspace, "video");
+  await saveDraft(sibling, 0);
+  await act(() => { void router.navigate({ to: "/", hash: studioProjectHash(workspace, sibling.id) }); });
   await expect.poll(() => guardFlush.mock.calls.length).toBeGreaterThan(0);
+  expect(router.state.location.hash).toBe(originalHash);
+  await expect.element(name).toHaveValue("Keep this unsaved edit");
+  const callsBeforeSettings = guardFlush.mock.calls.length;
+  await act(() => { void router.navigate({ to: "/settings" }); });
+  await expect.poll(() => guardFlush.mock.calls.length).toBeGreaterThan(callsBeforeSettings);
   expect(router.state.location.pathname).toBe("/");
   await expect.element(name).toHaveValue("Keep this unsaved edit");
   await screen.getByRole("button", { name: "Projects", exact: true }).click();
   await screen.getByRole("button", { name: "Leave without these edits" }).click();
   await act(() => router.navigate({ to: "/settings" }));
   await expect.element(screen.getByRole("heading", { name: "Settings fixture" })).toBeVisible();
-  expect((await listDrafts(workspace))[0]?.title).toBe("Saved by another window");
+  expect((await listDrafts(workspace)).find(project => project.id === stored?.id)?.title).toBe("Saved by another window");
 });
