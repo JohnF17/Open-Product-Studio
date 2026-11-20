@@ -1,5 +1,5 @@
 import { ChevronDown, Film, PersonStanding, Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { DraftEditor, StudioDraft, VideoStyle } from "./drafts";
 import { EpisodeBriefUpdate } from "./EpisodeBriefUpdate";
 import { catalog } from "./guide";
@@ -29,7 +29,8 @@ export function VideoSeriesBriefPanel({ draft, editor, onCreateVideoProject }: {
   const format = draft.fields.seriesDraftFormat ?? brief?.format ?? "";
   const [title, setTitle] = useState("");
   const opening = useRef(false);
-  const ready = editor.snapshot().status === "saved";
+  const { status } = useSyncExternalStore(editor.subscribe, editor.snapshot, editor.snapshot);
+  const ready = status === "saved";
   const episode = !!brief && !draft.seriesBriefOwner;
   const changed = audience.trim() !== brief?.audience || format.trim() !== brief?.format || draft.style !== brief?.style;
   const canSave = ready && !episode && changed && !!audience.trim() && !!format.trim();

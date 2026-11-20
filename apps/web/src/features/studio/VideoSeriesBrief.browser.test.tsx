@@ -2,10 +2,34 @@ import { expect, it } from "vite-plus/test";
 import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import { randomUUID } from "../../lib/randomUUID";
-import { createDraft, listDrafts, saveDraft } from "./drafts";
+import { createDraft, DraftEditor, listDrafts, saveDraft } from "./drafts";
+import { VideoSeriesBriefPanel } from "./VideoSeriesBriefPanel";
 import { projectBackupBlob } from "./projectBackup";
 import StudioWorkspace from "./StudioWorkspace";
 import { reviseSeriesBrief } from "./videoSeries";
+
+it("enables Save series brief when the write pending at mount completes", async () => {
+  const draft = createDraft(randomUUID(), "video");
+  const gate = Promise.withResolvers<void>();
+  const editor = new DraftEditor(draft, async (_draft, revision) => {
+    await gate.promise;
+    return revision + 1;
+  });
+  editor.update({ fields: { seriesDraftAudience: "Gardeners", seriesDraftFormat: "Plant diary" } });
+  const writing = editor.flush();
+  await using screen = await render(
+    <VideoSeriesBriefPanel draft={editor.snapshot().draft} editor={editor} onCreateVideoProject={() => {}} />,
+    { router: false },
+  );
+  const save = screen.getByRole("button", { name: "Save series brief", exact: true });
+  await expect.element(save).toBeDisabled();
+  gate.resolve();
+  await writing;
+  await expect.element(save).toBeEnabled();
+  await save.click();
+  await editor.flush();
+  expect(editor.snapshot().draft.seriesBrief?.audience).toBe("Gardeners");
+});
 
 it("starts an independent episode from saved Series choices and resumes its overrides", async () => {
   const workspaceId = randomUUID();

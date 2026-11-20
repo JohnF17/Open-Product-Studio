@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { readLocalSeriesBrief, type DraftEditor, type StudioDraft } from "./drafts";
 import { pinBriefUpdate } from "./pinEpisodeBrief";
 import { catalog, selectedTools } from "./guide";
 import type { VideoSeriesBrief } from "./videoSeries";
 
 export function EpisodeBriefUpdate({ draft, editor }: { draft: StudioDraft; editor: DraftEditor }) {
+  const { status } = useSyncExternalStore(editor.subscribe, editor.snapshot, editor.snapshot);
   const [candidate, setCandidate] = useState<VideoSeriesBrief>();
   const [message, setMessage] = useState("");
   const [checking, setChecking] = useState(false);
@@ -70,7 +71,7 @@ export function EpisodeBriefUpdate({ draft, editor }: { draft: StudioDraft; edit
           {draft.tools.some((id) => !patch.tools.includes(id)) &&
             <p>Removed from the tool plan: {draft.tools.filter((id) => !patch.tools.includes(id)).map((id) => catalog.stackEntries[id]?.label ?? id).join(", ")}.</p>}
           <div className="ops-actions">
-            <button type="button" className="ops-button ops-primary" disabled={editor.snapshot().status !== "saved"} onClick={() => void apply()}>Apply revision {candidate.revision}</button>
+            <button type="button" className="ops-button ops-primary" disabled={status !== "saved"} onClick={() => void apply()}>Apply revision {candidate.revision}</button>
             <button type="button" className="ops-link" onClick={() => { checkButton.current?.focus(); setCandidate(undefined); setMessage("Kept the pinned revision."); }}>Keep current revision</button>
           </div>
         </div>
