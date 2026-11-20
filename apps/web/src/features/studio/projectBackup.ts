@@ -44,7 +44,7 @@ const authoredFields = {
     "review",
     "caption",
   ],
-  clipper: ["captionLine", "captionLook"],
+  clipper: ["captionLine", "captionLook", "clipGoal", "clipSourceEvidence", "clipReviewedBatch", "clipManualSettings"],
   replica: [],
   "day-trader": [],
   "affiliate-storefront": [],
@@ -218,7 +218,7 @@ function checkLegacyKind(
 
 type BackupContent = Pick<
   StudioDraft,
-  "category" | "stage" | "title" | "fields" | "archivedFields" | "style" | "tools" | "videoCues" | "affiliate" | "seriesBrief" | "seriesHistory"
+  "category" | "stage" | "title" | "finished" | "fields" | "archivedFields" | "style" | "tools" | "videoCues" | "affiliate" | "seriesBrief" | "seriesHistory"
 >;
 
 function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}): BackupContent {
@@ -240,6 +240,7 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
     typeof title !== "string"
   )
     invalid();
+  if (input.finished !== undefined && typeof input.finished !== "boolean") invalid();
   const fieldContent = copyFields(input.fields, category, input.archivedFields);
   if (legacy) checkLegacyKind(input, category, fieldContent.fields, options);
   const content: BackupContent = {
@@ -247,6 +248,7 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
     stage,
     title,
     ...fieldContent,
+    ...(input.finished === true ? { finished: true } : {}),
     style: "kinetic-type",
     tools: [],
     ...(input.seriesBrief !== undefined ? { seriesBrief: input.seriesBrief } : {}),

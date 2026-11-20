@@ -1,4 +1,6 @@
 import type {
+  ClipperSampleRequest,
+  ClipperSampleResult,
   DesktopBridge,
   DesktopPreviewAnnotationVoiceEvent,
   DesktopPreviewFindResultEvent,
@@ -100,6 +102,10 @@ function unwrapEnsureSshEnvironmentResult(result: unknown) {
 }
 
 contextBridge.exposeInMainWorld("desktopBridge", {
+  clipperSample: (request: ClipperSampleRequest): Promise<ClipperSampleResult> =>
+    ipcRenderer
+      .invoke(IpcChannels.CLIPPER_SAMPLE_CHANNEL, request)
+      .catch(() => ({ status: request?.action === "save" ? "uncertain" : "failed" })),
   getAppBranding: () => {
     const result = ipcRenderer.sendSync(IpcChannels.GET_APP_BRANDING_CHANNEL);
     if (typeof result !== "object" || result === null) {

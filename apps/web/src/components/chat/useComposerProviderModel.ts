@@ -2,6 +2,7 @@ import {
   type DraftId,
   deriveEffectiveComposerModelState,
   useComposerDraftModelState,
+  useComposerDraftStore,
 } from "../../composerDraftStore";
 import { draftModelSelectionApplies } from "../../lib/chatThreadActions";
 import {
@@ -12,10 +13,13 @@ import {
   type ServerProvider,
 } from "@t3tools/contracts";
 import {
+  isProviderInstancePickerReady,
   NO_PROVIDER_MODEL_SELECTION,
   providerInstanceEntriesFor,
   type ProviderInstanceEntry,
 } from "../../providerInstances";
+import { createModelSelection, modelSelectionsEqual } from "@t3tools/shared/model";
+import { getAppModelOptionsForInstance } from "../../modelSelection";
 import { type UnifiedSettings } from "@t3tools/contracts/settings";
 import { getComposerPromptInjectionState, getComposerProviderState } from "./composerProviderState";
 import { resolveComposerProviderSelection } from "../ChatView.logic";
@@ -53,6 +57,15 @@ export function useComposerProviderModel(
     threadStarted,
   } = input;
   const draftModelState = useComposerDraftModelState(threadRef);
+  const pinProviderSelection = useComposerDraftStore(
+    (store) => store.getDraftThread(threadRef)?.pinProviderSelection === true,
+  );
+  const requireAvailableModel = useComposerDraftStore(
+    (store) => !threadStarted && store.getDraftThread(threadRef)?.requireAvailableModel === true,
+  );
+  const exactSelection = pinProviderSelection && draftModelState?.activeProvider
+    ? draftModelState.modelSelectionByProvider[draftModelState.activeProvider]
+    : undefined;
   const providerInstanceEntries: ReadonlyArray<ProviderInstanceEntry> = providerInstanceEntriesFor(
     providerStatuses,
     settings,
@@ -60,6 +73,8 @@ export function useComposerProviderModel(
   );
   const selection = resolveComposerProviderSelection({
     entries: providerInstanceEntries,
+    exactInstanceId: exactSelection?.instanceId ??
+      (requireAvailableModel ? NO_PROVIDER_MODEL_SELECTION.instanceId : undefined),
     candidateInstanceIds: [
       draftModelSelectionApplies(draftModelState, threadStarted)
         ? draftModelState.activeProvider
@@ -73,17 +88,23 @@ export function useComposerProviderModel(
     selection.selectedProviderEntry?.instanceId ?? NO_PROVIDER_MODEL_SELECTION.instanceId;
   const selectedProvider: ProviderDriverKind =
     selection.selectedProviderEntry?.driverKind ?? selection.requestedDriverKind;
-  const modelState = deriveEffectiveComposerModelState({
-    draft: draftModelState,
-    threadStarted,
-    providers: providerStatuses,
-    selectedProvider,
-    selectedInstanceId,
-    requestedInstanceId: selection.requestedInstanceId,
-    threadModelSelection,
-    projectModelSelection,
-    settings,
-  });
+  const modelState =
+    exactSelection && selectedInstanceId === exactSelection.instanceId
+      ? {
+          selectedModel: exactSelection.model,
+          modelOptions: { [selectedInstanceId]: exactSelection.options ?? [] },
+        }
+      : deriveEffectiveComposerModelState({
+          draft: draftModelState,
+          threadStarted,
+          providers: providerStatuses,
+          selectedProvider,
+          selectedInstanceId,
+          requestedInstanceId: selection.requestedInstanceId,
+          threadModelSelection,
+          projectModelSelection,
+          settings,
+        });
   const selectedProviderModels = selection.selectedProviderEntry?.models ?? NO_PROVIDER_MODELS;
   const composerProviderState = getComposerProviderState({
     provider: selectedProvider,
@@ -92,7 +113,18 @@ export function useComposerProviderModel(
     promptInjectionState,
     modelOptions: modelState.modelOptions?.[selectedInstanceId],
   });
+  const modelSelectionRequired = requireAvailableModel && (
+    !exactSelection ||
+    !selection.selectedProviderEntry ||
+    !canUsePinnedModel(settings, selection.selectedProviderEntry, exactSelection.model) ||
+    !modelSelectionsEqual(
+      exactSelection,
+      createModelSelection(selectedInstanceId, modelState.selectedModel, composerProviderState.modelOptionsForDispatch),
+    )
+  );
   return {
+    requireAvailableModel,
+    modelSelectionRequired,
     providerInstanceEntries,
     ...selection,
     selectedInstanceId,
@@ -102,4 +134,18 @@ export function useComposerProviderModel(
     selectedModel: modelState.selectedModel,
     composerProviderState,
   };
+}
+
+function canUsePinnedModel(
+  settings: UnifiedSettings,
+  entry: ProviderInstanceEntry,
+  model: string,
+) {
+  if (!entry.installed || !isProviderInstancePickerReady(entry) ||
+      entry.snapshot.auth.status === "unauthenticated") return false;
+  const subProvider = entry.models.find(({ slug }) => slug === model)?.subProvider;
+  if (subProvider && entry.snapshot.subProviders?.some(
+    (backend) => backend.name === subProvider && backend.unavailableReason !== undefined,
+  )) return false;
+  return getAppModelOptionsForInstance(settings, entry, null).some(({ slug }) => slug === model);
 }

@@ -169,14 +169,14 @@ const guides: {
     sheets: {
       source: {
         label: "Source",
-        title: "Note your source recording",
-        detail: "Describe a recording you can use. On the Moment sheet you can open a local copy and mark the passage you want.",
+        title: "Choose a source recording",
+        detail: "Use a video you have permission to work with. Add an instruction if you want to prepare evidence for AI.",
         fields: clipperSource,
       },
       moments: {
         label: "Moment",
-        title: "Mark one moment",
-        detail: "Use the recording’s own timecodes. Choose a range that makes sense on its own.",
+        title: "Choose moments from your recording",
+        detail: "Review suggested clips together or mark a moment yourself. Play each selection in context before exporting.",
         fields: clipperMoment,
         references: clipperSource,
       },
@@ -202,14 +202,14 @@ const guides: {
         references: [...clipperSource, ...clipperMoment, ...clipperEdit, ...clipperStyle],
       },
       export: {
-        label: "Edit-plan export",
-        title: "Export your edit plan",
-        detail: "Save your edit plan or download a timed caption for your recording or trimmed clip. Video rendering is planned for M4A.",
+        label: "Export clips",
+        title: "Export your clips",
+        detail: "Render your selected footage on this device, download timed captions, or save the edit plan.",
       },
       publish: {
         label: "Publishing prep",
         title: "Prepare a possible post",
-        detail: "Draft a caption and record what needs approval. Return to Edit-plan export to include these notes in the download. Connected publishing is planned for M4C.",
+        detail: "Draft a caption and record what needs approval. Return to Export clips to download your edit plan with these notes. Connected publishing is planned for M4C.",
         fields: [
           {
             key: "postCaption",

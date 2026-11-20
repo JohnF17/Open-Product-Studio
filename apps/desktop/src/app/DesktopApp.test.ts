@@ -29,6 +29,7 @@ import * as DesktopApp from "./DesktopApp.ts";
 import * as DesktopAppActivation from "./DesktopAppActivation.ts";
 import * as DesktopAppIdentity from "./DesktopAppIdentity.ts";
 import * as DesktopClerk from "./DesktopClerk.ts";
+import * as DesktopConfig from "./DesktopConfig.ts";
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import * as DesktopLifecycle from "./DesktopLifecycle.ts";
 import * as DesktopLinuxUrlHandler from "./DesktopLinuxUrlHandler.ts";
@@ -36,6 +37,7 @@ import * as DesktopPreReadyPlatform from "./DesktopPreReadyPlatform.ts";
 import * as DesktopShutdown from "./DesktopShutdown.ts";
 import * as DesktopState from "./DesktopState.ts";
 import * as DesktopBackendPool from "../backend/DesktopBackendPool.ts";
+import * as DesktopNetworkInterfaces from "../backend/DesktopNetworkInterfaces.ts";
 import * as DesktopServerExposure from "../backend/DesktopServerExposure.ts";
 import * as ElectronApp from "../electron/ElectronApp.ts";
 import * as ElectronDialog from "../electron/ElectronDialog.ts";
@@ -85,6 +87,14 @@ interface StubbedDesktop {
   readonly flushRendererHistory?: Effect.Effect<void>;
   readonly tokenRequested?: Deferred.Deferred<void>;
   readonly activationStarted?: Deferred.Deferred<void>;
+  readonly settings?: Partial<DesktopAppSettings.DesktopSettings>;
+  readonly networkInterfaces?: DesktopNetworkInterfaces.NetworkInterfaces;
+  readonly wslAvailable?: boolean;
+  readonly managedLocalOnly?: boolean;
+  readonly net?: Partial<NetService.NetService["Service"]>;
+  readonly onBackendStart?: (
+    config: DesktopServerExposure.DesktopServerExposureBackendConfig,
+  ) => void;
 }
 
 const runStubbedDesktop = (stub: StubbedDesktop) =>
@@ -124,13 +134,6 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
           discoveryFinished: Effect.succeed(true),
           updates: Stream.empty,
         }),
-        Effect.provideService(DesktopAppSettings.DesktopAppSettings, {
-          load: Effect.void,
-          get: Effect.succeed({
-            localEnvironmentEnabled: stub.localEnvironmentEnabled,
-            serverExposureMode: "local-only",
-          }),
-        } as unknown as DesktopAppSettings.DesktopAppSettings["Service"]),
         Effect.provideService(DesktopLifecycle.DesktopLifecycle, {
           register: Effect.void,
           relaunch: () => Effect.void,
@@ -165,6 +168,7 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
           quitting,
         } as DesktopState.DesktopState["Service"]),
         Effect.provideService(DesktopWindow.DesktopWindow, {
+          showConnectingSplash: Effect.void,
           ensureMain: stub
             .record("window")
             .pipe(Effect.andThen(Deferred.succeed(stub.windowStarted, undefined))),
@@ -172,17 +176,6 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
             .record("window")
             .pipe(Effect.andThen(Deferred.succeed(stub.windowStarted, undefined))),
         } as unknown as DesktopWindow.DesktopWindow["Service"]),
-        Effect.provideService(DesktopBackendPool.DesktopBackendPool, {
-          primary: Effect.succeed({
-            start: stub.record("backend"),
-            currentConfig: Effect.succeedSome({ preflightFailure: Option.none() }),
-          }),
-          list: Effect.succeed(stub.backends ?? []),
-        } as unknown as DesktopBackendPool.DesktopBackendPool["Service"]),
-        Effect.provideService(DesktopServerExposure.DesktopServerExposure, {
-          configureFromSettings: () => Effect.succeed({ mode: "local-only" }),
-          backendConfig: Effect.succeed({ httpBaseUrl: new URL("http://127.0.0.1:3773") }),
-        } as unknown as DesktopServerExposure.DesktopServerExposure["Service"]),
         Effect.provideService(DesktopWslBackend.DesktopWslBackend, {
           reconcile: Effect.void,
         } as DesktopWslBackend.DesktopWslBackend["Service"]),
@@ -197,58 +190,238 @@ const runStubbedDesktop = (stub: StubbedDesktop) =>
       );
     return yield* runApp.pipe(
       Effect.provide(
-        Layer.mergeAll(
-          Layer.mock(BrowserImport.BrowserImport, {}),
-          Layer.mock(ChildProcessSpawner.ChildProcessSpawner, {}),
-          Layer.mock(DesktopBackendConfiguration.DesktopBackendConfiguration, {}),
-          Layer.mock(DesktopCliCommand.DesktopCliCommand, {
-            installOnFirstLaunch: stub.record("unexpected CLI installation"),
-          }),
-          Layer.mock(DesktopClientSettings.DesktopClientSettings, {}),
-          Layer.mock(DesktopConnectionCatalogStore.DesktopConnectionCatalogStore, {}),
-          Layer.mock(DesktopIpc.DesktopIpc, {}),
-          Layer.mock(DesktopLocalEnvironmentAuth.DesktopLocalEnvironmentAuth, {
-            getBearerToken: stub
-              .record("token")
-              .pipe(
-                Effect.andThen(
-                  stub.tokenRequested
-                    ? Deferred.succeed(stub.tokenRequested, undefined)
-                    : Effect.void,
+        Layer.effect(
+          DesktopBackendPool.DesktopBackendPool,
+          Effect.gen(function* () {
+            const exposure = yield* DesktopServerExposure.DesktopServerExposure;
+            return {
+              primary: Effect.succeed({
+                start: exposure.backendConfig.pipe(
+                  Effect.tap((config) => Effect.sync(() => stub.onBackendStart?.(config))),
+                  Effect.andThen(stub.record("backend")),
                 ),
-                Effect.as("token"),
+                currentConfig: Effect.succeedSome({ preflightFailure: Option.none() }),
+              }),
+              list: Effect.succeed(stub.backends ?? []),
+            } as unknown as DesktopBackendPool.DesktopBackendPool["Service"];
+          }),
+        ).pipe(
+          Layer.provideMerge(DesktopServerExposure.layer),
+          Layer.provideMerge(
+            Layer.mergeAll(
+              DesktopAppSettings.layerTest({
+                ...DesktopAppSettings.DEFAULT_DESKTOP_SETTINGS,
+                localEnvironmentEnabled: stub.localEnvironmentEnabled,
+                ...stub.settings,
+              }),
+              Layer.mock(BrowserImport.BrowserImport, {}),
+              Layer.mock(ChildProcessSpawner.ChildProcessSpawner, {}),
+              Layer.mock(DesktopBackendConfiguration.DesktopBackendConfiguration, {}),
+              Layer.mock(DesktopCliCommand.DesktopCliCommand, {
+                installOnFirstLaunch: stub.record("unexpected CLI installation"),
+              }),
+              Layer.mock(DesktopClientSettings.DesktopClientSettings, {}),
+              Layer.mock(DesktopConnectionCatalogStore.DesktopConnectionCatalogStore, {}),
+              Layer.mock(DesktopIpc.DesktopIpc, {}),
+              Layer.mock(DesktopLocalEnvironmentAuth.DesktopLocalEnvironmentAuth, {
+                getBearerToken: stub
+                  .record("token")
+                  .pipe(
+                    Effect.andThen(
+                      stub.tokenRequested
+                        ? Deferred.succeed(stub.tokenRequested, undefined)
+                        : Effect.void,
+                    ),
+                    Effect.as("token"),
+                  ),
+              }),
+              DesktopConfig.layerTest({}),
+              DesktopManagedPolicy.layerTest(
+                stub.managedLocalOnly
+                  ? {
+                      schemaVersion: 1,
+                      organization: "Example Corp",
+                      limits: { clients: ["desktop"] },
+                    }
+                  : undefined,
               ),
-          }),
-          Layer.mock(DesktopManagedPolicy.DesktopManagedPolicy, {}),
-          Layer.succeed(DesktopPrimaryPaste.DesktopPrimaryPaste, { enabled: true }),
-          Layer.mock(DesktopSshEnvironment.DesktopSshEnvironment, {}),
-          Layer.mock(DesktopSshPasswordPrompts.DesktopSshPasswordPrompts, {}),
-          Layer.mock(DesktopTelemetryPublisher.DesktopTelemetryPublisher, {}),
-          Layer.mock(DesktopWebLinks.DesktopWebLinks, {}),
-          Layer.mock(DesktopWslEnvironment.DesktopWslEnvironment, {}),
-          Layer.mock(ElectronMenu.ElectronMenu, {}),
-          Layer.mock(ElectronShell.ElectronShell, {}),
-          Layer.mock(ElectronTheme.ElectronTheme, {}),
-          Layer.mock(ElectronWindow.ElectronWindow, {}),
-          Layer.mock(MacPermissions.MacPermissions, {}),
-          Layer.mock(LoopbackTunnel.LoopbackTunnel, {}),
-          Layer.mock(PreviewManager.PreviewManager, {
-            isBrowserPartition: () => {
-              throw new Error("unexpected browser partition lookup");
-            },
-          }),
-          stub.fileSystem,
-          Layer.mock(NetService.NetService, {}),
-          Path.layer,
-          Layer.succeed(
-            HttpClient.HttpClient,
-            HttpClient.make(() => Effect.die("unexpected HTTP request")),
+              Layer.succeed(DesktopNetworkInterfaces.DesktopNetworkInterfaces, {
+                read: Effect.succeed(stub.networkInterfaces ?? {}),
+              }),
+              Layer.succeed(DesktopPrimaryPaste.DesktopPrimaryPaste, { enabled: true }),
+              Layer.mock(DesktopSshEnvironment.DesktopSshEnvironment, {}),
+              Layer.mock(DesktopSshPasswordPrompts.DesktopSshPasswordPrompts, {}),
+              Layer.mock(DesktopTelemetryPublisher.DesktopTelemetryPublisher, {}),
+              Layer.mock(DesktopWebLinks.DesktopWebLinks, {}),
+              DesktopWslEnvironment.layerTest({ isAvailable: stub.wslAvailable ?? false }),
+              Layer.mock(ElectronMenu.ElectronMenu, {}),
+              Layer.mock(ElectronShell.ElectronShell, {}),
+              Layer.mock(ElectronTheme.ElectronTheme, {}),
+              Layer.mock(ElectronWindow.ElectronWindow, {}),
+              Layer.mock(MacPermissions.MacPermissions, {}),
+              Layer.mock(LoopbackTunnel.LoopbackTunnel, {}),
+              Layer.mock(PreviewManager.PreviewManager, {
+                isBrowserPartition: () => {
+                  throw new Error("unexpected browser partition lookup");
+                },
+              }),
+              stub.fileSystem,
+              Layer.mock(NetService.NetService, stub.net ?? {}),
+              Path.layer,
+              Layer.succeed(
+                HttpClient.HttpClient,
+                HttpClient.make(() => Effect.die("unexpected HTTP request")),
+              ),
+            ),
           ),
         ),
       ),
       Effect.forkScoped,
     );
   });
+
+it.effect.each([
+  { name: "ordinary local startup", expectedHost: "127.0.0.1" },
+  {
+    name: "local startup with an IPv6-only collision",
+    expectedHost: "127.0.0.1",
+    ipv6Collision: true,
+  },
+  {
+    name: "local startup with a native bind collision",
+    expectedHost: "127.0.0.1",
+    bindCollision: true,
+  },
+  {
+    name: "local startup with an IPv4-reachable listener",
+    expectedHost: "127.0.0.1",
+    listenerCollision: true,
+  },
+  { name: "explicit LAN startup", expectedHost: "0.0.0.0", lan: true, hasLanAddress: true },
+  {
+    name: "explicit LAN startup with a native bind collision",
+    expectedHost: "0.0.0.0",
+    lan: true,
+    hasLanAddress: true,
+    bindCollision: true,
+  },
+  { name: "saved LAN startup without a usable address", expectedHost: "127.0.0.1", lan: true },
+  {
+    name: "saved LAN startup restricted by managed policy",
+    expectedHost: "127.0.0.1",
+    lan: true,
+    hasLanAddress: true,
+    managedLocalOnly: true,
+  },
+  {
+    name: "WSL-only startup with a saved LAN preference",
+    expectedHost: "127.0.0.1",
+    lan: true,
+    hasLanAddress: true,
+    wsl: true,
+    wslAvailable: true,
+  },
+  {
+    name: "unavailable WSL with a saved LAN preference",
+    expectedHost: "0.0.0.0",
+    lan: true,
+    hasLanAddress: true,
+    wsl: true,
+  },
+  { name: "configured-port startup", configuredPort: 4545 },
+  {
+    name: "remote-connect startup with the local environment disabled",
+    remoteOnly: true,
+    lan: true,
+    hasLanAddress: true,
+  },
+])("qualifies only the necessary backend port for $name", (scenario) =>
+  Effect.gen(function* () {
+    const windowStarted = yield* Deferred.make<void>();
+    const path = yield* Path.Path.pipe(Effect.provide(Path.layer));
+    const probes: Array<[number, string]> = [];
+    const listenerChecks: Array<[number, string]> = [];
+    const configs: DesktopServerExposure.DesktopServerExposureBackendConfig[] = [];
+    const app = yield* runStubbedDesktop({
+      localEnvironmentEnabled: !scenario.remoteOnly,
+      environment: {
+        configuredBackendPort: Option.fromNullishOr(scenario.configuredPort),
+        path,
+        baseDir: "/isolated/engine",
+        serverRoot: "/isolated/resources/app.asar",
+        appImagePath: Option.none(),
+      },
+      settings: {
+        serverExposureMode: scenario.lan ? "network-accessible" : "local-only",
+        wslOnly: scenario.wsl ?? false,
+        wslBackendEnabled: scenario.wsl ?? false,
+      },
+      ...(scenario.hasLanAddress
+        ? {
+            networkInterfaces: {
+              ethernet: [{ family: "IPv4", internal: false, address: "192.168.1.20" }],
+            },
+          }
+        : {}),
+      wslAvailable: scenario.wslAvailable ?? false,
+      managedLocalOnly: scenario.managedLocalOnly ?? false,
+      fileSystem: FileSystem.layerNoop({}),
+      record: () => Effect.void,
+      windowStarted,
+      registerLinuxUrlHandler: Effect.void,
+      onBackendStart: (config) => configs.push(config),
+      net: {
+        canListenOnHost: (port, host) =>
+          Effect.sync(() => {
+            probes.push([port, host]);
+            if (scenario.ipv6Collision && host.includes(":")) return false;
+            return !(scenario.bindCollision && port === 3773);
+          }),
+        hasListenerOnHost: (port, host) =>
+          Effect.sync(() => {
+            listenerChecks.push([port, host]);
+            return scenario.listenerCollision === true && port === 3773;
+          }),
+      },
+    });
+    yield* Effect.raceFirst(Deferred.await(windowStarted), Fiber.join(app));
+    yield* (yield* DesktopShutdown.DesktopShutdown).request;
+    yield* Fiber.join(app);
+    const host = scenario.expectedHost;
+    assert.deepEqual(
+      probes,
+      host === undefined
+        ? []
+        : [
+            ...(scenario.listenerCollision ? [] : [[3773, host]]),
+            ...(scenario.bindCollision || scenario.listenerCollision ? [[3774, host]] : []),
+          ],
+    );
+    assert.deepEqual(
+      listenerChecks,
+      host === undefined
+        ? []
+        : [
+            [3773, "127.0.0.1"],
+            ...(scenario.bindCollision || scenario.listenerCollision ? [[3774, "127.0.0.1"]] : []),
+          ],
+    );
+    assert.deepEqual(
+      configs.map((config) => [config.port, config.bindHost]),
+      scenario.remoteOnly
+        ? []
+        : [
+            [
+              scenario.configuredPort ??
+                (scenario.bindCollision || scenario.listenerCollision ? 3774 : 3773),
+              scenario.lan && scenario.hasLanAddress && !scenario.managedLocalOnly
+                ? "0.0.0.0"
+                : "127.0.0.1",
+            ],
+          ],
+    );
+  }).pipe(Effect.provide(DesktopShutdown.layer)),
+);
 
 it.effect.each([false, true])(
   "stops backends together before flushing history and cancels Linux registration, stop defect=%s",

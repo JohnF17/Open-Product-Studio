@@ -1,0 +1,40 @@
+.ops-footage-export {
+  min-width: 0;
+}
+
+.ops-footage-actions, .ops-footage-consent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.ops-footage-consent {
+  flex-wrap: nowrap;
+  align-items: baseline;
+  margin-block: 0.75rem;
+}
+
+.ops-footage-export progress {
+  margin-inline: 0.45rem;
+  max-width: 35%;
+}
+
+.ops-footage-results {
+  display: grid;
+  gap: 1rem;
+  padding-inline-start: 1.5rem;
+}
+
+.ops-footage-results li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ops-footage-results video {
+  display: block;
+  width: min(100%, 30rem);
+  max-height: 21rem;
+  margin-block: 0.45rem;
+  background: #111;
+}

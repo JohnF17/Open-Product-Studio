@@ -25,12 +25,12 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as DesktopManagedPolicy from "../app/DesktopManagedPolicy.ts";
 import * as DesktopAppSettings from "../settings/DesktopAppSettings.ts";
 import * as DesktopConfig from "../app/DesktopConfig.ts";
+import { DESKTOP_LOOPBACK_HOST } from "./DesktopBackendPort.ts";
 import * as DesktopNetworkInterfaces from "./DesktopNetworkInterfaces.ts";
 import { resolveTailscaleAdvertisedEndpoints } from "./tailscaleEndpointProvider.ts";
 
 const TAILSCALE_STATUS_CACHE_TTL = Duration.seconds(60);
 
-const DESKTOP_LOOPBACK_HOST = "127.0.0.1";
 const DESKTOP_LAN_BIND_HOST = "0.0.0.0";
 
 interface ResolvedDesktopServerExposure {
@@ -276,9 +276,9 @@ export class DesktopServerExposure extends Context.Service<
   {
     readonly getState: Effect.Effect<DesktopServerExposureState>;
     readonly backendConfig: Effect.Effect<DesktopServerExposureBackendConfig>;
-    readonly configureFromSettings: (input: {
-      readonly port: number;
-    }) => Effect.Effect<DesktopServerExposureState>;
+    readonly configureFromSettings: <E = never, R = never>(input: {
+      readonly port: number | ((bindHost: string) => Effect.Effect<number, E, R>);
+    }) => Effect.Effect<DesktopServerExposureState, E, R>;
     readonly setMode: (
       mode: DesktopServerExposureMode,
     ) => Effect.Effect<DesktopServerExposureChange, DesktopServerExposureSetModeError>;
@@ -509,20 +509,30 @@ export const make = Effect.gen(function* () {
   const backendConfig = Ref.get(stateRef).pipe(Effect.map(toBackendConfig));
 
   const configureFromSettings = Effect.fn("desktop.serverExposure.configureFromSettings")(
-    function* ({ port }: { readonly port: number }) {
-      yield* Effect.annotateCurrentSpan({ port });
-      const settings = yield* desktopSettings.get;
+    function* <E = never, R = never>({
+      port,
+    }: {
+      readonly port: number | ((bindHost: string) => Effect.Effect<number, E, R>);
+    }) {
+      const settings = withinPolicy(yield* desktopSettings.get);
       const currentNetworkInterfaces = yield* readNetworkInterfaces;
-      const resolved = resolveRuntimeState({
-        requestedMode: withinPolicy(settings).serverExposureMode,
-        settings: withinPolicy(settings),
-        port,
+      const exposure = {
+        requestedMode: settings.serverExposureMode,
+        settings,
         networkInterfaces: currentNetworkInterfaces,
         advertisedHostOverride: config.desktopLanHostOverride,
-      });
+      };
+      // Keep qualification and the published endpoint on the same settings/interface snapshot.
+      const selectedPort =
+        typeof port === "number"
+          ? port
+          : yield* port(resolveRuntimeState({ ...exposure, port: 0 }).state.bindHost);
+      yield* Effect.annotateCurrentSpan({ port: selectedPort });
+      const resolved = resolveRuntimeState({ ...exposure, port: selectedPort });
       yield* Ref.set(stateRef, resolved.state);
       return toContractState(resolved.state);
     },
+    changePermit.withPermit,
   );
 
   const setMode = Effect.fn("desktop.serverExposure.setMode")(function* (

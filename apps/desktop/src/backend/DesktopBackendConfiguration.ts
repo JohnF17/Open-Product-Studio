@@ -1,5 +1,6 @@
 import * as NodeOS from "node:os";
 
+import * as NetService from "@t3tools/shared/Net";
 import { parsePersistedServerObservabilitySettings } from "@t3tools/shared/serverSettings";
 import { currentDesktopBootstrapToken } from "@t3tools/shared/desktopBootstrapToken";
 import * as HostProcess from "@t3tools/shared/HostProcess";
@@ -20,6 +21,7 @@ import * as SynchronizedRef from "effect/SynchronizedRef";
 import serverPackageJson from "../../../server/package.json" with { type: "json" };
 
 import * as DesktopBackendManager from "./DesktopBackendManager.ts";
+import { DESKTOP_LOOPBACK_HOST, scanDesktopBackendPort } from "./DesktopBackendPort.ts";
 import * as DesktopEnvironment from "../app/DesktopEnvironment.ts";
 import * as DesktopCliShim from "../app/DesktopCliShim.ts";
 import * as DesktopState from "../app/DesktopState.ts";
@@ -799,6 +801,8 @@ export const make = Effect.gen(function* () {
   const desktopState = yield* DesktopState.DesktopState;
   const mac = yield* Mac.Mac;
   const random = yield* SecureRandom.SecureRandom;
+  const net = yield* NetService.NetService;
+  const wslPrimary = yield* Ref.make(false);
   // Random generation yields; serialize it so concurrent backends cannot capture distinct bootstrap secrets.
   const secretRef = yield* SynchronizedRef.make(Option.none<string>());
   const hostScope = yield* Effect.cached(
@@ -900,8 +904,33 @@ export const make = Effect.gen(function* () {
     resolvePrimary: Effect.gen(function* () {
       const { useWsl, wslRequested } = yield* describePrimary;
       if (useWsl) {
+        yield* Ref.set(wslPrimary, true);
         return yield* buildWslPrimaryConfig;
       }
+      if ((yield* Ref.get(wslPrimary)) && Option.isNone(environment.configuredBackendPort)) {
+        const { bindHost, port } = yield* serverExposure.backendConfig;
+        if (bindHost !== DESKTOP_LOOPBACK_HOST) {
+          // WSL startup qualified the Windows forwarding endpoint. Qualify the LAN bind
+          // only now that a native fallback will actually use it.
+          yield* serverExposure
+            .configureFromSettings({
+              port: (host) => scanDesktopBackendPort(host, port),
+            })
+            .pipe(
+              Effect.provideService(NetService.NetService, net),
+              Effect.mapError((cause) =>
+                PlatformError.systemError({
+                  _tag: "Busy",
+                  module: "DesktopBackendConfiguration",
+                  method: "resolvePrimary",
+                  description: cause.message,
+                  cause,
+                }),
+              ),
+            );
+        }
+      }
+      yield* Ref.set(wslPrimary, false);
       if (wslRequested) {
         yield* Effect.logWarning(
           "WSL-only backend requested but WSL is unavailable; starting the Windows primary instead.",

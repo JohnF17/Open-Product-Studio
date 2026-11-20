@@ -8,7 +8,7 @@ import type {
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
 import { T, useGT, useMessages } from "gt-react";
 import { CircleAlertIcon, ImageIcon, PaperclipIcon, PlayIcon, XIcon } from "lucide-react";
-import { type ComponentProps, useLayoutEffect, useRef } from "react";
+import { type ComponentProps, lazy, Suspense, useLayoutEffect, useRef, useState } from "react";
 
 import {
   type ComposerFileAttachment,
@@ -36,6 +36,7 @@ import { AttachmentFilePreview } from "../files/AttachmentFilePreview";
 import { AttachmentImage } from "../media/AttachmentImage";
 import { Button } from "../ui/button";
 import { Dialog, DialogPopup, DialogTitle } from "../ui/dialog";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ComposerImageThumbnail } from "./ComposerImageThumbnail";
 import { composerFloatingLayerProps } from "./composerEventScope";
@@ -731,15 +732,26 @@ export function ComposerQueuedAttachmentRow({
   );
 }
 
+const LazyChatClipperEntry = lazy(() => import("./ChatClipperEntry").then(module => ({ default: module.ChatClipperEntry })));
+
 export function ComposerAttachButton({
   addComposerAttachments,
   focusComposer,
+  clipperWorkspace,
+  chatPrompt = "",
+  onClipProjectCreated,
+  allowFiles = true,
 }: {
   readonly addComposerAttachments: (files: File[]) => Promise<boolean>;
   readonly focusComposer: () => void;
+  readonly clipperWorkspace?: string | undefined;
+  readonly chatPrompt?: string;
+  readonly onClipProjectCreated?: (id: string) => void;
+  readonly allowFiles?: boolean;
 }) {
   const gt = useGT();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [clipping, setClipping] = useState(false);
   return (
     <>
       <input
@@ -758,7 +770,21 @@ export function ComposerAttachButton({
           });
         }}
       />
-      <Tooltip>
+      {clipperWorkspace ? <>
+        <Menu>
+          <MenuTrigger render={<Button type="button" variant="ghost" size="icon-sm" aria-label={gt("Attach files")} />}>
+            <PaperclipIcon className="translate-y-px" />
+          </MenuTrigger>
+          <MenuPopup {...composerFloatingLayerProps} side="top" align="start">
+            {allowFiles && <MenuItem onClick={() => inputRef.current?.click()}><T>Attach files</T></MenuItem>}
+            <MenuItem onClick={() => setClipping(true)}>Clip a video…</MenuItem>
+          </MenuPopup>
+        </Menu>
+        {clipping && <Suspense fallback={<span role="status">Opening Clipper…</span>}>
+          <LazyChatClipperEntry workspace={clipperWorkspace} prompt={chatPrompt} onCreated={onClipProjectCreated}
+            onClose={() => setClipping(false)} />
+        </Suspense>}
+      </> : <Tooltip>
         <TooltipTrigger
           render={
             <Button
@@ -777,7 +803,7 @@ export function ComposerAttachButton({
         <TooltipPopup>
           <T>Attach files</T>
         </TooltipPopup>
-      </Tooltip>
+      </Tooltip>}
     </>
   );
 }

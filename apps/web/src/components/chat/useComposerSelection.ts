@@ -18,6 +18,8 @@ import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { type SetStateAction } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toastManager } from "../ui/toast";
+import { createModelSelection } from "@t3tools/shared/model";
+import { getComposerProviderState } from "./composerProviderState";
 import { resolveAppModelSelectionForInstance } from "../../modelSelection";
 import {
   draftModelSelectionApplies,
@@ -182,12 +184,10 @@ export function useComposerSelection(input: ComposerSelectionInput) {
       activeThread.modelSelection.instanceId;
     const shownSelection =
       draft?.modelSelectionByProvider[shownInstanceId] ?? activeThread.modelSelection;
-    if (
-      !resolvedModel ||
-      (instanceId === shownInstanceId &&
-        shownSelection.instanceId === instanceId &&
-        shownSelection.model === resolvedModel)
-    ) {
+    const repickingShownModel = instanceId === shownInstanceId &&
+      shownSelection.instanceId === instanceId && shownSelection.model === resolvedModel;
+    const requireAvailableModel = isLocalDraftThread && draftThread?.requireAvailableModel === true;
+    if (!resolvedModel || (repickingShownModel && !requireAvailableModel)) {
       // Re-picking the shown model keeps its options and saves it again if that save failed.
       if (resolvedModel && !isLocalDraftThread) applyThreadModelPick(threadRef);
       if (options?.focusComposer !== false) scheduleComposerFocus();
@@ -198,6 +198,7 @@ export function useComposerSelection(input: ComposerSelectionInput) {
     const threadSelection = activeThread.modelSelection;
     // This pick replaces the stored options, so the thread's own model carries them over.
     const pickOptions =
+      requireAvailableModel && repickingShownModel ? shownSelection.options :
       rememberedOptions !== undefined && rememberedOptions.length > 0
         ? rememberedOptions
         : threadSelection.instanceId === instanceId &&
@@ -209,10 +210,18 @@ export function useComposerSelection(input: ComposerSelectionInput) {
             )
           ? threadSelection.options
           : undefined;
-    const nextModelSelection: ModelSelection =
-      pickOptions !== undefined && pickOptions.length > 0
-        ? { instanceId, model: resolvedModel, options: [...pickOptions] }
-        : { instanceId, model: resolvedModel };
+    const nextModelSelection = createModelSelection(
+      instanceId,
+      resolvedModel,
+      requireAvailableModel && entry
+        ? getComposerProviderState({
+            provider: entry.driver,
+            model: resolvedModel,
+            models: entry.models,
+            modelOptions: pickOptions,
+          }).modelOptionsForDispatch
+        : pickOptions,
+    );
     const modelChangeBlockReason = getStartedThreadModelChangeBlockReason({
       hasStartedSession: activeRuntime !== null,
       supportsProviderSwitchingViaHandoff,

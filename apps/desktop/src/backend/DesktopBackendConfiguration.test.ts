@@ -3,6 +3,7 @@ import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
 import { currentDesktopBootstrapToken } from "@t3tools/shared/desktopBootstrapToken";
 import * as HostProcess from "@t3tools/shared/HostProcess";
+import * as NetService from "@t3tools/shared/Net";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -33,10 +34,14 @@ const layerShellEnvironment = (prepared = true) =>
     updates: Stream.empty,
   });
 
-const layerBackendConfiguration = (prepared = true) =>
+const layerBackendConfiguration = (
+  prepared = true,
+  net: Partial<NetService.NetService["Service"]> = {},
+) =>
   DesktopBackendConfiguration.layer.pipe(
     Layer.provide(layerShellEnvironment(prepared)),
     Layer.provide(DesktopState.layer),
+    Layer.provide(Layer.mock(NetService.NetService, net)),
   );
 
 const layerServerExposure = Layer.succeed(DesktopServerExposure.DesktopServerExposure, {
@@ -869,26 +874,79 @@ describe("DesktopBackendConfiguration", () => {
   );
 
   it.effect(
-    "resolvePrimary marks a removed persisted WSL distro as a fatal preflight failure",
+    "resolvePrimary qualifies the Windows LAN bind only after a fatal WSL preflight failure",
     () =>
       Effect.gen(function* () {
         const fileSystem = yield* FileSystem.FileSystem;
         const baseDir = yield* fileSystem.makeTempDirectoryScoped({
           prefix: "t3-desktop-backend-config-test-",
         });
+        let port = 4888;
+        const probes: Array<[number, string]> = [];
+        const exposureLayer = Layer.succeed(DesktopServerExposure.DesktopServerExposure, {
+          getState: Effect.die("unexpected getState"),
+          backendConfig: Effect.sync(() => ({
+            port,
+            bindHost: "0.0.0.0",
+            httpBaseUrl: new URL(`http://127.0.0.1:${port}`),
+            tailscaleServeEnabled: false,
+            tailscaleServePort: 443,
+          })),
+          configureFromSettings: ({ port: selectPort }) =>
+            (typeof selectPort === "number"
+              ? Effect.succeed(selectPort)
+              : selectPort("0.0.0.0")
+            ).pipe(
+              Effect.tap((selected) =>
+                Effect.sync(() => {
+                  port = selected;
+                }),
+              ),
+              Effect.as({
+                mode: "network-accessible",
+                endpointUrl: null,
+                advertisedHost: null,
+                tailscaleServeEnabled: false,
+                tailscaleServePort: 443,
+              }),
+            ),
+          setMode: () => Effect.die("unexpected setMode"),
+          setTailscaleServeEnabled: () => Effect.die("unexpected setTailscaleServeEnabled"),
+          getAdvertisedEndpoints: Effect.succeed([]),
+        });
 
         yield* Effect.gen(function* () {
           const configuration = yield* DesktopBackendConfiguration.DesktopBackendConfiguration;
+          const settings = yield* DesktopAppSettings.DesktopAppSettings;
           const config = yield* configuration.resolvePrimary;
           const failure = Option.getOrThrow(config.preflightFailure);
 
           assert.equal(config.executablePath, "wsl.exe");
           assert.isTrue(failure.fatal);
           assert.include(failure.reason, "Removed-Distro");
+          assert.deepEqual(probes, []);
+
+          yield* settings.applyWslWindowsFallbackInMemory;
+          const fallback = yield* configuration.resolvePrimary;
+          assert.equal(fallback.executablePath, process.execPath);
+          assert.equal(fallback.bootstrap.host, "0.0.0.0");
+          assert.equal(fallback.bootstrap.port, 4889);
+          assert.equal(fallback.httpBaseUrl.port, "4889");
+          assert.deepEqual(probes, [
+            [4888, "0.0.0.0"],
+            [4889, "0.0.0.0"],
+          ]);
         }).pipe(
           Effect.provide(
-            layerBackendConfiguration().pipe(
-              Layer.provideMerge(layerServerExposure),
+            layerBackendConfiguration(true, {
+              hasListenerOnHost: () => Effect.succeed(false),
+              canListenOnHost: (candidatePort, host) =>
+                Effect.sync(() => {
+                  probes.push([candidatePort, host]);
+                  return candidatePort !== 4888;
+                }),
+            }).pipe(
+              Layer.provideMerge(exposureLayer),
               Layer.provideMerge(
                 DesktopAppSettings.layerTest({
                   ...DesktopAppSettings.DEFAULT_DESKTOP_SETTINGS,

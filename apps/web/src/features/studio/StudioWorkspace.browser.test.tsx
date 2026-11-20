@@ -3,7 +3,28 @@ import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import { randomUUID } from "../../lib/randomUUID";
 import StudioWorkspace, { type StudioAgentRequest } from "./StudioWorkspace";
-import { listDrafts } from "./drafts";
+import { createDraft, listDrafts, saveDraft } from "./drafts";
+import { recording } from "./clipRecordingFixture";
+import { forgetClipChatSource, rememberClipChatSource } from "./clipChatReturn";
+import { openClipSourceFile } from "./clipperEvidence";
+
+it("checks caption marks against the staged video when chat returns directly to Export", async () => {
+  const workspace = randomUUID();
+  const draft = createDraft(workspace, "clipper");
+  await saveDraft({ ...draft, stage: "export", fields: {
+    markIn: "0.5", markOut: "3", captionLine: "Watch the join",
+  } }, 0);
+  const video = await openClipSourceFile(recording("short.webm"), new AbortController().signal);
+  expect(video.durationMs).toBe(2000);
+  rememberClipChatSource(workspace, draft.id, { video, link: "", instruction: "", captions: null });
+  try {
+    await using ui = await render(<StudioWorkspace workspaceId={workspace} routeProjectId={draft.id} />, { router: false });
+    await expect.element(ui.getByRole("button", { name: "Download caption (.vtt)" })).toBeDisabled();
+    await expect.element(ui.getByText(/Mark out exceeds the recording duration/)).toBeVisible();
+  } finally {
+    forgetClipChatSource();
+  }
+});
 
 const workingDraftCases = [
   {
@@ -281,4 +302,53 @@ it("hands saved context to the agent and cancels requests on step changes and pr
   await expect.poll(() => requests.length).toBe(2);
   await screen.getByRole("button", { name: "Projects", exact: true }).click();
   expect(requests[1]!.signal.aborted).toBe(true);
+});
+
+it("carries Source media into Moment and clears transient media when the project reopens", async () => {
+  const workspaceId = randomUUID();
+  const onEvidenceReady = vi.fn();
+  const container = document.createElement("div");
+  container.style.width = "390px";
+  await using screen = await render(<StudioWorkspace workspaceId={workspaceId} onEvidenceReady={onEvidenceReady} />,
+    { container, router: false });
+  const button = (name: string | RegExp) => screen.getByRole("button", { name, exact: typeof name === "string" });
+  await button(/^Clipper/).click();
+  await screen.getByRole("textbox", { name: "Project name" }).fill("Source fixture");
+  await userEvent.upload(screen.getByLabelText("Choose a video file"), recording("private.webm"));
+  await expect.element(screen.getByLabelText("Source video")).toBeVisible();
+  const pane = container.querySelector(".ops-workspace")!;
+  expect(pane.scrollWidth).toBeLessThanOrEqual(pane.clientWidth);
+  await button("Next").click();
+  await expect.element(button("Set mark in")).toBeEnabled();
+  await button("Back").click();
+  await expect.element(screen.getByLabelText("Source video")).toBeVisible();
+  const saved = (await listDrafts(workspaceId))[0];
+  expect(JSON.stringify(saved)).not.toContain("private.webm");
+  expect(onEvidenceReady).not.toHaveBeenCalled();
+
+  const goal = screen.getByRole("textbox", { name: "What should the clip show?" });
+  await goal.fill("Find the opening from my private workshop.");
+  await button("Prepare evidence").click();
+  await button("Use reviewed evidence").click();
+  await expect.poll(() => onEvidenceReady.mock.calls.length).toBe(1);
+  const inventory = (await listDrafts(workspaceId))[0]?.fields.clipSourceEvidence;
+  expect(JSON.parse(inventory!)).toMatchObject({
+    mediaRevision: expect.stringMatching(/^sha256:/),
+    sourceRevision: expect.stringMatching(/^sha256:/),
+    durationMs: 2000,
+  });
+  expect(inventory).not.toContain("private workshop");
+  expect(inventory).not.toContain("private.webm");
+
+  await button("Projects").click();
+  await button(/^Source fixture/).click();
+  await expect.element(screen.getByLabelText("Choose a video file")).toBeEnabled();
+  await expect.element(screen.getByLabelText("Source video")).not.toBeInTheDocument();
+  await userEvent.upload(screen.getByLabelText("Choose a video file"), recording("reattached.webm"));
+  await expect.element(screen.getByLabelText("Source video")).toBeVisible();
+  expect((await listDrafts(workspaceId))[0]?.fields.clipSourceEvidence).toBe(inventory);
+  expect(onEvidenceReady).toHaveBeenCalledTimes(1);
+  await goal.fill("Find a different part.");
+  await button("Next").click();
+  await expect.poll(async () => (await listDrafts(workspaceId))[0]?.fields.clipSourceEvidence).toBe("");
 });

@@ -1069,7 +1069,77 @@ export type DesktopMediaRead = typeof DesktopMediaReadSchema.Type;
 export const SystemSettingsPaneSchema = Schema.Literals(["full-disk-access"]);
 export type SystemSettingsPane = typeof SystemSettingsPaneSchema.Type;
 
+const ClipperSampleId = Schema.String.check(
+  Schema.isPattern(/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i),
+);
+// The built-in sample has five seconds of source at 24 fps.
+const ClipperSampleFrame = Schema.Int.check(Schema.isBetween({ minimum: 0, maximum: 120 }));
+const clipperSampleFrameFields = {
+  startFrame: ClipperSampleFrame,
+  endFrameExclusive: ClipperSampleFrame,
+};
+const clipperSampleFrameOrder = Schema.makeFilter(
+  (range: { readonly startFrame: number; readonly endFrameExclusive: number }) =>
+    range.endFrameExclusive > range.startFrame,
+);
+
+export const ClipperSampleRequestSchema = Schema.Union([
+  Schema.Struct({ action: Schema.Literals(["status", "enroll"]) }),
+  Schema.Struct({
+    action: Schema.Literal("render"),
+    projectId: ClipperSampleId,
+    ...clipperSampleFrameFields,
+  }).check(clipperSampleFrameOrder),
+  Schema.Struct({
+    action: Schema.Literals(["save", "discard"]),
+    projectId: ClipperSampleId,
+    token: ClipperSampleId,
+  }),
+]);
+export type ClipperSampleRequest = typeof ClipperSampleRequestSchema.Type;
+
+const clipperSampleMaxReviewBytes = 2 * 1024 * 1024;
+const ClipperSampleBase64 = Schema.String.check(
+  Schema.makeFilter((value) => {
+    if (
+      value.length === 0 ||
+      value.length % 4 !== 0 ||
+      value.length > 4 * Math.ceil(clipperSampleMaxReviewBytes / 3)
+    ) {
+      return false;
+    }
+    const padding = value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0;
+    return (
+      (value.length / 4) * 3 - padding <= clipperSampleMaxReviewBytes &&
+      !/[^A-Za-z0-9+/]/.test(value.slice(0, value.length - padding))
+    );
+  }),
+);
+
+export const ClipperSampleResultSchema = Schema.Union([
+  Schema.Struct({
+    status: Schema.Literals([
+      "unavailable",
+      "needs-encoder",
+      "ready",
+      "cancelled",
+      "saved",
+      "occupied",
+      "uncertain",
+      "failed",
+    ]),
+  }),
+  Schema.Struct({
+    status: Schema.Literal("review"),
+    token: ClipperSampleId,
+    base64: ClipperSampleBase64,
+    ...clipperSampleFrameFields,
+  }).check(clipperSampleFrameOrder),
+]);
+export type ClipperSampleResult = typeof ClipperSampleResultSchema.Type;
+
 export interface DesktopBridge {
+  clipperSample?: (request: ClipperSampleRequest) => Promise<ClipperSampleResult>;
   getAppBranding: () => DesktopAppBranding | null;
   /** `null` until the desktop host has read the login shell's environment; ask again later. */
   getRelayTelemetryEnabled: () => boolean | null;

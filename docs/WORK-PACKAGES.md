@@ -418,7 +418,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - Business-project lifecycle covers create, rename, archive/unarchive, duplicate, original template, validated import, artifact/bundle export and safe delete without requiring a Git repository. Duplicate/template/import never carry credentials, grants, active schedules or financial authority; delete previews retained copies/finance records/provider work, fences dispatch and cannot revive from a late callback.
 
-- From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens an empty workspace and prompts for a permitted local video file when the user is ready to import. Resume an empty or partially edited Clipper draft, including source selection, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.
+- From New project present Blank, Digital product, Video and Clipper as peers. Each opens its own workspace and resumes the right step after a switch or restart. Blank starts without a template. Digital product keeps its format choices. Video can start from an empty brief. Clipper opens empty. Offer a local recording or selected chat attachment, a user-initiated screen recording, or a link supported by a qualified acquisition route. A link stays a note until acquisition succeeds. Ask what clips the user wants from the recording. Resume an empty or partially edited Clipper draft, including the source reference, goal, trimmed ranges and framing. If the source goes missing, keep the draft and offer relinking by digest. Show each future action and its milestone even when the category can already be selected.
 
 - Offer an optional style board in Video and Clipper. The user can skip it, start from a preset, set traits by hand or select a reference they have permission to analyze. Show the proposed tools, versions, host, required or optional status, readiness and any cost or data transfer before an action is available. Saving the board or selecting a tool records preferences only. Installation, connection, download, upload, paid work, sample rendering and publication each need separate authorization. Use labeled fixtures for later capabilities at M0B.
 
@@ -602,7 +602,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - A standalone Video brief accepts a supplied idea or a request for suggestions. Bind recommendations and the selected style version to audience, goal, duration, aspect ratio and constraints. Support manual entry at each step and resume from persisted choices. Recheck availability and show the impact on dependent scenes and costs before a style or brief revision.
 
-- Offer optional Clipper moment suggestions when permitted source evidence is available. Bind each suggestion to the source revision and a source presentation timestamp range, cite the supporting transcript or other timecoded source evidence, and explain its rationale and uncertainty. Abstain when evidence is missing or stale. Reject out-of-bounds ranges and unsupported quotes. Let the user review, adjust or discard suggestions and select ranges by hand with suggestions skipped or unavailable.
+- In guided Clipper, use the creator's goal and permitted source evidence to propose a batch of playable moments. Bind each pick to the source and evidence revisions, source presentation timestamps and observed frames or timed transcript spans. Explain its relevance, uncertainty and any gaps in coverage. Reject invalid ranges and unsupported quotes. Return an empty set when the evidence cannot support a pick. Let the user preview, trim, select or discard each pick, or mark a range by hand. In advanced controls, Suggest for me proposes changes to framing, aspect ratio, resolution or caption settings for review. Explain describes the tradeoffs without editing the draft. Both use the same selected host, provider, account, model and supported settings as guided analysis. Disclose inputs, data transfer and cost before dispatch. Keep manual editing available when the route is unavailable.
 
 - Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI.
 
@@ -617,7 +617,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - A12: **component**, producer WP11. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
-- A13: **component**, producer WP11. Exercise source-grounded suggestions, missing or stale evidence, invalid ranges, unsupported quotes and manual selection on isolated fixtures.
+- A13: **component**, producer WP11. Exercise grounded picks, abstention, invalid ranges, unsupported quotes and stale evidence on fixtures. Verify that Explain leaves edits intact and an unavailable model leaves the manual path open without a route change.
 
 - A14: **component**, producer WP11. Exercise revisioned brief scenarios with supported, missing and stale observations.
 
@@ -1309,7 +1309,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 **Consumes:** A standalone Video brief or an optional permitted source artifact, pinned style requirements, approved script and scene assets, voice/likeness permissions and a qualified local renderer or exact provider route with its budget. For Clipper, consume a permitted local video revision, approved ranges and framing, and a qualified local renderer.
 
-**Produces:** Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts. For Clipper, produce a reviewed 9:16 clip, reopenable edit state and source, rights and export metadata.
+**Produces:** Versioned storyboard, editable scene timeline and VideoJob; inspected render, caption track, portable source and rights manifest, with route-specific QA, cancellation, retention and cost receipts. For Clipper, produce reviewed local clips rendered from the selected recording, reopenable edits and source, rights and export metadata for each variant.
 
 **External gate applicability:**
 
@@ -1341,6 +1341,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 
 - For Video and Clipper, let the user request and compare a before-and-after sample of the same content and approve the styled sample before applying the style to the export. Pin the style revision, source or scene revision, sample inputs, export preset, exact renderer build and configuration, and the selected tool versions and host. If a provider is chosen, bind its exact provider, account, model and supported settings with no silent substitution. Reopen the editable project from the recorded bindings. Verify the first usable export for each category with a local renderer and supplied media, offline with the optional style board skipped and paid or external services unavailable.
 - Bind each Series episode render to an immutable snapshot of its episode revision, effective brief and scene inputs. Show a review queue with optional local due date, time and time zone. Record Rendered, Approved and Exported per episode revision. An edit or brief update requires a new review of the affected episode. Preserve earlier exports and sibling state. The due date is a local reminder. Render, review and export work with publishing disabled.
+- Complete the guided Clipper journey on a permitted recording. Give a plain-language goal, inspect the source evidence for each suggested moment, adjust a range and caption or framing setting, and approve at least two variants for local export. Render the actual footage and audio where present. Play each file outside Studio and compare its timing, framing, resolution and subtitle treatment with its reviewed preview. Reopen the saved edits. Interrupt a batch, preserve completed files and reconcile only the unfinished variants. Publishing requires a separate destination approval.
 
 **Evidence phase / producer (all not-run):**
 
@@ -1365,6 +1366,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A11: **integration**, producer WP24, WP08, WP14, WP17. Witness the style sample approval, reproducible local export and reopen for Video and Clipper on the declared renderer build. Verify the manual first export for both categories with networking disabled and the board skipped.
 - A12: **component**, producer WP24. Render two episodes and approve and export each independently. Edit one and verify the new review requirement, retained exports and sibling state.
 - A12: **integration**, producer WP24, WP11, WP14, WP17. Witness offline render, review, export and reopen for two episodes on the declared renderer. Verify the zoned reminder with publishing disabled.
+- A13: **component**, producer WP24. Use fixtures to check revision-bound variant selection, requested render settings and per-file results after interruption.
+- A13: **integration**, producer WP24, WP08, WP11, WP14, WP17, WP55. Witness a silent screen demo and a spoken recording on the declared model route and renderer build. Record the source and permitted evidence, picks, edits, exported files, external playback and recovery. Exercise each advertised intake route through acquisition, including denial or cancellation. Conditional producers: cap.evidence.transcribe → WP19.
 
 **Execution steps:**
 

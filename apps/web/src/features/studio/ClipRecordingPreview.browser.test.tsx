@@ -3,13 +3,11 @@ import { expect, it, vi } from "vite-plus/test";
 import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import { ClipRecordingPreview } from "./ClipRecordingPreview";
+import type { SourceVideo } from "./ClipperSource";
+import { openClipSourceFile } from "./clipperEvidence";
+import toneUrl from "./clipFootageTone.fixture.webm?url";
 
-// Two seconds of solid blue, four 16 × 16 frames. Generated with FFmpeg color and libvpx.
-const webm = "GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwEAAAAAAAIKEU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHGTbuMU6uEElTDZ1OsggETTbuMU6uEHFO7a1OsggH07AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmoCrXsYMPQkBNgIRMYXZmV0GETGF2ZkSJiECfQAAAAAAAFlSua8iuAQAAAAAAAD/XgQFzxYgAAAAAAAAAAZyBACK1nIN1bmSIgQCGhVZfVlA4g4EBI+ODhB3NZQDgkLCBELqBEJqBAlWwhFW5gQESVMNn0HNzzWPAi2PFiAAAAAAAAAABZ8iYRaOHRU5DT0RFUkSHi0xhdmMgbGlidnB4Z8ihRaOIRFVSQVRJT05Eh5MwMDowMDowMi4wMDAwMDAwMDAAH0O2dUCG54EAo7yBAACAsAIAnQEqEAAQAABHCIWFiIWEiAICAnWqA/gCDP0oAP7/TRL//FhX8WFfxYV/8WFf/PzO7cX85gCjlYEB9ACxAQAFEKwAGAAYWC/0AAgAAKOVgQPoALEBAAUQrAAYABhYL/QACAAAo5WBBdwAsQEABRCsABgAGFgv9AAIAAAcU7trkbuPs4EAt4r3gQHxggFo8IED";
-
-function recording(name: string) {
-  return new File([Uint8Array.from(atob(webm), (char) => char.charCodeAt(0))], name, { type: "video/webm" });
-}
+import { recording } from "./clipRecordingFixture";
 
 it("marks the playhead, stops the selection, and asks before reusing marks on replacement", async () => {
   const writes = vi.fn();
@@ -68,7 +66,7 @@ it("rejects a playlist disguised as an MP4 before giving the player a URL", asyn
   const file = new File(["#EXTM3U\nhttps://example.invalid/track"], "recording.mp4", { type: "video/mp4" });
   await userEvent.upload(screen.getByLabelText("Choose a local recording"), file);
   await expect.element(screen.getByRole("alert")).toHaveTextContent(
-    "Choose a compatible MP4 or WebM video. You can also enter the marks below by hand.",
+    "Choose a non-empty MP4 or WebM video.",
   );
   expect(urls).not.toHaveBeenCalled();
   expect(write).not.toHaveBeenCalled();
@@ -109,5 +107,51 @@ it("hands an MP4 container with a leading free box to the native decoder", async
   await using screen = await render(<ClipRecordingPreview fields={{}} writeField={() => {}} />, { router: false });
   await userEvent.upload(screen.getByLabelText("Choose a local recording"), new File([freeAndBrand], "boxes.mp4"));
   await vi.waitFor(() => expect(urls).toHaveBeenCalled());
-  await expect.element(screen.getByLabelText("Local recording")).toBeInTheDocument();
+  await expect.element(screen.getByRole("alert")).toBeVisible();
+  await expect.element(screen.getByLabelText("Local recording")).not.toBeInTheDocument();
+});
+
+it("uses the same verified source for manual marks and export even when filenames match", async () => {
+  const name = "lesson.webm";
+  const original = await openClipSourceFile(recording(name), new AbortController().signal);
+  const replacement = new File([await (await fetch(toneUrl)).blob()], name, { type: "video/webm" });
+  const expected = await openClipSourceFile(replacement, new AbortController().signal);
+  expect(expected.mediaRevision).not.toBe(original.mediaRevision);
+  const changed = vi.fn();
+  function Project() {
+    const [video, setVideo] = useState<SourceVideo | null>(original);
+    return <>
+      <ClipRecordingPreview fields={{}} writeField={() => {}} sourceFile={video?.file} mediaRevision={video?.mediaRevision}
+        onSourceVideoChange={(value) => { changed(value); setVideo(value); }} />
+      <output aria-label="Export source">{video?.mediaRevision ?? "No source"}</output>
+      <button type="button" onClick={() => setVideo(original)}>Restore original source</button>
+    </>;
+  }
+  await using ui = await render(<Project />, { router: false });
+  const picker = ui.getByLabelText("Choose a local recording");
+  const getPlayer = () => ui.getByLabelText("Local recording").element() as HTMLVideoElement;
+  const exportSource = ui.getByLabelText("Export source");
+  await vi.waitFor(() => expect(getPlayer().videoWidth).toBe(16));
+  const first = getPlayer();
+  await first.play();
+  await userEvent.upload(picker, new File(["#EXTM3U"], name, { type: "video/webm" }));
+  await expect.element(ui.getByRole("alert")).toBeVisible();
+  await expect.element(exportSource).toHaveTextContent(original.mediaRevision);
+  expect(getPlayer()).toBe(first);
+  expect(first.paused).toBe(true);
+  expect(changed).not.toHaveBeenCalled();
+  await userEvent.upload(picker, replacement);
+  await expect.element(exportSource).toHaveTextContent(expected.mediaRevision);
+  await vi.waitFor(() => expect(getPlayer().videoWidth).toBe(64));
+  expect(changed.mock.calls[0]?.[0]).toMatchObject({ durationMs: expected.durationMs, mediaRevision: expected.mediaRevision });
+  expect(first.isConnected).toBe(false);
+  const second = getPlayer();
+  await ui.getByRole("button", { name: "Remove recording" }).click();
+  await expect.element(exportSource).toHaveTextContent("No source");
+  await expect.element(ui.getByLabelText("Local recording")).not.toBeInTheDocument();
+  expect(changed).toHaveBeenLastCalledWith(null);
+  expect(second.paused).toBe(true);
+  await ui.getByRole("button", { name: "Restore original source" }).click();
+  await expect.element(exportSource).toHaveTextContent(original.mediaRevision);
+  await vi.waitFor(() => expect(getPlayer().videoWidth).toBe(16));
 });

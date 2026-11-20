@@ -1258,6 +1258,32 @@ describe("DesktopWindow", () => {
       }),
   );
 
+  it.effect.each([
+    { platform: "win32", style: "default", overlay: false },
+    { platform: "darwin", style: "hiddenInset", overlay: false },
+    { platform: "linux", style: "hidden", overlay: true },
+  ] as const)("uses the platform window controls for the $platform main window", ({ platform, style, overlay }) =>
+    Effect.gen(function* () {
+      const created: Electron.BrowserWindowConstructorOptions[] = [];
+      const layer = layerTest({
+        window: makeFakeBrowserWindow().window,
+        platform,
+        createdWindowOptions: created,
+        createCount: yield* Ref.make(0),
+        mainWindow: yield* Ref.make<Option.Option<Electron.BrowserWindow>>(Option.none()),
+      });
+      yield* Effect.gen(function* () {
+        const desktopWindow = yield* DesktopWindow.DesktopWindow;
+        yield* desktopWindow.handleBackendReady(new URL("http://127.0.0.1:3773"));
+      }).pipe(Effect.provide(layer));
+      assert.lengthOf(created, 1);
+      assert.equal(created[0]?.titleBarStyle, style);
+      assert.notEqual(created[0]?.frame, false);
+      assert.equal(Boolean(created[0]?.titleBarOverlay), overlay);
+      assert.equal(Boolean(created[0]?.trafficLightPosition), platform === "darwin");
+    }),
+  );
+
   it.effect("updates title bar overlays only on windows created with one", () =>
     Effect.gen(function* () {
       const framed = makeFakeBrowserWindow();

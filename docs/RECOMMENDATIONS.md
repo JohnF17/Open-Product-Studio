@@ -6,6 +6,10 @@ Recommendations run through versioned [harness roles and reply contracts](AGENT-
 
 ## Who chooses the model
 
+Across project categories, start by asking what the creator wants to make. Guided mode proposes a small set of concrete choices with previews. Advanced mode keeps two actions beside consequential controls. **Suggest for me** uses the current project, inspects supported choices and previews a proposed value or group of values. **Explain** describes what the control changes in the creator’s own project. The person can keep their current choice, accept selected changes together, or undo them. Never turn an explanation into an applied setting, a paid run, or a publication.
+
+For Clipper, “make three vertical tutorials and keep the menu readable” should produce proposed source ranges, framing, subtitle placement and output resolution. Each proposal explains its source evidence and how the setting affects this footage. A saved advanced override survives a later suggestion until the user selects its replacement. Test the same passage in both views and compare the actual exported frames.
+
 The current Studio handoff prepares a draft in T3's composer. Its native defaults and any user-configured usage-limit fallback apply there. A research prompt requests read-only work in words. Enforcing tool permissions and enforcing a pinned model belong to the qualified action runner. The proposed Guided experience starts from that selection and the project's approved connections. It offers a project preset at the first AI step, with the exact account, model, supported effort, host and spending limit visible before acceptance. An offline, manually edited project needs no preset.
 
 | Creator control | Behavior to qualify |

@@ -1,4 +1,5 @@
 import catalogText from "../../../../../docs/roadmap/project-categories.json?raw";
+import { clipEditPlanFields } from "./clipBatch";
 import type { StudioDraft, VideoStyle } from "./drafts";
 import { projectName } from "./drafts";
 import { workingGuide } from "./workingDraftGuides";
@@ -134,6 +135,7 @@ type ExportMode = "draft" | "brief" | "brief-with-observation";
 export function draftExport(draft: StudioDraft, mode?: ExportMode) {
   const guide = workingGuide(draft.category);
   const isBrief = draft.category === "replica" && mode !== "draft";
+  const clipPlan = draft.category === "clipper" ? clipEditPlanFields(draft.fields) : undefined;
   const briefKeys = ["brief", "acceptanceScenario", "interfaceSketch", "interactionSpec"];
   if (mode === "brief-with-observation") briefKeys.push("observation");
   const fields = isBrief
@@ -141,7 +143,7 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
         const value = draft.fields[key];
         return value?.trim() ? [[key, key === "observation" ? value.trim() : value]] : [];
       }))
-    : draft.fields;
+    : clipPlan?.fields ?? draft.fields;
   const isPrivate = (draft.category === "replica" && !isBrief) || draft.category === "affiliate-storefront";
   const kind = isPrivate ? "private-working-draft" : guide?.kind;
   return {
@@ -150,6 +152,7 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
     title: projectName(draft),
     stage: draft.stage,
     fields,
+    ...(clipPlan?.clips ? { clips: clipPlan.clips } : {}),
     ...(kind ? { kind, content: "authored-notes" } : {}),
     ...(draft.category === "affiliate-storefront" && draft.affiliate
       ? { affiliate: { ...draft.affiliate, reviewed: false } }

@@ -178,6 +178,7 @@ import {
   formatInlineContextReference,
   insertInlineContextReference,
   inlineContextReferenceReplacement,
+  stripInlineContextReferences,
 } from "~/lib/composerContextReferences";
 import {
   attachmentContextRecord,
@@ -248,6 +249,7 @@ import { toastManager } from "../ui/toast";
 import { m as resolveMessage } from "../../i18n/messages";
 import { BuildingIcon, PlayIcon, ReplyIcon } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { rememberProjectChat } from "../../features/studio/projectIndex";
 import { assistantCitationLabel } from "@t3tools/shared/assistantCitations";
 import { assistantCitationNavigation } from "../../lib/assistantCitationNavigation";
 import { Button } from "../ui/button";
@@ -887,6 +889,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   ]);
 
   const {
+    requireAvailableModel,
+    modelSelectionRequired,
     providerInstanceEntries,
     selectedProviderEntry,
     lockedContinuationGroupKey,
@@ -918,7 +922,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   const noProviderAvailable =
     selectedProviderEntry === undefined && multipleModelSelections === null;
   const providerCatalogPending = noProviderAvailable && !providerCatalogKnown;
-  const showProviderUnavailable = noProviderAvailable && !providerCatalogPending;
+  const showProviderUnavailable =
+    noProviderAvailable && !providerCatalogPending &&
+    !(modelSelectionRequired && providerInstanceEntries.some((entry) => entry.enabled));
   const providerSetupInstanceId = noProviderAvailable
     ? (unavailableProviderInstanceId ??
       (lockedProvider === null
@@ -946,11 +952,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       ? undefined
       : clampManagedRuntimeMode(managedPolicy, compatibleRuntimeMode, compatibleRuntimeModes);
 
-  const providerSendBlockReason = getAntigravitySendBlockReason(
-    selectedProviderEntry?.snapshot,
-    selectedModel,
-    m,
-  );
+  const providerSendBlockReason = modelSelectionRequired
+    ? gt("Choose an available model for this Clipper follow-up.")
+    : getAntigravitySendBlockReason(selectedProviderEntry?.snapshot, selectedModel, m);
   const sendDisabledReason =
     externalSendDisabledReason ??
     (multipleModelSelections?.length === 0 ? gt("Select at least one model.") : null) ??
@@ -2532,7 +2536,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       onOpenProviderSetup={onOpenProviderSetup}
       providerCatalogPending={providerCatalogPending}
       isSendBusy={isSendBusy}
-      multipleModelsEnabled={routeKind === "draft" && supportsMultipleModels}
+      multipleModelsEnabled={routeKind === "draft" && supportsMultipleModels && !requireAvailableModel}
       multipleModelSelections={multipleModelSelections}
       onMultipleModelSelectionsChange={setMultipleModelSelections}
       selectedModelSelection={selectedModelSelection}
@@ -3417,8 +3421,22 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         onRemoveFile={removeComposerFileFromDraft}
       />
     ) : null;
-  const composerAttachButton = showComposerAttachAction ? (
+  const clipperWorkspace = window.desktopBridge && primaryEnvironmentId === environmentId && !activePendingProgress
+    ? environmentId : undefined;
+  const composerAttachButton = showComposerAttachAction || clipperWorkspace ? (
     <ComposerAttachButton
+      key={attachmentTargetKey}
+      clipperWorkspace={clipperWorkspace}
+      chatPrompt={clipperWorkspace ? stripInlineContextReferences(prompt).trim() : ""}
+      onClipProjectCreated={project => {
+        if (clipperWorkspace && activeProjectId && routeThreadRef.environmentId === clipperWorkspace) {
+          rememberProjectChat(clipperWorkspace, project, {
+            threadId: routeThreadRef.threadId, projectId: activeProjectId,
+            ...(routeKind === "draft" && draftId ? { draftId } : {}),
+          });
+        }
+      }}
+      allowFiles={showComposerAttachAction}
       addComposerAttachments={addComposerAttachments}
       focusComposer={focusComposer}
     />
