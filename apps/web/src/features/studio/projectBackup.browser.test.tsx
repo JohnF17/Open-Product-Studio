@@ -6,6 +6,7 @@ import { createAffiliateCandidate } from "./affiliateDraft";
 import { digitalProductManuscript, digitalProductPublicTitle } from "./digitalProductExport";
 import { createDraft, insertDraft, listDrafts, saveDraft, type Category } from "./drafts";
 import { draftExport } from "./guide";
+import { createSeriesEpisode, reviseSeriesBrief } from "./videoSeries";
 import {
   importProjectBackup,
   isProjectBackupConfirmation,
@@ -18,6 +19,34 @@ import StudioWorkspace from "./StudioWorkspace";
 function jsonFile(data: unknown) {
   return new File([JSON.stringify(data)], "backup.json", { type: "application/json" });
 }
+
+it("restores pinned Video revisions and overrides on an independent lineage with no author role", async () => {
+  const first = reviseSeriesBrief(undefined, "Gardeners", "Interview", "kinetic-type");
+  const latest = reviseSeriesBrief(first, "Gardeners", "Essay", "product-demo");
+  const destination = randomUUID();
+  const episode = createSeriesEpisode(destination, latest, "Winter");
+  episode.seriesHistory = [first];
+  episode.style = first.style;
+  episode.fields = { audience: "Experienced growers", seriesFormat: "Panel", seriesStyleOverride: first.style };
+  const backup = JSON.parse(await projectBackupBlob(episode).text());
+  const working = draftExport(episode);
+  for (const payload of [backup, working]) {
+    expect(payload.seriesBrief).toEqual(latest);
+    expect(payload.seriesHistory).toEqual([first]);
+    expect(payload).not.toHaveProperty("seriesBriefOwner");
+    const restored = await importProjectBackup(jsonFile({ ...payload, seriesBriefOwner: true }), destination);
+    expect(restored.seriesBrief?.seriesId).not.toBe(latest.seriesId);
+    const detachedId = restored.seriesBrief!.seriesId;
+    expect(restored.seriesBrief).toEqual({ ...latest, seriesId: detachedId });
+    expect(restored.seriesHistory).toEqual([{ ...first, seriesId: detachedId }]);
+    expect(restored.fields).toEqual(episode.fields);
+    expect(restored.style).toBe(first.style);
+    expect(restored).not.toHaveProperty("seriesBriefOwner");
+  }
+  await expect(importProjectBackup(jsonFile({ ...backup, seriesHistory: [latest, first] }), destination))
+    .rejects.toThrow(/invalid project/i);
+  expect(await listDrafts(destination)).toHaveLength(2);
+});
 
 it("keeps unrelated exceptions out of backup messages and restore confirmations", () => {
   const fallback = "The project could not be restored.";

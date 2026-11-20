@@ -2,6 +2,7 @@ import { Check, PersonStanding, Play, Square } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { StudioDraft, VideoStyle } from "./drafts";
 import { catalog, selectedTools, styleDescriptions, styleNames } from "./guide";
+import { compatibleVideoTools } from "./videoToolSelection";
 import "./videoStyleAudition.css";
 
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
@@ -68,11 +69,7 @@ export function VideoStyleAudition({
       : "Original Studio sample";
   const treatment = treatments[style];
 
-  const supported = new Set([
-    ...recipe.optional,
-    ...recipe.required.flatMap((slot) => slot.chooseOne),
-  ]);
-  const tools = hasChange ? draft.tools.filter((id) => supported.has(id)) : draft.tools;
+  const tools = hasChange ? compatibleVideoTools(draft.tools, style) : draft.tools;
   const planned = selectedTools({ ...draft, style, tools });
   const currentPlan = selectedTools(draft);
   const optional = recipe.optional.filter((id) => planned.includes(id));

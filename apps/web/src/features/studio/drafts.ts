@@ -9,6 +9,43 @@ export type Category = "blank" | "digital-product" | "video" | "affiliate-storef
 export const styleNames = ["kinetic-type", "product-demo", "3d-showcase", "stick-figure-explainer"] as const;
 export type VideoStyle = (typeof styleNames)[number];
 
+export interface VideoSeriesBrief {
+  readonly seriesId: string;
+  readonly revision: number;
+  readonly audience: string;
+  readonly format: string;
+  readonly style: VideoStyle;
+}
+
+export function isVideoSeriesBrief(value: unknown): value is VideoSeriesBrief {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const brief = value as Partial<VideoSeriesBrief>;
+  return (
+    Object.keys(brief).length === 5 &&
+    typeof brief.seriesId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(brief.seriesId) &&
+    typeof brief.revision === "number" &&
+    Number.isSafeInteger(brief.revision) &&
+    brief.revision >= 1 &&
+    typeof brief.audience === "string" &&
+    brief.audience.trim().length > 0 &&
+    typeof brief.format === "string" &&
+    brief.format.trim().length > 0 &&
+    styleNames.some((style) => style === brief.style)
+  );
+}
+
+export function isVideoSeriesHistory(value: unknown, current: VideoSeriesBrief): value is VideoSeriesBrief[] {
+  if (!Array.isArray(value)) return false;
+  let previousRevision = 0;
+  for (const entry of value) {
+    if (!isVideoSeriesBrief(entry) || entry.seriesId !== current.seriesId ||
+      entry.revision <= previousRevision || entry.revision >= current.revision) return false;
+    previousRevision = entry.revision;
+  }
+  return true;
+}
+
 export interface StudioDraft {
   schema: 1;
   id: string;
@@ -24,6 +61,9 @@ export interface StudioDraft {
   /** Inert text from private recovery. Only the backup serializer reads it. */
   archivedFields?: Record<string, string>;
   videoCues?: VideoCue[];
+  seriesBrief?: VideoSeriesBrief;
+  seriesBriefOwner?: true;
+  seriesHistory?: VideoSeriesBrief[] | undefined;
   affiliate?: AffiliateDraft;
   tools: string[];
 }
@@ -151,6 +191,10 @@ export function isStudioDraft(value: unknown, workspaceId: string): value is Stu
         !Array.isArray(d.archivedFields) &&
         Object.values(d.archivedFields).every((v) => typeof v === "string"))) &&
     (d.videoCues === undefined || (d.category === "video" && isVideoCueList(d.videoCues))) &&
+    (d.seriesBrief === undefined || (d.category === "video" && isVideoSeriesBrief(d.seriesBrief))) &&
+    (d.seriesBriefOwner === undefined || (d.seriesBriefOwner === true && d.seriesBrief !== undefined)) &&
+    (d.seriesHistory === undefined || (d.seriesBrief !== undefined &&
+      isVideoSeriesHistory(d.seriesHistory, d.seriesBrief))) &&
     (d.category === "affiliate-storefront" ? isAffiliateDraft(d.affiliate) : d.affiliate === undefined) &&
     Array.isArray(d.tools) &&
     d.tools.every((t) => typeof t === "string")
@@ -201,6 +245,29 @@ export async function listDrafts(workspaceId: string): Promise<StudioDraft[]> {
           .sort((a, b) => b.updatedAt - a.updatedAt),
       );
     request.onerror = () => reject(request.error);
+  });
+}
+
+/** An episode only needs one pinned snapshot, even in a workspace with large media drafts. */
+export async function readLocalSeriesBrief(workspaceId: string, seriesId: string): Promise<VideoSeriesBrief | undefined> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const query = db.transaction("projects").objectStore("projects").index("workspace").openCursor(workspaceId);
+    query.onsuccess = () => {
+      const cursor = query.result;
+      if (!cursor) {
+        resolve(undefined);
+        return;
+      }
+      const row = cursor.value as Partial<StudioDraft> | null;
+      if (row?.category === "video" && row.seriesBriefOwner === true &&
+          row.seriesBrief?.seriesId === seriesId && isVideoSeriesBrief(row.seriesBrief)) {
+        resolve(row.seriesBrief);
+        return;
+      }
+      cursor.continue();
+    };
+    query.onerror = () => reject(query.error);
   });
 }
 
@@ -269,7 +336,7 @@ export async function insertDraft(draft: StudioDraft): Promise<StudioDraft> {
   });
 }
 
-type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "affiliate" | "style" | "tools" | "stage" | "category">;
+type Editable = Pick<StudioDraft, "title" | "fields" | "videoCues" | "seriesBrief" | "seriesBriefOwner" | "seriesHistory" | "affiliate" | "style" | "tools" | "stage" | "category">;
 type SaveState = "saved" | "saving" | "error" | "conflict";
 
 /** One writer per open project. Coalesce keystrokes while the previous transaction commits. */

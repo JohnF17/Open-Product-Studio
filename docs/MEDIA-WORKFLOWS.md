@@ -23,7 +23,7 @@ Video exposes detailed controls in its existing steps. **Style** opens trait con
 4. **Review the stack as actions.** Show what is ready on this device, what would need preparation, what data leaves and what may cost money. A simple trim may need only the local renderer. A kinetic title may need a composition renderer. Save tool choices separately from the look. Selecting a preview grants no install, account access or upload. Approval names the exact tool and host for the requested action.
 5. **Apply, reopen and revise.** Bind the accepted settings to the sample, source and variant revisions. Changing style creates a new revision. Preserve source intervals, transcript corrections and sibling variants, and mark affected render or publication approvals stale. Export the local video and its editable settings. For a new project, reuse a saved look with fresh bindings to that project's media, host and permissions.
 
-### Category transitions, style auditions and the planned Series workflow
+### Category transitions, style auditions and recurring Video projects
 
 Cindie Zhu's walkthrough shows quick selectors at 0:13–0:17 and account and schedule choices at 0:18–0:25. The official walkthrough shows music at 0:56, art at 1:12, captions at 1:20, and a result card and detail view at 2:00 and 2:13. These are interaction references for Studio's own design. [Cindie Zhu walkthrough](https://www.instagram.com/p/DeAWDioAw0i/) · [Official walkthrough](https://www.youtube.com/watch?v=IlZO4s3ITZo)
 
@@ -31,7 +31,13 @@ Cindie Zhu's walkthrough shows quick selectors at 0:13–0:17 and account and sc
 
 **Audition a style before committing tools.** The Video style sheet uses the same sample action and caption across its four recipes. It can display the draft's storyboard caption or brief. Select a recipe, preview its silent motion or still treatment, and inspect which tool preferences would change. **Apply style** saves the recipe and compatible preferences together. Leaving the sheet discards an unapplied choice. Comparison on an actual rendered source interval, music auditions and separately versioned treatments belong to later media work.
 
-**Reuse a brief across Video episodes.** Offer **Series** as an optional revisioned brief for recurring audience, format and style choices. Each episode records the brief revision it starts from and can override individual choices. Show episode revisions in a review queue with an optional due date, time and time zone. Distinguish **Rendered**, **Approved**, **Exported**, **Scheduled** and **Account acknowledged**. A local due date is a planning reminder. Reserve **Scheduled** for a confirmed destination schedule and **Account acknowledged** for a receipt from the chosen account. An acknowledgment records the provider's reported state. Publishing and paid actions each require separate approval.
+**Start a recurring series.** In Video → Brief, open **Series brief (optional)**. Save the recurring audience and format with the current visual style. Enter an episode title and select **Start episode**. The new Video project opens on Brief with those three choices and an empty script and storyboard. Projects shows which draft owns the series and which revision each episode uses.
+
+**Update one episode.** Save a new revision in the source project. In an existing episode choose **Check for a newer brief**. Review the effective audience, format, style and tool plan, then keep the current revision or apply the update. Episode overrides carry forward. Earlier pins remain available under **Previous brief revisions**. Other episodes keep their own pins.
+
+**Restore a private copy.** Backup and import carry the pinned content, override fields and previous pins into a fresh local series identity. A restored project can use **Start independent series** to start authoring from its effective choices. Existing projects and their publishing permissions are unaffected. [Renderer walkthrough and evidence](acceptance/WP11/video-series/README.md)
+
+**Later media milestones.** WP24 adds a review queue with an optional local due date, time and time zone. Per-episode render, review and export track the reviewed episode revision. WP27 and WP28 cover destination scheduling, separate dispatch approval and acknowledgment from the selected account.
 
 WP08 covers category entry, keyboard and reduced-motion behavior, and preview controls. WP11 covers reusable brief revisions and episode overrides, with WP07 covering backup and restore. WP24 covers comparable previews and per-episode render, review and local export. WP27 qualifies destination and account support for scheduling, and WP28 covers explicitly approved dispatch and receipt reconciliation. [Existing work packages](WORK-PACKAGES.md)
 

@@ -1,0 +1,137 @@
+{
+  "baseCommit": "6494310ffb6285721b597c7a0d0942af79ed819c",
+  "sourceDigest": "e94f0f5daf1a0cf0887e145eecadf86a16e6eac1636d90f8243aab3ec5fd0098",
+  "sources": {
+    "apps/web/public/.well-known/apple-app-site-association.json": "13aa375093c768ea5710facdebf41aefb2a91ab894e8a39f0cbbf61c4d8cfd68",
+    "apps/web/public/.well-known/assetlinks.json": "89eff0d4e8111c2a17a6ec3a4e06b86b835165a64f66340f02c15c4d2a716378",
+    "apps/web/public/apple-touch-icon.png": "200d1db1b4d15c5c44bfd388d972eebfb83d330b22e63f817ae584c8dcdc7ffa",
+    "apps/web/public/favicon-16x16.png": "4b6ee89a53ac6a824bb209e900426980ed4e5eda84246a867b433c125b444334",
+    "apps/web/public/favicon-32x32.png": "fbe686ce47471f645f059e03fc60c09cd442a2d099b44962e9e567ed13cdc7c1",
+    "apps/web/public/favicon.ico": "070c2ebb8628a9d3f23dfc220ff1edd92a4b26b1c566fdca9254ad0c549b0b6c",
+    "apps/web/public/icon-192x192.png": "9062a1ccef445421b9294033c3dd3298321fdb5c9b0d5c238eac8cbfdb6f1e2d",
+    "apps/web/public/icon-512x512.png": "966fdfb120fe2c89a257ad30880596ad5517ec3c2c7152a8e3a32ab36b4627e4",
+    "apps/web/public/manifest.webmanifest": "43ea8512eb802f0c07179bd6726d7237c2aced76b203618cc25d1d16196178be",
+    "apps/web/src/components/StudioMark.tsx": "f8cdb0de4f772fecc84c3fe52bc14f54ffb5a2e2e3c8d12b4a21036f4cdb5ea0",
+    "apps/web/src/features/studio/AffiliateStorefront.tsx": "37861f3749ddf06f18ca865cd4a72ef3fd46a451de6987e3a7ec2f99ff04b826",
+    "apps/web/src/features/studio/ClipLookPreview.tsx": "c527535b94dff8ea4905d8ff4b2ae3ab18b2a5f21944028c0ea525d8ff28eb41",
+    "apps/web/src/features/studio/DigitalProductManuscriptExport.tsx": "82db34ac60affef52f243f922608100074fcfc5416cf01ed8a4edb83a71ad38c",
+    "apps/web/src/features/studio/EpisodeBriefUpdate.tsx": "b648777ba5c2eb8085fbd6aab66417b9288805335182f56a0ec813cadabbd5e6",
+    "apps/web/src/features/studio/ProjectTour.tsx": "1e0c84e3edd0c2876f3e7d0a28cfa59445b8082459c8dbdd5dbc3a42bd935474",
+    "apps/web/src/features/studio/StudioWorkspace.tsx": "8bbe9ae8166cd1bc9f32afa8659c5ccbd89472e504f1d5ede2d9f55096173a31",
+    "apps/web/src/features/studio/VideoCueSheet.tsx": "426901db42965ebfd7c7b9da7de91c2ddb47249591214f81ae1ca862e1fcda78",
+    "apps/web/src/features/studio/VideoSeriesBriefPanel.tsx": "46871dafd8e9edc322cbb4485662ed443ccffc8abb8acff2733f3e7e07763666",
+    "apps/web/src/features/studio/VideoStyleAudition.tsx": "a479e9c4c7c8b849f745b3cca88bf1b09340b5f941648c7630b4cc2f8420c30a",
+    "apps/web/src/features/studio/affiliateDraft.ts": "39c975d8b3ab783d68544dd8eecade1b17d14843468110431368a17ecdd570d6",
+    "apps/web/src/features/studio/affiliateExport.ts": "4ee618da8c378d2b53f0dff337b88de1673e906092708114d3d63163f1117a72",
+    "apps/web/src/features/studio/affiliateStorefront.css": "4e209e017494964499283edac9eed535acc7d7e9d816b150afdc6769408cca1a",
+    "apps/web/src/features/studio/clipLook.css": "777802542ebda4ab60a5aca6bf5b3581b047dc0740b1fcba7d3eaeb46f39ee59",
+    "apps/web/src/features/studio/digitalProductExport.css": "afa9eede7a26f220e275559f876083a69a831c13852bf8f8d61c8b5dcc9d7c3f",
+    "apps/web/src/features/studio/digitalProductExport.ts": "d5b6078a040cfbe58cedb3801c0621f58d4b88a39b05b38cd8b5272fcec099a7",
+    "apps/web/src/features/studio/drafts.ts": "ab79dbc2046e1039076a39901c79048a0e9d387a9254d2a3b0b5fa4086578208",
+    "apps/web/src/features/studio/guide.ts": "570254d0681e6360d7e92686a6b8170e6dbe82df94708786143de342679b38f9",
+    "apps/web/src/features/studio/pinEpisodeBrief.ts": "7924050145ab4cdf675d85f31f60a111c24fdc57887de9627fd9277b7c75941e",
+    "apps/web/src/features/studio/projectBackup.ts": "62a38b5861b72f454bbf447c8406a33a39e190724858077ced402aa57975f080",
+    "apps/web/src/features/studio/projectTour.css": "3ddd894c42a482b2d4c2d68a10aaf31d3513dd4b672a22916358a41682762698",
+    "apps/web/src/features/studio/studio.css": "1cf0dbcc923153602207cff1edc83bf1a75c06f54643ea50723ef7fd4126f4c2",
+    "apps/web/src/features/studio/videoCues.css": "e04bc9e19251b1c1b537d9ecb3e80fd447ca32098d4be7e51e2c5b5f644bfc20",
+    "apps/web/src/features/studio/videoCues.ts": "ad2d8f02f4d4d94780f42143f68c425a4b1e4ddfe95fb3d5b33a830f27cb584d",
+    "apps/web/src/features/studio/videoSeries.ts": "abc06d21b6c8514161958555a6d52c26ec30c84fdf9fa8392470b5da9b239cd7",
+    "apps/web/src/features/studio/videoSeriesBrief.css": "b4b6854ad7c21d93972622a30614055eb2b6b90dfb105984abee131b53b61c3b",
+    "apps/web/src/features/studio/videoStyleAudition.css": "bc3c5f4b6e2a3334e372e6e51500fd4dc8e8e3479e596f09da9d21d4b76fbaba",
+    "apps/web/src/features/studio/videoToolSelection.ts": "2fce628ddc3351f3ac3545d73f82f170d951ab2992e5e0a24a23b720fb7b8c57",
+    "apps/web/src/features/studio/workingDraftGuides.ts": "4af5c8e1114e9adf3675c231d8fb10a0e3d118c9b61dbbc9f011d08d8a8f6d85",
+    "apps/web/src/index.css": "56bf2e9f13723da30dfe09b2564c8e1bfe021cc6c403bc89763619a78098f38e",
+    "apps/web/src/lib/randomUUID.ts": "4800f0b71e8d21a8fdc2601bc3b2eb317e7cd83c1ac16bc69ec97798ce43fe91",
+    "assets/studio/android-foreground.png": "06a98ec76349a33b55e9a07b5a4e79238839959fb9188147ae0e9a0793f77f23",
+    "assets/studio/android-monochrome.png": "6c2d4e20bc560554a583f4596c631209913863f44f3f21b875b72f208e0c0e84",
+    "assets/studio/android-notification.png": "83e42c7110727079afe5a67e76e2759ea0f85ad6a581e7e2ec87619deb2853b7",
+    "assets/studio/android-splash.png": "f5a67d273c4ace552b046fdb81408cbbb71ce01ff4b371ee3aee5a7c996d3a00",
+    "assets/studio/ios-1024.png": "0e0f95633b997765d4fe25df2b8c702a05ae240fb04d5a44a6c92f1df84b80f6",
+    "assets/studio/linux-1024.png": "fcd04deb99c5d21dfb1f750aa03a932a492fc27ff3bc68e8266c3dc126cdfd45",
+    "assets/studio/macos-1024.png": "2ccbbcef0be8b104e25414cd21d366ab5aee74d8724e42dd226d238e36218e85",
+    "assets/studio/mark.svg": "ee5693a101da3e8dffe70ce5f313a707b97e7179e2386aff1ce08971a61b0e0a",
+    "assets/studio/mobile-mark.png": "d7124f8c10aa7870989b1b5c6de170ecea4eb4ccdcf32423bf7cadad74334a4f",
+    "assets/studio/preview.png": "0eb067a57302c8dea7d1dfd040b49f2fc38fc2487157cfdd4661cc8d5ddd8eb2",
+    "assets/studio/render-icons.py": "9da0536212a1cb5e8e416edfcd2ea21fa5ba7806e583cc426a1c9d39715a1f2d",
+    "assets/studio/windows.ico": "070c2ebb8628a9d3f23dfc220ff1edd92a4b26b1c566fdca9254ad0c549b0b6c",
+    "docs/roadmap/project-categories.json": "22244c806800dfffb7c4b6a1f04c5588f893627ec11897b9198507818dc18fb4",
+    "docs/upstream/manifest.json": "dae3320c62b26a6899fd6746f975595d3da2cea7c5ce452680c14c7b17ba746f",
+    "pnpm-lock.yaml": "73ba22b9064104de1c68c034929a6f3a79d50ca755858e70d1b7925c809dc451"
+  },
+  "environment": {
+    "platform": "win32-x64",
+    "node": "v24.14.0",
+    "playwright": "1.64.1",
+    "chromium": "HeadlessChrome/156.0.8078.4"
+  },
+  "appearance": {
+    "desktop": "light, standard motion",
+    "narrow": "dark, reduced motion"
+  },
+  "assertions": [
+    "desktop creates one independent episode pinned to revision 1, overrides its audience and excludes private source notes",
+    "desktop reload reopens both projects with the source at revision 2 and the episode pinned to revision 1 with its override",
+    "desktop reviewing and declining an update keeps revision 1; explicit Apply adopts the new format, retains the audience override, and archives the previous brief",
+    "narrow creates one independent episode pinned to revision 1, overrides its audience and excludes private source notes",
+    "narrow reload reopens both projects with the source at revision 2 and the episode pinned to revision 1 with its override",
+    "narrow reviewing and declining an update keeps revision 1; explicit Apply adopts the new format, retains the audience override, and archives the previous brief"
+  ],
+  "artifacts": {
+    "desktop-episode.png": {
+      "sha256": "290049f162bf29b155cfaa52890be02e550bc61663ee2ff2b97bf3494cf57e30",
+      "bytes": 50741,
+      "width": 1240,
+      "height": 940,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    },
+    "desktop-review.png": {
+      "sha256": "183a2fe158be262cd2f66ac58cd9dc32fe053eb25a79bc8f34d28cb1211fdfd3",
+      "bytes": 56424,
+      "width": 1240,
+      "height": 940,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    },
+    "desktop-series.webm": {
+      "sha256": "0f92df1349dabda328d5e3765961f03648291012a49566d2c53d2666e347cd4c",
+      "bytes": 1663345,
+      "width": 1240,
+      "height": 940,
+      "decodedFrames": 171,
+      "distinctDecodedFrames": 171
+    },
+    "desktop-source.png": {
+      "sha256": "d25fb377dfe1d9bcad74282dc9039ba86af16518b8510b830b26f69426b58d48",
+      "bytes": 48241,
+      "width": 1240,
+      "height": 940,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    },
+    "narrow-episode.png": {
+      "sha256": "de4b94f186868c55bfb37c80f392d404234dc592182718a8e5652deab9b2be7f",
+      "bytes": 33368,
+      "width": 390,
+      "height": 844,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    },
+    "narrow-review.png": {
+      "sha256": "274ea837e233f5bf7a4567d44e562a186de2c635b44b91785134969e550b1e15",
+      "bytes": 31087,
+      "width": 390,
+      "height": 844,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    },
+    "narrow-source.png": {
+      "sha256": "6ecac6db3711efd4e89edfce10750188d91aafa100240a06f1d010c6e8f89861",
+      "bytes": 31725,
+      "width": 390,
+      "height": 844,
+      "decodedFrames": 1,
+      "distinctDecodedFrames": 1
+    }
+  }
+}
