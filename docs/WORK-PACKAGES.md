@@ -607,6 +607,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - Use the existing brief and recommendation mechanisms to turn supported Replica observations into an editable original behavior brief with source links, gaps and testable scenarios. Distinguish observed behavior from proposed behavior and omit copied identity, assets and proprietary UI.
 
 - Compare affiliate offers for the intended audience using sourced price, currency, availability, program eligibility, commission basis and limitations. Cite each observation and its date. Explain the shortlist and flag missing, stale or conflicting terms for review.
+- Offer an optional locally reusable, revisioned Series brief within Video for audience, format and style. Pin each episode to a brief revision and identify inherited values and explicit overrides. Editing the brief creates a new revision. Explicitly updating an episode creates a new episode revision and preserves its overrides, sibling episodes and history. Validated offline restore and import preserve brief lineage and overrides. An imported copy gets new project identities. Restore and import activate no credentials, grants, approvals or schedules.
 
 **Evidence phase / producer (all not-run):**
 
@@ -625,6 +626,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A15: **component**, producer WP11. Use two dated offer fixtures and verify that gaps survive the shortlist comparison.
 
 - A15: **integration**, producer WP10, WP11. Compare offers with conflicting dates and a missing rate. Retain the cited observations and leave the unsupported estimate unknown.
+- A16: **component**, producer WP11. Change a brief shared by two episodes and explicitly update only one. Verify inheritance, overrides, pinned history and the unchanged sibling.
+- A16: **integration**, producer WP11, WP07, WP08. Reopen and restore offline, then import a copy with remapped references and inactive authority. Exercise standalone Video with Series skipped.
 
 **Execution steps:**
 
@@ -1337,6 +1340,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - Start an empty Clipper project and import a permitted local video. Select and adjust a range manually, set 9:16 framing, add captions, preview, approve and export a local file. Play the clip outside Studio and verify the first and last visible frames against source presentation timestamps. Exercise a cut between keyframes on a source with variable frame rate, nonzero start time and delayed audio. Store the source revision and digest, half-open range and rational time base, framing, output dimensions and duration, renderer version, and applicable audio, caption, rights, credit and provenance metadata. Reopen the editable project, verify the saved range, framing and export receipt, and change the cut. Interrupt a second render and verify the first export is still playable. Exercise this path with suggestions skipped and with no cloud sign-in, paid model or social connection.
 
 - For Video and Clipper, let the user request and compare a before-and-after sample of the same content and approve the styled sample before applying the style to the export. Pin the style revision, source or scene revision, sample inputs, export preset, exact renderer build and configuration, and the selected tool versions and host. If a provider is chosen, bind its exact provider, account, model and supported settings with no silent substitution. Reopen the editable project from the recorded bindings. Verify the first usable export for each category with a local renderer and supplied media, offline with the optional style board skipped and paid or external services unavailable.
+- Bind each Series episode render to an immutable snapshot of its episode revision, effective brief and scene inputs. Show a review queue with optional local due date, time and time zone. Record Rendered, Approved and Exported per episode revision. An edit or brief update requires a new review of the affected episode. Preserve earlier exports and sibling state. The due date is a local reminder. Render, review and export work with publishing disabled.
 
 **Evidence phase / producer (all not-run):**
 
@@ -1359,6 +1363,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A11: **component**, producer WP24. Use local fixtures to verify that both samples preserve content, approval binds the style and sample inputs, and unavailable routes cannot silently substitute.
 
 - A11: **integration**, producer WP24, WP08, WP14, WP17. Witness the style sample approval, reproducible local export and reopen for Video and Clipper on the declared renderer build. Verify the manual first export for both categories with networking disabled and the board skipped.
+- A12: **component**, producer WP24. Render two episodes and approve and export each independently. Edit one and verify the new review requirement, retained exports and sibling state.
+- A12: **integration**, producer WP24, WP11, WP14, WP17. Witness offline render, review, export and reopen for two episodes on the declared renderer. Verify the zoned reminder with publishing disabled.
 
 **Execution steps:**
 
@@ -1523,6 +1529,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - Prove provider-side pause/cancel and inventory remote schedules, sessions and renewals plus their payer and idle costs. Local Stop only denies new dispatch until provider cancellation is confirmed; a disabled sibling channel is never required for recovery.
 
 - Qualify a social destination against its official upload, processing and publish APIs for one named platform, account type, scope set and allowed audience. Verify media limits, review or app approval requirements, auth refresh/revocation and source rights. Keep local export available when the route is unsupported. A qualified social-only account can publish without a store, payment rail or buyer record.
+- Qualify optional Series scheduling for the selected destination and account. Verify supported timing, time-zone conversion, schedule confirmation and reconciliation of uncertain outcomes. Keep scheduling unavailable when scope is missing or the destination cannot confirm a schedule.
 
 **Evidence phase / producer (all not-run):**
 
@@ -1537,6 +1544,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A12: **component**, producer WP27. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A12: **integration**, producer WP27. Verify the official adapter and account-specific scope/limits with authorized provider evidence before exposing social dispatch.
+- A13: **component**, producer WP27. Exercise unsupported timing, missing scope and submission without schedule confirmation.
+- A13: **integration**, producer WP27. Verify timing, confirmation and reconciliation for the selected account with authorized provider evidence before enabling scheduling.
 
 **Execution steps:**
 
@@ -1587,6 +1596,7 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - Test/live credentials, IDs, products and receipts cannot cross modes; unsupported product/file writes use a labeled manual export/setup/read-back receipt, never fabricated API publication.
 
 - Offer local download and manual handoff after export. A connected social post starts from a reviewed media revision; preview the exact account, caption, audience, visibility and supported timing, and bind approval to this payload. Revisions, account changes and permission loss invalidate dispatch. Distinguish upload, provider processing and verified publication with a remote ID/status. Reconcile unknown results before any retry and report each approved destination independently.
+- Offer optional scheduling for an individually approved Series episode on a qualified destination. Preview the exact episode revision, output, destination, account, caption, visibility, local date and time, time zone and resolved instant. Resolve ambiguous or invalid local times explicitly. Require separate dispatch approval and separate approval for paid actions. A changed payload or lost scope invalidates pending approval. Bind durable receipts to the operation ID and payload. Identical retries return the existing receipt, changed payloads conflict under the same ID, and uncertain outcomes reconcile before redispatch. Show Scheduled only after confirmation for the exact account and time. Record Account acknowledged only from that account receipt with its provider-reported status.
 
 **Evidence phase / producer (all not-run):**
 
@@ -1595,6 +1605,8 @@ The [service design](SERVICES.md) and [project experience](PROJECT-EXPERIENCE.md
 - A7: **component**, producer WP28. Package-owned fixture/contract evidence; live activation needs applicable later gates.
 
 - A7: **integration**, producer WP27, WP28. Verify the authorized social adapter against one account and confirm the provider post or publication status. A fixture or an accepted upload alone cannot establish publication. Conditional producers: cap.media.video → WP24.
+- A8: **component**, producer WP28. Exercise ambiguous time, stale approval, duplicate and conflicting requests and late acknowledgment. Verify one logical schedule and independent episode state.
+- A8: **integration**, producer WP28, WP27, WP24. Confirm one approved episode schedule through the qualified account and reconcile repeated delivery without a second schedule. Verify the zone, instant, remote ID and reported status.
 
 **Execution steps:**
 

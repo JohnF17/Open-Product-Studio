@@ -435,6 +435,28 @@
 }
 .ops-project-head {
   margin: 28px 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ops-project-artwork {
+  flex: 0 0 72px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 6px;
+  transform-origin: top left;
+  pointer-events: none;
+  z-index: 1;
+}
+.ops-project-artwork .ops-art {
+  width: 144px;
+  height: 96px;
+  transform: scale(.5);
+  transform-origin: top left;
+}
+.ops-project-name {
+  flex: 1;
+  min-width: 0;
 }
 .ops-title {
   width: 100%;

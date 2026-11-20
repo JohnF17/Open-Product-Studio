@@ -1,0 +1,416 @@
+.ops-audition {
+  display: grid;
+  gap: 16px;
+}
+
+.ops-audition-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.ops-audition-options {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ops-audition-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.ops-audition-choice {
+  color: var(--ops-ink);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  align-content: start;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid var(--ops-control-line);
+  border-radius: 8px;
+  background: var(--ops-bg);
+  font-size: 13px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.ops-audition-choice .ops-swatch {
+  width: min(100%, 69px);
+}
+
+.ops-audition-choice > span:last-child {
+  grid-column: 1 / -1;
+}
+
+.ops-audition-choice:has(:checked) {
+  border-color: var(--ops-selection);
+  box-shadow: inset 0 0 0 1px var(--ops-selection);
+}
+
+.ops-audition-choice input {
+  margin: 2px 0 0;
+  accent-color: var(--ops-selection);
+}
+
+.ops-audition-choice:has(:focus-visible) {
+  outline: 2px solid var(--ops-selection);
+  outline-offset: 2px;
+}
+
+.ops-audition-preview {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.ops-audition-display {
+  display: grid;
+  min-inline-size: 0;
+  gap: 12px;
+}
+
+.ops-audition-frame {
+  display: grid;
+  grid-template-rows: minmax(122px, 1fr) auto;
+  position: relative;
+  min-height: 182px;
+  overflow: hidden;
+  border-radius: 9px;
+  isolation: isolate;
+  container-type: inline-size;
+}
+
+.ops-audition-scene {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.ops-audition-frame[data-style="kinetic-type"] {
+  background: #e7cb72;
+  color: #362416;
+}
+
+.ops-audition-type {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.2em;
+  font-size: clamp(26px, 13cqi, 48px);
+  font-weight: 750;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.ops-audition-type strong {
+  color: #662a18;
+}
+
+.ops-audition-frame[data-style="product-demo"] {
+  background: #ddd6e6;
+  color: #453252;
+}
+
+.ops-audition-set {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.ops-audition-card {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 48px;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  background: #fffaf0;
+}
+
+[data-style="product-demo"] .ops-audition-set {
+  width: min(164px, 100%);
+  min-height: 96px;
+  padding: 6px 10px 6px 34px;
+  border: 2px solid #453252;
+  border-top-width: 12px;
+  border-radius: 6px;
+  background: linear-gradient(to right, #a997b6 26px, #f3eef6 26px);
+  box-shadow: 4px 5px 0 #b6a5c4;
+}
+
+.ops-audition-frame[data-style="3d-showcase"] {
+  background: #a5c9b9;
+  color: #224a41;
+}
+
+[data-style="3d-showcase"] .ops-audition-set {
+  perspective: 260px;
+}
+
+[data-style="3d-showcase"] .ops-audition-card {
+  width: 92px;
+  height: 64px;
+  border-color: #c5ece0;
+  background: #266556;
+  color: #fffaf0;
+  box-shadow:
+    2px 3px #13392f,
+    4px 6px #13392f,
+    6px 9px #13392f,
+    12px 19px 14px #557c6d;
+  transform: rotateX(32deg) rotateY(-24deg) rotateZ(-8deg);
+}
+
+.ops-audition-frame[data-style="stick-figure-explainer"] {
+  background: repeating-linear-gradient(#eee6d5 0 19px, #e3dbc9 19px 20px);
+  color: #29332c;
+}
+
+[data-style="stick-figure-explainer"] .ops-audition-set {
+  grid-template-columns: auto auto;
+  align-items: end;
+  gap: 4px;
+  border-bottom: 2px solid currentColor;
+}
+
+.ops-audition-figure {
+  width: 60px;
+  height: 78px;
+}
+
+[data-style="stick-figure-explainer"] .ops-audition-card {
+  width: 48px;
+  height: 35px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  transform: rotate(-7deg);
+}
+
+.ops-audition-caption {
+  margin: 0 9px 10px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: #1e2122;
+  color: #fffaf0;
+  font-size: 13px;
+  font-weight: 590;
+  line-height: 1.35;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ops-audition-caption[data-truncated="true"] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  /* Keep padding outside the three visible lines. */
+  padding-block: 0;
+  border-block: 7px solid #1e2122;
+}
+
+[data-style="kinetic-type"] .ops-audition-caption {
+  justify-self: center;
+  border-radius: 2px;
+}
+
+[data-style="product-demo"] .ops-audition-caption {
+  text-align: left;
+}
+[data-style="3d-showcase"] .ops-audition-caption {
+  justify-self: center;
+}
+
+[data-style="stick-figure-explainer"] .ops-audition-caption {
+  background: #fffaf0;
+  border-color: #fffaf0;
+  color: #29332c;
+}
+
+.ops-audition-progress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.ops-audition-frame[data-playing="true"] .ops-audition-progress {
+  animation: ops-audition-progress 4s linear;
+}
+
+[data-playing="true"] .ops-audition-type span {
+  animation: ops-audition-type 4s both;
+}
+[data-playing="true"] .ops-audition-type strong {
+  animation: ops-audition-land 4s both;
+}
+[data-style="product-demo"][data-playing="true"] .ops-audition-card svg {
+  animation: ops-audition-land 4s both;
+}
+[data-style="3d-showcase"][data-playing="true"] .ops-audition-card {
+  animation: ops-audition-orbit 4s both;
+}
+[data-style="stick-figure-explainer"][data-playing="true"] .ops-audition-card {
+  animation: ops-audition-place 4s both;
+}
+
+@keyframes ops-audition-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ops-audition-type {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  16%,
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ops-audition-land {
+  from,
+  35% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  50%,
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ops-audition-orbit {
+  from {
+    transform: rotateX(42deg) rotateY(36deg) rotateZ(7deg);
+  }
+  62% {
+    transform: rotateX(23deg) rotateY(-38deg) rotateZ(-12deg);
+  }
+  to {
+    transform: rotateX(32deg) rotateY(-24deg) rotateZ(-8deg);
+  }
+}
+
+@keyframes ops-audition-place {
+  from,
+  16% {
+    transform: translate(-32px, -16px) rotate(-22deg);
+  }
+  57%,
+  to {
+    transform: rotate(-7deg);
+  }
+}
+
+.ops-audition-preview figcaption,
+.ops-audition-full-text,
+.ops-audition-description,
+.ops-audition-hint {
+  color: var(--ops-muted);
+  font-size: 13px;
+}
+
+.ops-audition-preview figcaption {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.ops-audition-full-text {
+  margin-top: 5px;
+}
+.ops-audition-full-text p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ops-audition-play {
+  margin-top: 10px;
+}
+.ops-audition-description {
+  margin: 8px 0 0;
+}
+.ops-audition-hint {
+  margin: 0;
+}
+
+.ops-audition-plan {
+  padding: 12px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.ops-audition-plan dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 142px), 1fr));
+  gap: 9px;
+  margin: 0 0 9px;
+}
+
+.ops-audition-plan dt,
+.ops-audition-plan small {
+  color: var(--ops-muted);
+}
+.ops-audition-plan dd {
+  margin: 2px 0 0;
+  font-weight: 610;
+}
+.ops-audition-plan small {
+  display: block;
+  font-size: 12px;
+  font-weight: 450;
+}
+.ops-audition-plan p {
+  margin: 3px 0;
+}
+.ops-audition-commit {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+}
+.ops-audition-commit p {
+  margin: 0;
+}
+.ops-audition-commit .ops-actions {
+  flex-wrap: wrap;
+}
+
+.ops-audition-commit button[aria-disabled="true"] {
+  opacity: 0.65;
+  cursor: default;
+}
+
+@container studio (max-width: 485px) {
+  .ops-audition-compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container studio (max-width: 235px) {
+  .ops-audition-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ops-audition .ops-audition-frame * {
+    animation: none !important;
+  }
+}
+
+.ops-leaving .ops-audition-frame * {
+  animation-play-state: paused !important;
+}
