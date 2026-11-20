@@ -75,3 +75,7 @@ Show the current stage, last confirmed update and next action on the existing St
 ## Evidence for the reference reel
 
 On 19 November 2026, the supplied URL identified Instagram shortcode `Df4VktwN5Sm`. The offline video-evidence helper normalized the locator. A search of prior local research found no matching capture. Agent Reach listed an Instagram channel. The public page fetch reported throttling, so retrieval on that route stopped. An independent exact-shortcode search located no attributable recording or transcript. Author, publication date, duration, footage, speech and tools shown remain unknown. The tool decisions above come from the linked primary documentation and the Studio design review. [Supplied reel](https://www.instagram.com/reel/Df4VktwN5Sm/)
+
+### Offline portrait renderer qualification
+
+Maintainers can generate and inspect a silent portrait MP4 using the WP24 qualification command. It generates its own source, trims frames 30 through 89, crops to 9:16, and checks the finished file before producing a receipt. This is the reference case for the future desktop export action. [Qualification procedure and supported profile](acceptance/WP24/portrait-driver.md)
