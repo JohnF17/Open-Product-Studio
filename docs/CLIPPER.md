@@ -2,11 +2,15 @@
 
 Clipper starts with a moment in an existing recording. A teacher can take one explanation from a lesson, and a developer can turn the few seconds where a feature works into a captioned walkthrough. Each project keeps the original recording, its marked moments and independently editable versions of each clip. The first release target is a portrait clip you can play outside Studio and reopen for another edit, working offline with a recording you have permission to use.
 
-Clipper opens as an editable working draft in the six-category chooser. The earlier Windows capture records the original three categories. Media rendering and source-grounded assistance have separate release gates. Video starts by choosing a style and reviewing its tool checklist, then moves to the brief and storyboard. Both media categories share the Library, editor revisions, render jobs and export review. A rendered Video can become a Clipper source when the user selects that specific revision. [Current Windows build evidence](acceptance/WP08.md) · [Category catalog](roadmap/project-categories.json)
+Clipper opens from the project chooser. The earlier Windows capture records the original three categories. Media rendering and source-grounded assistance have separate release gates. Video starts by choosing a style and reviewing its tool checklist, then moves to the brief and storyboard. The planned media architecture gives both categories the same Library, editor revisions, render jobs and export review. A rendered Video can become a Clipper source when the user selects that specific revision. [Current Windows build evidence](acceptance/WP08.md) · [Category catalog](roadmap/project-categories.json)
 
 ## The first clip
 
-The working-draft editor already saves a source note, written time marks, caption text and framing instructions. In **Edit**, try Subtitles, Headline or Callout on the same sample frame or a permitted local still. Apply or undo the look and export the instructions as JSON. The reference image stays in the open preview. The workflow below describes the subsequent media and rendering milestones.
+In **Moment**, choose a local recording you have permission to use. Scrub to each endpoint, choose **Set mark in** and **Set mark out**, then **Preview selection**. The marks save with the project. The player releases the recording when you leave the sheet. On returning, choose the recording again and confirm the saved marks against it. You can also enter both times by hand.
+
+In **Edit notes**, type a caption and try Subtitles, Headline or Callout on a sample frame or a permitted still. In **Export**, choose **Trimmed clip** for a caption that begins at zero or **Original recording** to preserve the source timecodes. The WebVTT file contains one plain-text cue. Styling instructions, source notes and framing choices stay in the separate JSON edit plan. The desktop and phone-width walkthrough exercises local recording playback and both caption timelines. [Clipper acceptance record](acceptance/WP24/clipper-marks/README.md)
+
+The following table describes the intended end-to-end workflow, including later media and rendering milestones. Persistent recording relinking, frame-accurate cuts, playable media export and publication have separate acceptance gates.
 
 The builder offers one next action at each step. Open the detailed controls at any time to edit the same draft. Start with a single cut and a plain portrait preset. Every optional suggestion can be skipped, and manual controls stay available while an optional job runs.
 
