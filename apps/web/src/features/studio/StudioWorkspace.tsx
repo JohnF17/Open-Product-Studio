@@ -30,6 +30,7 @@ import {
 import {
   catalog,
   draftExport,
+  downloadStudioFile,
   exportDraft,
   selectedTools,
   starterOptions,
@@ -41,6 +42,7 @@ import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
 import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { VideoStyleAudition } from "./VideoStyleAudition";
+import { VideoSeriesBriefPanel } from "./VideoSeriesBriefPanel";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
 import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
@@ -197,10 +199,18 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
   if (editor)
     return (
       <Builder
+        key={editor.snapshot().draft.id}
         editor={editor}
         entryArt={entryArt}
         onHome={home}
         onAskAgent={onAskAgent}
+        onCreateVideoProject={(episode) => {
+          const next = new DraftEditor(episode);
+          returnProject.current = { id: episode.id, top: 0 };
+          setEntryArt(null);
+          setEditor(next);
+          void next.flush();
+        }}
         onDiscard={() => {
           setEditor(null);
           setShowChooser(false);
@@ -346,6 +356,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                     <strong>{projectName(project)}</strong>
                     <small>
                       {project.restoredCopy && <>Restored copy {project.restoredCopy} · </>}
+                      {project.seriesBrief && <>{project.seriesBriefOwner ? "Series" : "Episode"} · Brief v{project.seriesBrief.revision} · </>}
                       {categories.find((c) => c.id === project.category)?.label} ·{" "}
                       {stepLabel(project, project.stage)}
                     </small>
@@ -377,9 +388,10 @@ type BuilderProps = {
   entryArt: DOMRect | null;
   onHome: () => Promise<void>;
   onDiscard: () => void;
+  onCreateVideoProject: (episode: StudioDraft) => void;
   onAskAgent: Props["onAskAgent"];
 };
-function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent }: BuilderProps) {
+function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVideoProject }: BuilderProps) {
   const { draft, status } = useSyncExternalStore(
     editor.subscribe,
     editor.snapshot,
@@ -644,7 +656,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent }: BuilderPro
                 inert
                 aria-hidden="true"
               >
-                <Step stage={motion.from} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} />
+                <Step stage={motion.from} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} />
               </div>
             )}
             <div
@@ -655,7 +667,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent }: BuilderPro
               }}
               ref={activePanel}
             >
-              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} />
+              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} />
               {onAskAgent && researchStep && (
                 <details className="ops-reference ops-agent-context">
                   <summary>Ask AI to research products</summary>
@@ -767,6 +779,7 @@ type StepProps = {
   draft: StudioDraft;
   editor: DraftEditor;
   writeField: (key: string, value: string) => void;
+  onCreateVideoProject: (episode: StudioDraft) => void;
 };
 function Heading({ title, detail }: { title: string; detail: string }) {
   return (
@@ -816,7 +829,9 @@ function Field({
   );
 }
 
-function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
+function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProject }: StepProps) {
+  const hasSeries = draft.category === "video" && (draft.seriesBrief !== undefined ||
+    draft.fields.seriesDraftAudience !== undefined || draft.fields.seriesDraftFormat !== undefined);
   if (draft.category === "affiliate-storefront" && draft.affiliate && isAffiliateStage(stage)) {
     return <AffiliateStorefrontSheet stage={stage} affiliate={draft.affiliate} editor={editor} />;
   }
@@ -942,7 +957,12 @@ function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
           title="Choose a visual style"
           detail="Compare treatments on one scene, then apply the style you want to use."
         />
-        <VideoStyleAudition draft={draft} onApply={(patch) => editor.update(patch)} />
+        <VideoStyleAudition draft={draft} onApply={(patch) => {
+          const current = editor.snapshot().draft;
+          editor.update(current.seriesBrief && !current.seriesBriefOwner
+            ? { ...patch, fields: { ...current.fields, seriesStyleOverride: patch.style } }
+            : patch);
+        }} />
       </>
     );
   if (stage === "prepare") {
@@ -1039,8 +1059,10 @@ function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
           title="Shape your brief"
           detail="Start with one audience and the outcome you want for them."
         />
+        {draft.category === "video" && <VideoSeriesBriefPanel draft={draft} editor={editor} onCreateVideoProject={onCreateVideoProject} />}
         {field("brief", "What will you make?", "Describe the idea in a sentence or two.")}
-        {field("audience", "Who is it for?", "Describe your viewer or reader.", 2)}
+        {(!draft.seriesBrief || draft.seriesBriefOwner) &&
+          field("audience", "Who is it for?", "Describe your viewer or reader.", 2)}
         {draft.category === "video" && field(
           "motionDirection",
           "Motion direction (optional)",
@@ -1181,9 +1203,12 @@ function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
           detail="Draft the caption for a manual handoff. Connected social publishing is planned for M4C."
         />
         {field("caption", "Post caption", "Write the copy for your chosen audience.", 5)}
-        <button className="ops-button" onClick={() => exportDraft(draft)}>
+        {hasSeries ? <button className="ops-button" disabled={!draft.fields.caption?.trim()} onClick={() =>
+          downloadStudioFile(new Blob([draft.fields.caption ?? ""], { type: "text/plain;charset=utf-8" }), "Post caption", ".txt")}>
+          <ArrowDownToLine size={16} /> Download post caption
+        </button> : <button className="ops-button" onClick={() => exportDraft(draft)}>
           <ArrowDownToLine size={16} /> Download updated draft
-        </button>
+        </button>}
       </>
     );
   return (
@@ -1196,11 +1221,11 @@ function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
         <FileText size={30} />
         <div>
           <strong>{projectName(draft)}</strong>
-          <small>Studio working draft · JSON</small>
+          <small>{hasSeries ? "Private backup · includes series history and working notes" : "Studio working draft · JSON"}</small>
         </div>
       </div>
-      <button className="ops-button ops-primary" onClick={() => exportDraft(draft)}>
-        <ArrowDownToLine size={16} /> Download draft
+      <button className="ops-button ops-primary" onClick={hasSeries ? saveBackup : () => exportDraft(draft)}>
+        <ArrowDownToLine size={16} /> {hasSeries ? "Download private backup" : "Download draft"}
       </button>
     </>
   );

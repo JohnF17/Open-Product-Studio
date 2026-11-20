@@ -1,7 +1,8 @@
 import * as Schema from "effect/Schema";
+import { randomUUID } from "../../lib/randomUUID";
 import { isAffiliateDraft, type AffiliateDraft } from "./affiliateDraft";
 import { digitalProductPublicTitle } from "./digitalProductExport";
-import { createDraft, draftStages, insertDraft, projectName, stages, styleNames } from "./drafts";
+import { createDraft, draftStages, insertDraft, isVideoSeriesBrief, isVideoSeriesHistory, projectName, stages, styleNames } from "./drafts";
 import type { Category, StudioDraft, VideoStyle } from "./drafts";
 import { catalog, downloadStudioFile } from "./guide";
 import { isVideoCueList, type VideoCue } from "./videoCues";
@@ -32,6 +33,10 @@ const authoredFields = {
     "audience",
     "notes",
     "motionDirection",
+    "seriesFormat",
+    "seriesDraftAudience",
+    "seriesDraftFormat",
+    "seriesStyleOverride",
     "script",
     "shots",
     "assets",
@@ -213,7 +218,7 @@ function checkLegacyKind(
 
 type BackupContent = Pick<
   StudioDraft,
-  "category" | "stage" | "title" | "fields" | "archivedFields" | "style" | "tools" | "videoCues" | "affiliate"
+  "category" | "stage" | "title" | "fields" | "archivedFields" | "style" | "tools" | "videoCues" | "affiliate" | "seriesBrief" | "seriesHistory"
 >;
 
 function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}): BackupContent {
@@ -226,6 +231,9 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
   const { stage, title } = input;
   if (typeof input.category !== "string" || !Object.hasOwn(stages, input.category)) invalid();
   const category = input.category as Category;
+  if (input.seriesBrief !== undefined && (category !== "video" || !isVideoSeriesBrief(input.seriesBrief))) invalid();
+  if (input.seriesHistory !== undefined &&
+      (!isVideoSeriesBrief(input.seriesBrief) || !isVideoSeriesHistory(input.seriesHistory, input.seriesBrief))) invalid();
   if (
     typeof stage !== "string" ||
     !draftStages(category).includes(stage) ||
@@ -241,6 +249,8 @@ function readContent(input: unknown, options: ProjectBackupRestoreOptions = {}):
     ...fieldContent,
     style: "kinetic-type",
     tools: [],
+    ...(input.seriesBrief !== undefined ? { seriesBrief: input.seriesBrief } : {}),
+    ...(input.seriesHistory !== undefined ? { seriesHistory: input.seriesHistory } : {}),
   };
   if (category === "video") {
     const legacyStyle = legacy && record(input.style) ? input.style : undefined;
@@ -321,5 +331,13 @@ export async function importProjectBackup(
     });
   }
   const content = readContent(input, options);
+  // A backup carries the authored settings and their revisions. Its external
+  // lineage must never attach the copy to a series that exists on this device.
+  if (content.seriesBrief) {
+    const seriesId = randomUUID();
+    content.seriesBrief = { ...content.seriesBrief, seriesId };
+    if (content.seriesHistory)
+      content.seriesHistory = content.seriesHistory.map((brief) => ({ ...brief, seriesId }));
+  }
   return insertDraft({ ...createDraft(workspaceId, content.category), ...content });
 }

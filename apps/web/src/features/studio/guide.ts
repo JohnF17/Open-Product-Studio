@@ -158,6 +158,8 @@ export function draftExport(draft: StudioDraft, mode?: ExportMode) {
       ? {
           style: { id: draft.style, version: catalog.styles[draft.style].version },
           plannedTools: selectedTools(draft),
+          ...(draft.seriesBrief ? { seriesBrief: draft.seriesBrief } : {}),
+          ...(draft.seriesHistory ? { seriesHistory: draft.seriesHistory } : {}),
           ...(draft.videoCues?.length ? { cueSheet: exportCueSheet(draft.videoCues) } : {}),
         }
       : {}),
