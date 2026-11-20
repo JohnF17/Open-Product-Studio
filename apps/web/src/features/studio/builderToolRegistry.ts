@@ -6,7 +6,7 @@ export const BUILDER_TOOL_SETTINGS_ID = "studio-builder-tools";
 
 interface ExternalBuilderTool {
   name: string;
-  status: "unqualified" | "disabled";
+  status: "unqualified" | "disabled" | "connect";
   detail: string;
 }
 
@@ -24,8 +24,8 @@ const publishing: ExternalBuilderTool = {
 
 const videoRenderer: ExternalBuilderTool = {
   name: msg("Video renderer"),
-  status: "unqualified",
-  detail: msg("The style tool plan records preferences for later production."),
+  status: "connect",
+  detail: msg("Pair the local FFmpeg renderer in Preview to produce a narrated MP4 with timed subtitles and close-ups."),
 };
 
 const paperReplay: ExternalBuilderTool = {

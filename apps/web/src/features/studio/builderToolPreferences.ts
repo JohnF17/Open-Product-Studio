@@ -7,7 +7,7 @@ import {
 } from "../../hooks/useLocalStorage";
 import type { Category } from "./drafts";
 
-const draftRouteSchema = Schema.NullOr(Schema.Literals(["local", "device", "t3"]));
+const draftRouteSchema = Schema.NullOr(Schema.Literals(["local", "device", "t3", "ollama"]));
 export type BuilderDraftRoute = NonNullable<typeof draftRouteSchema.Type>;
 
 function routeKey(workspaceId: string, category: Category) {
@@ -15,7 +15,7 @@ function routeKey(workspaceId: string, category: Category) {
 }
 
 function allowedRoute(category: Category, route: BuilderDraftRoute | null) {
-  return category === "day-trader" && route === "t3" ? null : route;
+  return category === "day-trader" && (route === "t3" || route === "ollama") ? null : route;
 }
 
 export function getDefaultBuilderDraftRoute(

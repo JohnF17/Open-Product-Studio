@@ -29,6 +29,7 @@ import {
 } from "./builderAssistantRecipes";
 import { runDeviceAssistant, useDeviceAssistantAvailable } from "./builderDeviceAssistant";
 import { BuilderToolSettings } from "./BuilderToolSettings";
+import { draftWithOllama, tutorialDirectorSources, useOllamaChoice } from "./builderOllama";
 import { getDefaultBuilderDraftRoute, useBuilderDraftRoute } from "./builderToolPreferences";
 import styles from "./builderAssistant.module.css";
 
@@ -62,6 +63,7 @@ type Props = {
   artwork: ReactNode;
   bridge: BuilderAssistantBridge | undefined;
   onOpenProviderSettings: (() => void) | undefined;
+  sourceRanges?: string | undefined;
 };
 
 export function BuilderAssistantPanel({
@@ -70,6 +72,7 @@ export function BuilderAssistantPanel({
   artwork,
   bridge,
   onOpenProviderSettings,
+  sourceRanges,
 }: Props) {
   const gt = useGT();
   const m = useMessages();
@@ -85,7 +88,8 @@ export function BuilderAssistantPanel({
   );
   const [question, setQuestion] = useState("");
   const [undo, setUndo] = useState<BuilderAssistantPreview | null>(null);
-  const selectedRouteKey = bridge?.routeKey ?? undefined;
+  const [ollama] = useOllamaChoice(draft.workspaceId,draft.category);
+  const selectedRouteKey = route === "ollama" ? (ollama ? JSON.stringify(ollama) : undefined) : bridge?.routeKey ?? undefined;
   const [routeIdentity, setRouteIdentity] = useState({ route, selectedRouteKey });
   if (routeIdentity.route !== route || routeIdentity.selectedRouteKey !== selectedRouteKey) {
     setRouteIdentity({ route, selectedRouteKey });
@@ -102,13 +106,13 @@ export function BuilderAssistantPanel({
   const intent: Intent = section === "explain" ? "explain" : "suggest";
   const snapshotKey = preview || pending ? builderAssistantSnapshotKey(draft) : null;
   const routeLabel =
-    route === "t3"
+    route === "ollama" ? ollama?.name ?? gt("Choose a local model") : route === "t3"
       ? bridge?.routeLabel || gt("Choose a T3 model")
       : route === "device"
         ? gt("On-device AI")
         : gt("Local starter");
   const available =
-    route === "t3"
+    route === "ollama" ? !!ollama && draft.category !== "day-trader" : route === "t3"
       ? t3Available && !!selectedRouteKey
       : route === "device"
         ? deviceAvailable
@@ -144,7 +148,7 @@ export function BuilderAssistantPanel({
           question.trim() ||
             (intent === "explain" ? "Explain this step with a practical example." : ""),
           intent,
-          route === "device" ? "device" : "composer",
+          route === "ollama" ? "ollama" : route === "device" ? "device" : "composer",
         );
 
   function updateRouteUi(patch: Partial<RouteUi>) {
@@ -231,7 +235,15 @@ export function BuilderAssistantPanel({
       );
       return;
     }
-    if (route === "device") {
+    if (route === "ollama" && ollama && draft.category !== "day-trader") {
+      const director = intent === "suggest" && draft.category === "video" && (draft.stage === "storyboard" || draft.stage === "render");
+      const text = await draftWithOllama(ollama, request.prompt, signal, director ? tutorialDirectorSources(request.reviewedContext) : [], {
+        summary:gt("Your local model selected the shots and wrote their narration."),
+        nextStep:gt("Review the timing, framing and words in Preview."),
+      }, request.writableKeys);
+      signal.throwIfAborted();
+      showResult(parseBuilderAssistantResponse(editor.snapshot().draft, request, text), ollama.name + " · " + ollama.digest.slice(0,12));
+    } else if (route === "device") {
       const text = await runDeviceAssistant(request.prompt, signal);
       signal.throwIfAborted();
       showResult(
@@ -458,7 +470,7 @@ export function BuilderAssistantPanel({
                       <div className={styles["ops-assist-model"]}>{bridge.selector}</div>
                     )}
                     <p>
-                      {route === "device"
+                      {route === "ollama" ? gt("Runs with the exact installed model selected in Tools and models. Only the reviewed text is sent.") : route === "device"
                         ? gt("Uses the installed browser model on this device.")
                         : gt(
                             "Review and send the draft in T3. Your provider plan covers the turn or bills for usage. Your chat permission settings govern tool access. Studio accepts a text-only reply.",
@@ -491,6 +503,12 @@ export function BuilderAssistantPanel({
                         }
                       />
                     </label>
+                    {intent === "suggest" && sourceRanges && (
+                      <button type="button" disabled={busy || question.includes(sourceRanges) || (question.length + sourceRanges.length + 1 > BUILDER_ASSISTANT_MAX_CONTEXT_CHARS)}
+                        onClick={() => setQuestion(current => (current.trim() + "\n" + sourceRanges).trim())}>
+                        <T>Include attached footage times</T>
+                      </button>
+                    )}
                     {context && (
                       <button
                         type="button"
@@ -524,7 +542,7 @@ export function BuilderAssistantPanel({
                       >
                         {busy
                           ? gt("Preparing…")
-                          : route === "device"
+                          : route === "ollama" ? gt("Ask local model") : route === "device"
                             ? gt("Ask on-device AI")
                             : gt("Open reviewed draft in T3")}
                       </button>

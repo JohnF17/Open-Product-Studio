@@ -133,7 +133,7 @@ it("shows what works in the Video preview step without overflowing a narrow pane
       ui
         .getByRole("term")
         .filter({ hasText: "Video renderer" })
-        .getByText("Unqualified", { exact: true }),
+        .getByText("Connect locally", { exact: true }),
     )
     .toBeVisible();
   expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth);

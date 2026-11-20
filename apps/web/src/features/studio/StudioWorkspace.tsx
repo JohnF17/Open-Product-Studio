@@ -1,4 +1,5 @@
 import { type Dispatch, type RefObject, type SetStateAction, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useGT } from "gt-react";
 import {
   ArrowDownToLine,
   ArrowLeft,
@@ -57,6 +58,7 @@ import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { VideoCaptionExport } from "./VideoCaptionExport";
 import { VideoStyleAudition } from "./VideoStyleAudition";
 import { VideoSeriesBriefPanel } from "./VideoSeriesBriefPanel";
+import { TutorialProduction, TutorialProductionExport, type TutorialRecordings } from "./TutorialProduction";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
 import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
@@ -492,6 +494,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
   const shareSheetNotes = approvedExcerpts === excerptSnapshot;
   const [sheetKey, setSheetKey] = useState(0);
   const [clipDuration, setClipDuration] = useState<number>();
+  const [tutorialRecordings, setTutorialRecordings] = useState<TutorialRecordings>(() => new Map());
   const [clipSource, setClipSource] = useState<ClipperSourceState>(
     () => readClipChatSource(draft.workspaceId, draft.id) ??
       { ...emptyClipperSource, instruction: draft.fields.clipGoal ?? "" },
@@ -772,9 +775,12 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
             >
               <BuilderAssistantSlot.Provider value={<BuilderAssistantPanel
                 draft={draft} editor={editor} bridge={builderAssistant} artwork={<Artwork kind={draft.category} />} onOpenProviderSettings={onOpenProviderSettings}
+                sourceRanges={draft.category === "video" && (draft.stage === "storyboard" || draft.stage === "render") ?
+                  Array.from(tutorialRecordings, ([id, source]) => "SOURCE " + id + " 0 " + source.durationMs / 1000).join("\n") : undefined}
               />}>
               <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} clipDuration={clipDuration} onClipDuration={setClipDuration}
                 clipSource={clipSource} onClipSourceChange={setClipSource} onEvidenceInputsChange={invalidateClipEvidence} onEvidenceReady={onEvidenceReady ? handOffClipEvidence : undefined}
+                tutorialMedia={{ recordings: tutorialRecordings, setRecordings: setTutorialRecordings }}
                 goToSource={() => navigate(0)} onReadClipReply={onReadClipReply}
                 onSettingsQuestion={onAskAgent ? (question, scope) => void askAgent(question, scope) : undefined} />
               </BuilderAssistantSlot.Provider>
@@ -885,6 +891,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
 
 type StepProps = {
   leaving?: boolean;
+  tutorialMedia?: { recordings: TutorialRecordings; setRecordings: Dispatch<SetStateAction<TutorialRecordings>> };
   clipDuration?: number | undefined;
   clipSource?: ClipperSourceState;
   onClipSourceChange?: Dispatch<SetStateAction<ClipperSourceState>>;
@@ -940,7 +947,8 @@ function Field({
   );
 }
 
-function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProject, leaving, clipDuration, onClipDuration, clipSource, onClipSourceChange, onEvidenceInputsChange, onEvidenceReady, onReadClipReply, goToSource, onSettingsQuestion }: StepProps) {
+function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProject, leaving, clipDuration, onClipDuration, clipSource, onClipSourceChange, onEvidenceInputsChange, onEvidenceReady, onReadClipReply, goToSource, onSettingsQuestion, tutorialMedia }: StepProps) {
+  const gt = useGT();
   const hasSeries = draft.category === "video" && (draft.seriesBrief !== undefined ||
     draft.fields.seriesDraftAudience !== undefined || draft.fields.seriesDraftFormat !== undefined);
   if (draft.category === "affiliate-storefront" && draft.affiliate && isAffiliateStage(stage)) {
@@ -1300,7 +1308,7 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
       <>
         <Heading
           title="Plan the materials"
-          detail="Record the visuals, sound and source permissions you need for each shot."
+          detail={gt("Record the visuals, sound and permissions you need for each shot. Attach local recordings on Preview.")}
         />
         <Reference label="Shot list" value={draft.fields.shots} />
         {field(
@@ -1317,10 +1325,12 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
     return (
       <>
         <Heading
-          title="Preview the storyboard"
-          detail="Review your saved storyboard here. Video rendering is planned for M4A."
+          title={gt("Produce your tutorial")}
+          detail={gt("Turn your recordings into a sequence of timed shots, close-ups and narration.")}
         />
-        {shots.length > 0 ? (
+        {!leaving && tutorialMedia && <TutorialProduction draft={draft} editor={editor}
+          sources={tutorialMedia.recordings} setSources={tutorialMedia.setRecordings} />}
+        {shots.length > 0 && (
           <ol className="ops-shot-list">
             {shots.map((shot, i) => (
               <li key={i}>
@@ -1329,8 +1339,6 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
               </li>
             ))}
           </ol>
-        ) : !draft.videoCues?.length && (
-          <p className="ops-note">Add shots in the Storyboard step to see them here.</p>
         )}
         {!!draft.videoCues?.length && <VideoCuePreview cues={draft.videoCues} />}
       </>
@@ -1385,6 +1393,7 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
         <ArrowDownToLine size={16} /> {hasSeries ? "Download private backup" : "Download draft"}
       </button>
       {draft.category === "video" && !leaving && <VideoCaptionExport draft={draft} editor={editor} />}
+      {draft.category === "video" && !leaving && <TutorialProductionExport draft={draft} />}
     </>
   );
 }

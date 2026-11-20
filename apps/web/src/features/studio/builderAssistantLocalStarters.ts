@@ -40,6 +40,7 @@ const manuscript = { key: "draft", label: msg("Manuscript") };
 const motion = { key: "motionDirection", label: msg("Motion direction") };
 const script = { key: "script", label: msg("Script") };
 const shots = { key: "shots", label: msg("Shot list") };
+const tutorialProposal = { key: "tutorialProductionProposal", label: msg("Proposed tutorial edit"), maxLength: 8000 };
 const audio = { key: "audio", label: msg("Voice and sound cues") };
 const clipGoal = { key: "clipGoal", label: msg("Clip goal") };
 const cropNotes = { key: "cropNotes", label: msg("Crop and framing") };
@@ -267,7 +268,7 @@ const recipes: RecipeTable = {
       msg("Pair each line of the script with a shot that shows what the viewer needs to understand."),
       msg("Read the script aloud while checking that each shot supports the line it accompanies."),
       {
-        fields: [script, shots],
+        fields: [script, shots, tutorialProposal],
         context: [brief, audience, motion, script, shots],
         starter: (draft) => ({
           script: [
@@ -300,7 +301,7 @@ const recipes: RecipeTable = {
       msg("Review the storyboard preview"),
       msg("Use the storyboard preview to check scene order, transitions, and cue timing before production."),
       msg("Play through the cues and return to Storyboard to adjust any unclear beat."),
-      { context: [script, shots, motion] },
+      { context: [script, shots, motion], fields: [tutorialProposal] },
     ),
     review: recipe(
       msg("Draft a video review checklist"),

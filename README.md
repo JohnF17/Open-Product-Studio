@@ -4,7 +4,9 @@ Turn a useful idea into a product people can use. Keep the files, choose the mod
 
 **Studio includes a guided project workspace.** Create a Blank, Digital product, Video, Clipper, Replica, Day Trader or Affiliate storefront working draft, move through its sheets, reopen it later and download editable JSON. The new guides produce an edit plan, an original behavior brief or a paper-practice journal. Their render, prototype and replay milestones are documented in the [Clipper](docs/CLIPPER.md) and [Replica and Day Trader](docs/REPLICA-AND-DAY-TRADER.md) plans. Affiliate storefront can export a disclosed referral page, a Shopify section, or a React component from one reviewed shortlist. See the [storefront guide](docs/AFFILIATE-STOREFRONTS.md). On supported sheets the agent button opens a prepared request in the T3 composer for review and model selection. See the [guided workspace](docs/acceptance/WP08.md) and [desktop baseline](docs/BASELINE.md).
 
-Open Product Studio is an Electron workspace for making products with your own AI tools. The roadmap tracks downloadable releases, complete product exports and publishing. New Project offers three starting points:
+**Make a narrated tutorial.** In Video → Preview, attach your recordings and tell the step assistant what the viewer should learn. Choose which proposed shots to keep, adjust the camera, and edit what the audience hears. Pair your local renderer, review the edit, and download the finished MP4 and subtitles. Windows can use an installed voice. You can also record your own narration. [Tutorial walkthrough](docs/acceptance/tutorial-production-ui.md) · [Recording of the editor](docs/acceptance/WP24/tutorial-production/director-window.webm) · [Local media tools](tools/studio-media/README.md)
+
+Open Product Studio is an Electron workspace for making products with your own AI tools. Seven project types appear in the chooser. Three common starting points are:
 
 - **Blank** opens a workspace where you can bring existing material or pick a guided workflow later.
 - **Digital product** guides you from an idea through research, creation and export of an ebook, workbook or another supported product.

@@ -1,5 +1,11 @@
 # Choosing a look for a video or clip
 
+## Make a tutorial today
+
+In Video → Preview, start with a viewer goal. Attach a recording, share the relevant intervals with the step assistant, and describe the actions you want to teach. Open Tools and models to choose T3's provider route, a supported browser model or an installed Ollama model. The creator reviews the exact text sent. The tutorial director uses the supplied descriptions and time ranges. A line such as “the menu opens at eight seconds” gives it an observation it can use when writing the shot. In Clipper the separate evidence flow can send reviewed frames and timed caption excerpts.
+
+Audition the proposed shots on the source footage, select the cuts to apply, then adjust camera position, magnification, timing and spoken words. The paired local renderer creates a 1080p MP4 with narration, burned subtitles and a separate WebVTT download. An installed motion tool can produce a new source clip in the same editor. Clipper's Source sheet can request subtitles from a configured local whisper.cpp installation. [Hands-on tutorial](acceptance/tutorial-production-ui.md) · [Media setup and command reference](../tools/studio-media/README.md) · [Recorded results](acceptance/WP24/tutorial-production/README.md)
+
 The builder should let someone say “keep the screen readable and use captions like this,” see it on their own footage and change their mind before rendering a whole video. This is a design for the Video and Clipper projects. The existing Windows walkthrough covers the earlier style picker and tool checklist. [Windows walkthrough](acceptance/WP08.md) · [Planned Clipper builder](CLIPPER.md)
 
 ## Where the choice appears
