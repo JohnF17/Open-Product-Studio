@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
-  Check,
   ChevronRight,
   CirclePlus,
   Clapperboard,
@@ -13,7 +12,6 @@ import {
   FolderOpen,
   Layers3,
   PanelsTopLeft,
-  PersonStanding,
   Rows3,
   Scissors,
   ShoppingBag,
@@ -36,14 +34,13 @@ import {
   selectedTools,
   starterOptions,
   stepNames,
-  styleDescriptions,
-  styleNames,
 } from "./guide";
 import { StudioMark } from "../../components/StudioMark";
 import { workingGuide } from "./workingDraftGuides";
 import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
 import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
+import { VideoStyleAudition } from "./VideoStyleAudition";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
 import { affiliateLinkIsValid } from "./affiliateExport";
 import { AffiliateStorefrontSheet } from "./AffiliateStorefront";
@@ -116,6 +113,20 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     decision: ProjectBackupConfirmation;
   } | null>(null);
   const backupInput = useRef<HTMLInputElement>(null);
+  const picker = useRef<HTMLElement>(null);
+  const returnProject = useRef<{ id: string; top: number } | null>(null);
+  const [entryArt, setEntryArt] = useState<DOMRect | null>(null);
+  useLayoutEffect(() => {
+    const bookmark = returnProject.current;
+    const section = picker.current;
+    if (editor || loading || !bookmark || !section) return;
+    const card = section.querySelector<HTMLButtonElement>(`[data-project-id="${CSS.escape(bookmark.id)}"]`);
+    section.scrollTop = bookmark.top;
+    const target = card ?? section.querySelector<HTMLElement>("h1");
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "nearest", behavior: "instant" });
+    returnProject.current = null;
+  }, [editor, loading]);
   useLayoutEffect(() => {
     if (!activeEditor) return;
     activeEditor.current = editor;
@@ -140,9 +151,11 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
       current = false;
     };
   }, [workspaceId, retry]);
-  function start(category: Category) {
+  function start(category: Category, button: HTMLButtonElement) {
     setConfirmation(null);
     const next = new DraftEditor(createDraft(workspaceId, category));
+    returnProject.current = { id: next.snapshot().draft.id, top: 0 };
+    setEntryArt(button.querySelector(".ops-art")?.getBoundingClientRect() ?? null);
     setEditor(next);
     void next.flush();
   }
@@ -152,6 +165,8 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     setImporting(true);
     try {
       const saved = await importProjectBackup(file, workspaceId, options);
+      returnProject.current = { id: saved.id, top: 0 };
+      setEntryArt(null);
       setEditor(new DraftEditor(saved));
     } catch (error) {
       if (isProjectBackupConfirmation(error)) {
@@ -183,6 +198,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     return (
       <Builder
         editor={editor}
+        entryArt={entryArt}
         onHome={home}
         onAskAgent={onAskAgent}
         onDiscard={() => {
@@ -195,7 +211,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
     );
   const choosing = projects.length === 0 || showChooser;
   return (
-    <section className="ops-workspace" aria-label="Open Product Studio">
+    <section className="ops-workspace" ref={picker} aria-label="Open Product Studio">
       <div className="ops-wrap">
         <header className="ops-header">
           <span className="ops-identity">
@@ -207,7 +223,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
         </header>
         <div className="ops-hero">
           <div>
-            <h1>{choosing ? "New project" : "Your projects"}</h1>
+            <h1 tabIndex={-1}>{choosing ? "New project" : "Your projects"}</h1>
             <p>
               {choosing
                 ? "Choose a starting point for your next project."
@@ -292,7 +308,7 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                 type="button"
                 className="ops-choice"
                 key={id}
-                onClick={() => start(id)}
+                onClick={(event) => start(id, event.currentTarget)}
                 disabled={!!error || importing}
               >
                 <Artwork kind={id} />
@@ -314,7 +330,10 @@ function Workspace({ workspaceId, onAskAgent, activeEditor }: Props) {
                 <button
                   className="ops-project"
                   key={project.id}
+                  data-project-id={project.id}
                   onClick={() => {
+                    returnProject.current = { id: project.id, top: picker.current?.scrollTop ?? 0 };
+                    setEntryArt(null);
                     setConfirmation(null);
                     setEditor(new DraftEditor(project));
                   }}
@@ -355,11 +374,12 @@ export default function StudioWorkspace(props: Props) {
 
 type BuilderProps = {
   editor: DraftEditor;
+  entryArt: DOMRect | null;
   onHome: () => Promise<void>;
   onDiscard: () => void;
   onAskAgent: Props["onAskAgent"];
 };
-function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
+function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent }: BuilderProps) {
   const { draft, status } = useSyncExternalStore(
     editor.subscribe,
     editor.snapshot,
@@ -385,7 +405,8 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
     .map(({ key, label }) => ({ label, text: draft.fields[key]!.trim().slice(0, 600) })) ?? [];
   const excerptSnapshot = JSON.stringify([draft.id, draft.stage, draft.title, questionNotes]);
   const shareSheetNotes = approvedExcerpts === excerptSnapshot;
-  const [motion, setMotion] = useState<{ from: string; direction: "forward" | "back" } | null>(
+  const [sheetKey, setSheetKey] = useState(0);
+  const [motion, setMotion] = useState<{ from: string; key: number; direction: "forward" | "back" } | null>(
     null,
   );
   const [agentState, setAgentState] = useState<"idle" | "busy" | "sent" | "error" | "unsaved">(
@@ -395,14 +416,39 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
   const [backupError, setBackupError] = useState("");
   const activePanel = useRef<HTMLDivElement>(null);
   const scroll = useRef<HTMLElement>(null);
-  const first = useRef(true);
+  const art = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const viewport = scroll.current;
+    const heading = activePanel.current?.querySelector<HTMLElement>("h2");
+    if (!viewport || !heading) return;
+    viewport.scrollTop = 0;
+    heading.focus({ preventScroll: true });
+    const below = heading.getBoundingClientRect().bottom - viewport.getBoundingClientRect().bottom;
+    if (below > 0) viewport.scrollTop = below + 12;
+  }, [draft.stage, draft.category]);
+  useLayoutEffect(() => {
+    const target = art.current;
+    if (!target || !entryArt?.width || !entryArt.height) return;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const bounds = target.getBoundingClientRect();
+    if (preference.matches || !bounds.width || !bounds.height) return;
+    const x = entryArt.left - bounds.left;
+    const y = entryArt.top - bounds.top;
+    const animation = target.animate([
+      { transform: `translate(${x}px, ${y}px) scale(${entryArt.width / bounds.width}, ${entryArt.height / bounds.height})` },
+      { transform: "none" },
+    ], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+    const cancel = () => animation.cancel();
+    preference.addEventListener("change", cancel);
+    window.addEventListener("resize", cancel);
+    return () => {
+      cancel();
+      preference.removeEventListener("change", cancel);
+      window.removeEventListener("resize", cancel);
+    };
+  }, [entryArt]);
   const agentRequest = useRef<AbortController | null>(null);
   useEffect(() => {
-    if (!first.current) {
-      activePanel.current?.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
-      scroll.current?.scrollTo({ top: 0, behavior: "instant" });
-    }
-    first.current = false;
     setAgentState("idle");
     return () => {
       agentRequest.current?.abort();
@@ -417,12 +463,14 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
   }, [motion]);
   function navigate(to: number) {
     if (to < 0 || to >= route.length || to === index) return;
+    art.current?.getAnimations().forEach((animation) => animation.cancel());
     setApprovedExcerpts(null);
     setResearchQuestion("");
     agentRequest.current?.abort();
     setMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches
       ? null
-      : { from: draft.stage, direction: to > index ? "forward" : "back" });
+      : { from: draft.stage, key: sheetKey, direction: to > index ? "forward" : "back" });
+    setSheetKey((key) => key + 1);
     editor.update({ stage: route[to]! });
   }
   function writeField(key: string, value: string) {
@@ -540,18 +588,23 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
           </div>
         )}
         <div className="ops-project-head">
-          <span className="ops-location">
-            {categories.find((c) => c.id === draft.category)?.label} project
-            {draft.restoredCopy && <> · Restored copy {draft.restoredCopy}</>}
-          </span>
-          <input
-            aria-label="Project name"
-            className="ops-title"
-            value={draft.title}
-            maxLength={120}
-            placeholder={projectName(draft)}
-            onChange={(e) => editor.update({ title: e.target.value })}
-          />
+          <div className="ops-project-artwork" ref={art} aria-hidden="true">
+            <Artwork kind={draft.category} />
+          </div>
+          <div className="ops-project-name">
+            <span className="ops-location">
+              {categories.find((c) => c.id === draft.category)?.label} project
+              {draft.restoredCopy && <> · Restored copy {draft.restoredCopy}</>}
+            </span>
+            <input
+              aria-label="Project name"
+              className="ops-title"
+              value={draft.title}
+              maxLength={120}
+              placeholder={projectName(draft)}
+              onChange={(e) => editor.update({ title: e.target.value })}
+            />
+          </div>
         </div>
         <ProjectTour key={draft.id} workspaceId={draft.workspaceId} projectId={draft.id} category={draft.category} />
         {route.length > 1 && (
@@ -586,7 +639,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
           <div className="ops-slide-window" data-direction={motion?.direction}>
             {motion && (
               <div
-                key={"old-" + motion.from}
+                key={motion.from + "-" + motion.key}
                 className="ops-panel ops-leaving"
                 inert
                 aria-hidden="true"
@@ -595,7 +648,7 @@ function Builder({ editor, onHome, onDiscard, onAskAgent }: BuilderProps) {
               </div>
             )}
             <div
-              key={draft.stage}
+              key={draft.stage + "-" + sheetKey}
               className={"ops-panel" + (motion ? " ops-entering" : "")}
               onAnimationEnd={(event) => {
                 if (event.target === event.currentTarget && event.animationName === "ops-in") setMotion(null);
@@ -887,43 +940,9 @@ function Step({ stage, draft, editor, writeField, saveBackup }: StepProps) {
       <>
         <Heading
           title="Choose a visual style"
-          detail="Your style determines which tools and assets appear in the next step."
+          detail="Compare treatments on one scene, then apply the style you want to use."
         />
-        <div className="ops-style-options">
-          {styleNames.map((style) => (
-            <button
-              key={style}
-              aria-pressed={draft.style === style}
-              className="ops-style"
-              onClick={() => {
-                if (style !== draft.style) {
-                  const chosen = catalog.styles[style];
-                  const supported = new Set([
-                    ...chosen.optional,
-                    ...chosen.required.flatMap((slot) => slot.chooseOne),
-                  ]);
-                  editor.update({
-                    style,
-                    tools: draft.tools.filter((tool) => supported.has(tool)),
-                  });
-                }
-              }}
-            >
-              <span className={"ops-swatch swatch-" + style} aria-hidden="true">
-                {style === "stick-figure-explainer" && <PersonStanding size="100%" strokeWidth={1.5} />}
-                <i />
-                <b />
-              </span>
-              <span>
-                <strong>{catalog.styles[style].label}</strong>
-                <small>{styleDescriptions[style]}</small>
-              </span>
-              <span className="ops-select-mark">
-                {draft.style === style && <Check size={13} />}
-              </span>
-            </button>
-          ))}
-        </div>
+        <VideoStyleAudition draft={draft} onApply={(patch) => editor.update(patch)} />
       </>
     );
   if (stage === "prepare") {

@@ -183,7 +183,8 @@ it("preserves an editable video brief through forward, backward and project navi
   const note = "Show the hinge assembly from three angles.";
   await button(/^Video/).click();
   await name.fill("Hinge study");
-  await button(/^3D showcase/).click();
+  await screen.getByRole("radio", { name: "3D showcase" }).click();
+  await button("Apply style").click();
   await button("Next").click();
   await expect
     .element(screen.getByRole("combobox", { name: "3D shot", exact: true }))
@@ -205,7 +206,8 @@ it("keeps a stick-figure project's motion direction on its storyboard after reop
   const direction = "Hold on the empty chair, then turn the figure toward the open door.";
   await button(/^Video/).click();
   await screen.getByRole("textbox", { name: "Project name" }).fill("The spare chair");
-  await button(/^Stick-figure explainer/).click();
+  await screen.getByRole("radio", { name: "Stick-figure explainer" }).click();
+  await button("Apply style").click();
   await button("Next").click();
   await button("Next").click();
   await screen.getByRole("textbox", { name: "Motion direction (optional)" }).fill(direction);
