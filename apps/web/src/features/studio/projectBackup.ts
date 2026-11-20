@@ -33,6 +33,7 @@ const authoredFields = {
     "audience",
     "notes",
     "motionDirection",
+    "tutorialProduction",
     "seriesFormat",
     "seriesDraftAudience",
     "seriesDraftFormat",

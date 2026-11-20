@@ -10,6 +10,7 @@ import {
   type BuilderDraftRoute,
 } from "./builderToolPreferences";
 import { getBuilderStepTools } from "./builderToolRegistry";
+import { OllamaModelPicker } from "./OllamaModelPicker";
 import { categories, type Category } from "./drafts";
 
 interface BuilderToolSettingsProps {
@@ -27,9 +28,11 @@ const routeNames = {
   local: msg("Local starter"),
   device: msg("On-device AI"),
   t3: msg("T3 chat"),
+  ollama: msg("Local Ollama model"),
 } satisfies Record<BuilderDraftRoute, string>;
 
 const statusNames = {
+  connect: msg("Connect locally"),
   unqualified: msg("Unqualified"),
   disabled: msg("Disabled"),
 } as const;
@@ -71,6 +74,7 @@ export function BuilderToolSettings({
     ...(current === "day-trader"
       ? []
       : [
+          { id: "ollama" as const, available: true, detail: gt("Choose an installed model on this computer for drafting and explanations.") },
           {
             id: "t3" as const,
             available: t3Available,
@@ -210,6 +214,7 @@ export function BuilderToolSettings({
           </p>
         )}
       </fieldset>
+      {route === "ollama" && current !== "day-trader" && <OllamaModelPicker workspace={workspaceId} category={current} key={JSON.stringify([workspaceId,current])}/>}
       {current !== "day-trader" && t3Available && availableSkills !== undefined && (
         <RegisteredBuilderSkills skills={availableSkills} />
       )}

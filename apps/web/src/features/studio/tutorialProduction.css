@@ -1,0 +1,436 @@
+.ops-tutorial {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.ops-tutorial :is(h3, p),
+.ops-tutorial-finish :is(h3, p) {
+  overflow-wrap: anywhere;
+}
+
+.ops-tutorial h3,
+.ops-tutorial-finish h3 {
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.ops-tutorial :is(p, small),
+.ops-tutorial-finish :is(p, small) {
+  color: var(--ops-muted);
+  font-size: 0.83rem;
+}
+
+.ops-tutorial .ops-tutorial-error {
+  color: var(--ops-warning);
+}
+
+.ops-tutorial-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.ops-tutorial-setup {
+  align-items: end;
+}
+
+.ops-tutorial-setup .ops-field {
+  flex: 1 1 235px;
+  margin: 0;
+  min-width: 0;
+}
+
+.ops-tutorial :is(.ops-tutorial-import, .ops-tutorial-binding-actions label) {
+  cursor: pointer;
+}
+
+.ops-tutorial input[type="file"]:focus-visible + label {
+  outline: 2px solid var(--ops-selection);
+  outline-offset: 3px;
+}
+
+.ops-tutorial-edit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(16px, 2.5cqi, 26px);
+  min-width: 0;
+}
+
+.ops-tutorial-view,
+.ops-tutorial-cut {
+  display: grid;
+  gap: 17px;
+  min-width: 0;
+}
+
+.ops-tutorial-monitor {
+  min-width: 0;
+}
+
+.ops-tutorial-screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid #2b3447;
+  border-radius: 12px;
+  background: #151c2b;
+  color: #e4e9f4;
+}
+
+.ops-tutorial-matte {
+  position: absolute;
+  inset: 0 6.667% 13.333%;
+  overflow: hidden;
+  background: #101522;
+}
+
+.ops-tutorial-footage,
+.ops-tutorial-footage video {
+  width: 100%;
+  height: 100%;
+}
+
+.ops-tutorial-footage video {
+  display: block;
+  object-fit: contain;
+}
+
+.ops-tutorial-screen-text {
+  position: absolute;
+  inset: 86.667% 5% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  line-height: 1.12;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ops-tutorial-screen-text strong {
+  color: #c2df7b;
+  font-size: clamp(8px, 1cqi, 12px);
+}
+
+.ops-tutorial-screen-text span {
+  color: #f6f6f6;
+  font-size: clamp(9px, 1.2cqi, 14px);
+}
+
+.ops-tutorial-monitor-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 24ch;
+  padding: 9px;
+  color: #c8d4e7;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.ops-tutorial-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 10px;
+}
+
+.ops-tutorial-sources,
+.ops-tutorial-inspector,
+.ops-tutorial-shots,
+.ops-tutorial-proposal,
+.ops-tutorial-finish {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ops-tutorial-shots,
+.ops-tutorial-sources,
+.ops-tutorial-inspector,
+.ops-tutorial-proposal {
+  border: 1px solid var(--ops-line);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.ops-tutorial-proposal {
+  border-color: color-mix(in srgb, var(--ops-action) 43%, var(--ops-line));
+  background: color-mix(in srgb, var(--ops-action) 7%, var(--ops-panel));
+}
+
+.ops-tutorial :is(.ops-tutorial-bindings, .ops-tutorial-shots ol, .ops-tutorial-proposed-shots) {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-tutorial-bindings li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding-block: 8px;
+  border-bottom: 1px solid var(--ops-line);
+}
+
+.ops-tutorial-binding-text,
+.ops-tutorial-shots button span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ops-tutorial-binding-text :is(strong, small),
+.ops-tutorial-shots button strong,
+.ops-tutorial-shots button small {
+  display: block;
+}
+
+.ops-tutorial-binding-actions {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.ops-tutorial-source-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.ops-tutorial-source-add label {
+  flex: 1 1 105px;
+  min-width: 0;
+}
+
+.ops-tutorial-source-add .ops-field,
+.ops-tutorial-inspector .ops-field,
+.ops-tutorial-share .ops-field {
+  margin: 0;
+  min-width: 0;
+}
+
+.ops-tutorial-share,
+.ops-tutorial-handoff {
+  border-top: 1px solid var(--ops-line);
+  padding-top: 9px;
+}
+
+.ops-tutorial-share[open] > *,
+.ops-tutorial-handoff[open] > * {
+  margin-bottom: 8px;
+}
+
+.ops-tutorial-shots ol,
+.ops-tutorial-proposed-shots {
+  max-height: 310px;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.ops-tutorial-shots li button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  text-align: start;
+}
+
+.ops-tutorial-shots li button:hover,
+.ops-tutorial-shots li button[aria-pressed="true"] {
+  border-color: var(--ops-line);
+  background: var(--ops-hover);
+  color: var(--ops-hover-ink);
+}
+
+.ops-tutorial-shots li button[aria-pressed="true"] {
+  border-inline-start-color: var(--ops-action);
+}
+
+.ops-tutorial-shot-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  align-self: center;
+  border: 1px solid var(--ops-line);
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-tutorial-timing,
+.ops-tutorial-focus {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.ops-tutorial-script {
+  display: grid;
+  gap: 9px;
+}
+
+.ops-tutorial-shift {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ops-tutorial-shift .ops-button {
+  padding: 6px;
+}
+
+.ops-tutorial-check {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  width: fit-content;
+  max-width: 100%;
+  font-size: 0.9rem;
+}
+
+.ops-tutorial-slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.ops-tutorial-slider input {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.ops-tutorial-proposed-shots li {
+  display: grid;
+  gap: 3px;
+  padding-block: 7px;
+  border-bottom: 1px solid var(--ops-line);
+  overflow-wrap: anywhere;
+}
+
+.ops-tutorial-finish {
+  border-top: 1px solid var(--ops-line);
+  margin-top: 8px;
+  padding-top: 17px;
+}
+
+.ops-tutorial-finish > .ops-button,
+.ops-tutorial-share .ops-button {
+  justify-self: start;
+}
+
+.ops-tutorial-handoff pre {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--ops-line);
+  border-radius: 7px;
+  background: var(--ops-bg);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ops-tutorial-delivery {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid var(--ops-line);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.ops-tutorial-delivery details[open] {
+  display: grid;
+}
+
+.ops-tutorial-delivery details[open] > * + * {
+  margin-top: 8px;
+}
+
+.ops-tutorial-delivery code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 8px;
+  border: 1px solid var(--ops-line);
+  border-radius: 7px;
+  background: var(--ops-bg);
+}
+
+.ops-tutorial-delivery > label {
+  display: grid;
+  gap: 4px;
+  max-width: 36rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.ops-tutorial-delivery h4 {
+  margin-block: 0 6px;
+  color: var(--ops-muted);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.ops-tutorial-delivery input {
+  min-width: 0;
+  color: var(--ops-panel-ink);
+}
+
+.ops-tutorial-delivery input[type="password"] {
+  padding: 8px 10px;
+  border: 1px solid var(--ops-control-line);
+  border-radius: 7px;
+  background: var(--ops-bg);
+}
+
+.ops-tutorial-delivery > button {
+  justify-self: start;
+  padding: 7px 12px;
+  border-radius: 7px;
+  background: var(--ops-action);
+  color: var(--ops-action-ink);
+  font-weight: 600;
+}
+
+.ops-tutorial-delivery :is(a, p button) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@container studio (width < 680px) {
+  .ops-tutorial-edit {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container studio (width < 350px) {
+  .ops-tutorial-bindings li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ops-tutorial-binding-actions {
+    grid-column: 2;
+  }
+}

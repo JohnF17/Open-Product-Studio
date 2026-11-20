@@ -8,6 +8,7 @@ on:
       - 'apps/web/**'
       - 'packages/**'
       - 'scripts/**'
+      - 'tools/studio-media/**'
       - 'patches/**'
       - 'infra/task-cache/**'
       - 'package.json'
@@ -98,6 +99,8 @@ jobs:
         run: |
           node --test tools/clipper-render/*.test.ts
           (cd packages/contracts && vp test run --config ../../vite.config.ts --dir . src/clipperSampleIpc.test.ts)
+      - name: Check local media production contracts
+        run: node --test tools/studio-media/*.test.mjs tools/studio-media/adapters/*.test.mjs
       - name: Check server configuration, telemetry, pairing and MCP approval
         working-directory: apps/server
         run: >-

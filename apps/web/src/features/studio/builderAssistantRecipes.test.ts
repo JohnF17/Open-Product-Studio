@@ -25,6 +25,14 @@ function reply(changes: readonly unknown[] = []) {
 }
 
 describe("local builder starters", () => {
+  it("accepts a director plan only for source intervals in the reviewed question", () => {
+    const draft=at("video","render");
+    const request=prepareBuilderAssistantRequest(draft,"SOURCE screen 2 8\nZoom into the Save control.")!;
+    const propose=(start:number,end:number)=>reply([{key:"tutorialProductionProposal",value:JSON.stringify({schema:"studio-tutorial/1",title:"Save",scenes:[{id:"intro",source:"screen",start,end,narration:"Press Save.",caption:"Save"}]})}]);
+    expect(parseBuilderAssistantResponse(draft,request,propose(2,6))?.changes[0]?.key).toBe("tutorialProductionProposal");
+    expect(parseBuilderAssistantResponse(draft,request,propose(1,6))).toBeNull();
+    expect(parseBuilderAssistantResponse(draft,request,propose(2,9))).toBeNull();
+  });
   it.each([
     "blank",
     "digital-product",

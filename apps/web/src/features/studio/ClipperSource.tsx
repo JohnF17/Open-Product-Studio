@@ -13,6 +13,7 @@ import {
 } from "./clipperEvidence";
 import { useClipperRecording } from "./useClipperRecording";
 import { ClipLinkImport } from "./ClipLinkImport";
+import { ClipperLocalTranscription } from "./ClipperLocalTranscription";
 import "./clipRecordingPreview.css";
 import "./clipperSource.css";
 
@@ -304,6 +305,21 @@ export function ClipperSource({ projectId, source, onSourceChange, onEvidenceRea
           }} />
         </label>
         <p>Choose a timed UTF-8 WebVTT or SRT file up to 256 KiB.</p>
+        <ClipperLocalTranscription
+          key={activeVideo.mediaRevision}
+          video={activeVideo}
+          captions={source.captions}
+          disabled={inputBusy || busy === "evidence"}
+          onApply={(expected, captions) => {
+            if (inputBusy || busy === "evidence" || activeVideo !== expected.video || source.captions !== expected.captions) return;
+            resetEvidence();
+            onSourceChange((current) =>
+              current.video === expected.video && current.captions === expected.captions
+                ? { ...current, captions } : current,
+            );
+            onEvidenceInputsChange?.();
+          }}
+        />
         {source.captions && <>
           <p className="ops-source-filename">{source.captions.name}</p>
           <button type="button" className="ops-link" disabled={inputBusy} onClick={() => {

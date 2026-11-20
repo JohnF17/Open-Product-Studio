@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>From recording to clip</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #111e24; }
+    #rail { position: relative; width: 960px; height: 540px; overflow: hidden; color: #eef7f0; font: 24px system-ui, sans-serif;
+      background: radial-gradient(ellipse at 76% 70%, #214a43, transparent 60%), #111e24; }
+    .clip { position: relative; }
+    section { position: relative; padding: 68px 84px; }
+    .category { margin: 0 0 18px; color: #a4e4ca; font-size: 17px; letter-spacing: 3px; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 72px; letter-spacing: -3.2px; line-height: 1.03; animation: lift .58s cubic-bezier(.2,.7,.3,1) both; }
+    .rail { margin-top: 74px; height: 53px; border: 1px solid #53746d; border-radius: 9px; padding: 7px; }
+    .selected { width: 35%; height: 100%; border-radius: 5px; background: #9df0bd; margin-left: 36%;
+      transform-origin: center; animation: select .64s .8s cubic-bezier(.2,.7,.3,1) both; }
+    .labels { display: flex; justify-content: space-between; margin-top: 18px; color: #c4dad0; font-size: 17px; }
+    .labels strong { color: #b6f4ce; }
+    @keyframes lift { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes select { from { transform: scaleX(.07); opacity: .3; } to { transform: scaleX(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <main id="rail" data-composition-id="rail" data-width="960" data-height="540" data-start="0" data-duration="3" data-no-timeline>
+    <section aria-label="Clip selection">
+      <p class="category">Open Product Studio</p>
+      <h1 id="rail-title" class="clip" data-start="0" data-duration="3" data-track-index="0">Find the moment.</h1>
+      <div class="rail"><div id="rail-selection" class="clip selected" data-start="0" data-duration="3" data-track-index="1"></div></div>
+      <div class="labels"><span>Recording start</span><strong>Selected clip</strong><span>Recording end</span></div>
+    </section>
+  </main>
+</body>
+</html>

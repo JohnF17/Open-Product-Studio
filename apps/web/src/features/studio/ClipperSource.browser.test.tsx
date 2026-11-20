@@ -151,6 +151,64 @@ it("offers file import when the host has no qualified chooser", async () => {
   }
 });
 
+it("applies local transcription only after the timed subtitles are reviewed", async () => {
+  const realFetch = window.fetch.bind(window);
+  const service = "http://127.0.0.1:4769";
+  const srt = "1\n00:00:00,400 --> 00:00:01,200\nNow open the menu.\n";
+  const fetch = vi.spyOn(window, "fetch").mockImplementation(async (input, init) => {
+    if (input !== service + "/transcribe") return realFetch(input, init);
+    const body = init?.body;
+    const recording = body instanceof FormData ? body.get("recording") : null;
+    expect(recording instanceof File ? recording.name : undefined).toBe("source.media");
+    return new Response(srt, { headers: { "Content-Type": "application/x-subrip" } });
+  });
+  try {
+    await using ui = await render(<Project />, { router: false });
+    await userEvent.upload(ui.getByLabelText("Choose a video file"), recording("private.webm"));
+    await ui.getByText("Generate subtitles locally", { exact: true }).click();
+    await ui.getByLabelText("Renderer pairing code").fill(service + "/#" + "a".repeat(43));
+    await ui.getByRole("button", { name: "Create subtitles on this computer" }).click();
+    await expect.element(ui.getByText("Now open the menu.", { exact: true })).toBeVisible();
+    await expect.element(ui.getByRole("button", { name: "Remove captions" })).not.toBeInTheDocument();
+    await ui.getByRole("button", { name: "Use reviewed subtitles" }).click();
+    await expect.element(ui.getByRole("button", { name: "Remove captions" })).toBeVisible();
+    await ui.getByRole("textbox", { name: "What should the clip show?" }).fill("Find a menu.");
+    await ui.getByRole("button", { name: "Prepare evidence" }).click();
+    await expect.element(ui.getByText("Now open the menu.", { exact: true })).toBeVisible();
+  } finally {
+    fetch.mockRestore();
+  }
+});
+
+it("discards pending local subtitles when a manual caption import changes the source state", async () => {
+  const realFetch = window.fetch.bind(window);
+  const service = "http://127.0.0.1:4770";
+  let finish: ((response: Response) => void) | undefined;
+  let signal: AbortSignal | null | undefined;
+  const fetch = vi.spyOn(window, "fetch").mockImplementation((input, init) => {
+    if (input !== service + "/transcribe") return realFetch(input, init);
+    signal = init?.signal;
+    return new Promise<Response>((resolve) => { finish = resolve; });
+  });
+  try {
+    await using ui = await render(<Project />, { router: false });
+    await userEvent.upload(ui.getByLabelText("Choose a video file"), recording("private.webm"));
+    await ui.getByText("Generate subtitles locally", { exact: true }).click();
+    await ui.getByLabelText("Renderer pairing code").fill(service + "/#" + "b".repeat(43));
+    await ui.getByRole("button", { name: "Create subtitles on this computer" }).click();
+    await expect.poll(() => Boolean(finish)).toBe(true);
+    await userEvent.upload(ui.getByLabelText("Import captions (optional)"), new File([
+      "1\n00:00:00,400 --> 00:00:01,200\nKeep this manual caption.\n",
+    ], "manual.srt"));
+    await expect.element(ui.getByText("manual.srt", { exact: true })).toBeVisible();
+    await expect.poll(() => signal?.aborted).toBe(true);
+    finish?.(new Response("1\n00:00:00,400 --> 00:00:01,200\nA stale generated caption.\n"));
+    await expect.element(ui.getByRole("button", { name: "Use reviewed subtitles" })).not.toBeInTheDocument();
+  } finally {
+    fetch.mockRestore();
+  }
+});
+
 
 it("keeps media identity stable and changes the reviewed revision when the goal or cue text changes", async () => {
   const onEvidenceReady = vi.fn<(evidence: ClipperEvidence, signal: AbortSignal) => void>();

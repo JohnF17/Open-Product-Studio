@@ -48,3 +48,16 @@
   font-variant-numeric: tabular-nums;
 }
 .ops-source-verbatim { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ops-local-transcription { inline-size: min(100%, 38rem); }
+.ops-local-transcription > .ops-source-review { padding-block-start: 10px; }
+.ops-local-transcription-setup > :is(p, code) { margin-block-start: 8px; }
+.ops-local-transcription-setup code {
+  display: block;
+  max-inline-size: 100%;
+  padding: 7px;
+  border: 1px solid var(--ops-line);
+  border-radius: 6px;
+  background: var(--ops-bg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
