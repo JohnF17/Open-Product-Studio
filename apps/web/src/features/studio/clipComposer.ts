@@ -172,7 +172,7 @@ async function readBoundClipRequest(
     if (binding.image) {
       const [image] = request.attachments;
       if (image?.type !== "image" || image.name !== binding.image.name ||
-          image.source !== undefined || image.mimeType !== "image/png" || image.sizeBytes !== binding.image.size) return;
+          image.mimeType !== "image/png" || image.sizeBytes !== binding.image.size) return;
       // T3 rebinds the composer's ordinary image record to the stored attachment ID.
       // A settings-only request has no attachments or records.
       const [record] = records;

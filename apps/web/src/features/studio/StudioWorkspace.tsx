@@ -1015,7 +1015,7 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
             {!leaving && goToSource && (
               <ClipProjectRender draft={draft} source={clipSource} goToSource={goToSource} />
             )}
-            <ClipCaptionExport fields={draft.fields} durationMs={clipDuration} />
+            <ClipCaptionExport fields={draft.fields} durationMs={clipSource?.video?.durationMs ?? clipDuration} />
             {!leaving && <ClipSampleExport workspaceId={draft.workspaceId} projectId={draft.id} />}
           </>
         )}

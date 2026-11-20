@@ -3,8 +3,28 @@ import { userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import { randomUUID } from "../../lib/randomUUID";
 import StudioWorkspace, { type StudioAgentRequest } from "./StudioWorkspace";
-import { listDrafts } from "./drafts";
+import { createDraft, listDrafts, saveDraft } from "./drafts";
 import { recording } from "./clipRecordingFixture";
+import { forgetClipChatSource, rememberClipChatSource } from "./clipChatReturn";
+import { openClipSourceFile } from "./clipperEvidence";
+
+it("checks caption marks against the staged video when chat returns directly to Export", async () => {
+  const workspace = randomUUID();
+  const draft = createDraft(workspace, "clipper");
+  await saveDraft({ ...draft, stage: "export", fields: {
+    markIn: "0.5", markOut: "3", captionLine: "Watch the join",
+  } }, 0);
+  const video = await openClipSourceFile(recording("short.webm"), new AbortController().signal);
+  expect(video.durationMs).toBe(2000);
+  rememberClipChatSource(workspace, draft.id, { video, link: "", instruction: "", captions: null });
+  try {
+    await using ui = await render(<StudioWorkspace workspaceId={workspace} routeProjectId={draft.id} />, { router: false });
+    await expect.element(ui.getByRole("button", { name: "Download caption (.vtt)" })).toBeDisabled();
+    await expect.element(ui.getByText(/Mark out exceeds the recording duration/)).toBeVisible();
+  } finally {
+    forgetClipChatSource();
+  }
+});
 
 const workingDraftCases = [
   {
