@@ -53,6 +53,7 @@ STUDIO_WINDOW_RECORDINGS = {
     'docs/acceptance/WP24/sample-review/playback.webm': '8fbd71dda09ebefe31975d8da45c4cb9816a1420',
     'docs/acceptance/WP24/clipper-marks/desktop-marks.webm': '9fd4c0b5b81089b79aeab8c4ef65051a6c75a3dc',
     'docs/acceptance/WP11/video-series/desktop-series.webm': 'b1b531253e7668a3668ddfc9790240bdde7f6f9a',
+    'docs/acceptance/WP11/builder-assistance/builder-assistance.webm': '0c53e24c84b988efa1cc78c6c68fe84366ffefde',
     'docs/acceptance/WP08/style-audition/desktop-motion.webm': 'c03dcc95c797cbb0dfd069beb3a762b4125fd174',
     'docs/acceptance/WP08/affiliate/builder-window.webm': '974c363bb1656cd7e46e588600b8a8e2ddf8b658',
     'docs/acceptance/WP08/categories/entry-resume-edit.webm': '81fb9c80d556428648f0a9f10d7c6e062c9e884a',

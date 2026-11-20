@@ -33,6 +33,7 @@ import { ModelEsque } from "./components/chat/providerIconUtils";
 import {
   type ProviderInstanceEntry,
   deriveProviderInstanceEntries,
+  isProviderInstancePickerReady,
   NO_PROVIDER_MODEL_SELECTION,
   resolveDefaultProviderModelSelection,
   resolveProjectDefaultProviderModelSelection,
@@ -245,6 +246,16 @@ export function getAppModelOptionsForInstance(
     selectedModel,
     preferences.hiddenModels,
   );
+}
+
+export function canUsePinnedModel(settings: UnifiedSettings, entry: ProviderInstanceEntry, model: string) {
+  if (!entry.installed || !isProviderInstancePickerReady(entry) ||
+      entry.snapshot.auth.status === "unauthenticated") return false;
+  const subProvider = entry.models.find(({ slug }) => slug === model)?.subProvider;
+  if (subProvider && entry.snapshot.subProviders?.some(
+    (backend) => backend.name === subProvider && backend.unavailableReason !== undefined,
+  )) return false;
+  return getAppModelOptionsForInstance(settings, entry, null).some(({ slug }) => slug === model);
 }
 
 export function resolveAppModelSelection(

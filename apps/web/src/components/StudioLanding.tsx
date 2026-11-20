@@ -1,10 +1,13 @@
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
+import { modelSelectionsEqual } from "@t3tools/shared/model";
 import { useBlocker, useRouter, useRouterState } from "@tanstack/react-router";
 import { projectFromHash, studioProjectHash } from "../features/studio/projectNavigation";
 import { rememberProjectChat } from "../features/studio/projectIndex";
 import { useLayoutEffect, useRef } from "react";
 
 import StudioWorkspace, { type StudioAgentRequest } from "../features/studio/StudioWorkspace";
+import { useBuilderAssistantRoute } from "../features/studio/builderAssistantRoute";
+import { BUILDER_TOOL_SETTINGS_ID } from "../features/studio/builderToolRegistry";
 import {
   clipEvidencePrompt,
   clipImageDigest,
@@ -36,6 +39,19 @@ export default function StudioLanding() {
   const pending = useRef<AbortSignal | null>(null);
   const activeEditor = useRef<DraftEditor | null>(null);
   const clipOpening = useRef<AbortController | null>(null);
+  const scratchRoot = localId ? scratchWorkspaceRootFor(localId) : null;
+  const builderAssistant = useBuilderAssistantRoute({
+    environmentId: localId, projectId: routeProjectId, scratchRoot,
+    activeEditor, openScratchProject, openThread,
+    claimOpening(signal) {
+      if (pending.current && !pending.current.aborted) return false;
+      pending.current = signal;
+      return true;
+    },
+    releaseOpening(signal) {
+      if (pending.current === signal) pending.current = null;
+    },
+  });
   useLayoutEffect(() => () => clipOpening.current?.abort(), [localId]);
   useBlocker({
     shouldBlockFn: async () => {
@@ -52,6 +68,9 @@ export default function StudioLanding() {
 
   async function openRecommendation(request: StudioAgentRequest) {
     request.signal.throwIfAborted();
+    if (activeEditor.current?.snapshot().draft.category === "day-trader") {
+      throw new Error("Day Trader assistance runs offline.");
+    }
     if (!localId || request.workspaceId !== localId || !scratchWorkspaceRootFor(localId)) {
       throw new Error("The local agent workspace is unavailable. Your Studio draft is saved.");
     }
@@ -61,7 +80,13 @@ export default function StudioLanding() {
     const clipEditor = clipEditorFor(request.projectId);
     const scope = request.clipSettingsScope;
     const followup = request.clipSettingsFollowup === true || scope !== undefined;
-    const clipView = clipEditor?.snapshot();
+    const owner = activeEditor.current;
+    const clipView = owner?.snapshot();
+    if (!owner || clipView?.status !== "saved" || clipView.draft.id !== request.projectId ||
+        clipView.draft.workspaceId !== localId || clipView.draft.stage !== request.stepId) {
+      throw new Error("Open the saved builder step before preparing a draft.");
+    }
+    const reviewedPreset = followup ? null : builderAssistant.projectPreset(request.projectId);
     if (followup && (!clipEditor || (scope !== undefined && !scope.trim()))) {
       throw new Error("Open the Clipper edit to request settings.");
     }
@@ -76,18 +101,16 @@ export default function StudioLanding() {
       const source = followup
         ? readClipEvidence(clipView?.draft.fields.clipSourceEvidence)
         : undefined;
-      const modelSelection = source
-        ? await readBoundClipSelection(localId, request.projectId, source.sourceRevision, request.signal)
-        : null;
+      const modelSelection = followup
+        ? source ? await readBoundClipSelection(localId, request.projectId, source.sourceRevision, request.signal) : null
+        : builderAssistant.projectPreset(request.projectId, scratch.id);
       request.signal.throwIfAborted();
-      if (clipEditor && (router.state.location.href !== href ||
-          clipEditorFor(request.projectId) !== clipEditor || clipEditor.snapshot() !== clipView)) {
-        throw new DOMException("The Clipper edit is no longer open.", "AbortError");
+      if (router.state.location.href !== href || activeEditor.current !== owner || owner.snapshot() !== clipView ||
+          (!followup && !samePreset(reviewedPreset, modelSelection))) {
+        throw new DOMException("The reviewed builder step or model has changed.", "AbortError");
       }
       const opened = await openThread(scopeProjectRef(localId, scratch.id), {
-        ...(clipEditor
-          ? { freshDraft: { prompt: request.prompt, ...(followup ? { modelSelection } : {}) } }
-          : { prompt: request.prompt }),
+        freshDraft: { prompt: request.prompt, modelSelection },
         signal: request.signal,
       });
       if (!opened) {
@@ -119,6 +142,10 @@ export default function StudioLanding() {
     return null;
   }
 
+  function samePreset(left: ReturnType<typeof builderAssistant.projectPreset>, right: typeof left) {
+    return left && right ? modelSelectionsEqual(left, right) : left === right;
+  }
+
   async function onEvidenceReady(evidence: ClipperEvidence, signal?: AbortSignal) {
     signal?.throwIfAborted();
     if (!localId || !scratchWorkspaceRootFor(localId)) {
@@ -136,6 +163,7 @@ export default function StudioLanding() {
       throw new Error("Another agent draft is opening.");
     }
 
+    const reviewedPreset = builderAssistant.projectPreset(evidence.projectId);
     clipOpening.current?.abort();
     const operation = new AbortController();
     clipOpening.current = operation;
@@ -159,8 +187,12 @@ export default function StudioLanding() {
         throw new Error("Could not prepare a local agent workspace.");
       }
 
+      const modelSelection = builderAssistant.projectPreset(evidence.projectId, scratch.id);
+      if (!samePreset(reviewedPreset, modelSelection)) {
+        throw new DOMException("The Clipper model has changed.", "AbortError");
+      }
       const opened = await openThread(scopeProjectRef(localId, scratch.id), {
-        freshDraft: { prompt, image: evidence.contactSheet },
+        freshDraft: { prompt, image: evidence.contactSheet, modelSelection },
         signal: opening,
       });
       if (!opened) {
@@ -214,8 +246,11 @@ export default function StudioLanding() {
             if (router.state.location.hash !== hash) void router.navigate({ to: "/", hash });
           }}
           activeEditor={activeEditor}
-          {...(scratchWorkspaceRootFor(localId)
-            ? { onAskAgent: openRecommendation, onEvidenceReady, onReadClipReply }
+          onOpenProviderSettings={() => {
+            void router.navigate({ to: "/settings/providers", search: { machine: localId }, hash: BUILDER_TOOL_SETTINGS_ID });
+          }}
+          {...(scratchRoot
+            ? { onAskAgent: openRecommendation, onEvidenceReady, onReadClipReply, builderAssistant }
             : {})}
         />
       ) : (

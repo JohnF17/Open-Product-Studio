@@ -16,6 +16,39 @@ const square: FootageCut = {
   settings: { aspect: "1:1", resolution: "1080p", captions: "off", placement: "bottom" },
 };
 
+it("holds a silent portrait cut at its in-point while its encoder starts", async () => {
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  const recorders: MediaRecorder[] = [];
+  const recordingAtPlayback: boolean[] = [];
+  const nativeStart = MediaRecorder.prototype.start;
+  const nativePlay = HTMLMediaElement.prototype.play;
+  using _start = vi.spyOn(MediaRecorder.prototype, "start").mockImplementation(function (this: MediaRecorder, timeslice) {
+    // Keep the browser's real codec and container, but make the cold-start interval repeatable.
+    recorders.push(this);
+    timers.push(setTimeout(() => nativeStart.call(this, timeslice), 600));
+  });
+  using _play = vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (this: HTMLMediaElement) {
+    recordingAtPlayback.push(recorders.some(recorder => recorder.state === "recording"));
+    return nativePlay.call(this);
+  });
+
+  const signal = AbortSignal.timeout(15_000);
+  try {
+    const output = await renderFootageCut(recording("blue.webm"), {
+      ...portrait, startMs: 0, endMs: 950, settings: { ...portrait.settings, captions: "off" },
+    }, true, signal);
+    expect(recordingAtPlayback.length).toBeGreaterThan(0);
+    expect(recordingAtPlayback.every(Boolean)).toBe(true);
+    const decoded = await readClipVideo(new File([output.blob], "first-view." + output.extension), signal);
+    try {
+      expect([decoded.video.videoWidth, decoded.video.videoHeight]).toEqual([720, 1280]);
+      expect(Math.abs(decoded.durationMs - 950)).toBeLessThan(250);
+    } finally { decoded.release(); }
+  } finally {
+    timers.forEach(clearTimeout);
+  }
+}, 20_000);
+
 async function whiteCaptionPixels(video: HTMLVideoElement, time: number, startY: number) {
   await new Promise<void>((resolve) => {
     video.addEventListener("seeked", () => resolve(), { once: true });

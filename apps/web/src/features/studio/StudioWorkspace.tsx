@@ -54,6 +54,7 @@ import { forgetClipChatSource, readClipChatSource, rememberClipChatSource } from
 import { ClipperSource, emptyClipperSource, type ClipperSourceState } from "./ClipperSource";
 import type { ClipperEvidence } from "./clipperEvidence";
 import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
+import { VideoCaptionExport } from "./VideoCaptionExport";
 import { VideoStyleAudition } from "./VideoStyleAudition";
 import { VideoSeriesBriefPanel } from "./VideoSeriesBriefPanel";
 import { affiliateSheets, isAffiliateStage } from "./affiliateDraft";
@@ -70,6 +71,9 @@ import {
   type ProjectBackupRestoreOptions,
 } from "./projectBackup";
 import { ProjectTour } from "./ProjectTour";
+import { BuilderAssistantPanel } from "./BuilderAssistantPanel";
+import type { BuilderAssistantBridge } from "./builderAssistantRoute";
+import { BuilderAssistantSlot, BuilderSheetHeading as Heading } from "./BuilderSheetHeading";
 import { observeStudioEditor } from "./projectIndex";
 
 export interface StudioAgentRequest {
@@ -83,6 +87,8 @@ export interface StudioAgentRequest {
   signal: AbortSignal;
 }
 interface Props {
+  builderAssistant?: BuilderAssistantBridge;
+  onOpenProviderSettings?: () => void;
   routeProjectId?: string | null;
   onProjectRoute?: (id: string | null) => void;
   workspaceId: string;
@@ -121,7 +127,7 @@ function Artwork({ kind }: { kind: Category }) {
   );
 }
 
-function Workspace({ workspaceId, routeProjectId, onProjectRoute, onAskAgent, activeEditor, onEvidenceReady, onReadClipReply }: Props) {
+function Workspace({ workspaceId, routeProjectId, onProjectRoute, onAskAgent, activeEditor, onEvidenceReady, onReadClipReply, builderAssistant, onOpenProviderSettings }: Props) {
   const [projects, setProjects] = useState<StudioDraft[]>([]);
   const [editor, setEditor] = useState<DraftEditor | null>(null);
   const [error, setError] = useState("");
@@ -260,6 +266,8 @@ function Workspace({ workspaceId, routeProjectId, onProjectRoute, onAskAgent, ac
         entryArt={entryArt}
         onHome={home}
         onAskAgent={onAskAgent}
+        builderAssistant={builderAssistant}
+        onOpenProviderSettings={onOpenProviderSettings}
         onEvidenceReady={onEvidenceReady}
         onReadClipReply={onReadClipReply}
         onCreateVideoProject={(episode) => {
@@ -445,6 +453,8 @@ export default function StudioWorkspace(props: Props) {
 }
 
 type BuilderProps = {
+  builderAssistant: Props["builderAssistant"];
+  onOpenProviderSettings: Props["onOpenProviderSettings"];
   editor: DraftEditor;
   entryArt: DOMRect | null;
   onHome: () => Promise<void>;
@@ -454,7 +464,7 @@ type BuilderProps = {
   onEvidenceReady: Props["onEvidenceReady"];
   onReadClipReply: Props["onReadClipReply"];
 };
-function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVideoProject, onEvidenceReady, onReadClipReply }: BuilderProps) {
+function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVideoProject, onEvidenceReady, onReadClipReply, builderAssistant, onOpenProviderSettings }: BuilderProps) {
   const { draft, status } = useSyncExternalStore(
     editor.subscribe,
     editor.snapshot,
@@ -760,10 +770,14 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
               }}
               ref={activePanel}
             >
+              <BuilderAssistantSlot.Provider value={<BuilderAssistantPanel
+                draft={draft} editor={editor} bridge={builderAssistant} artwork={<Artwork kind={draft.category} />} onOpenProviderSettings={onOpenProviderSettings}
+              />}>
               <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} clipDuration={clipDuration} onClipDuration={setClipDuration}
                 clipSource={clipSource} onClipSourceChange={setClipSource} onEvidenceInputsChange={invalidateClipEvidence} onEvidenceReady={onEvidenceReady ? handOffClipEvidence : undefined}
                 goToSource={() => navigate(0)} onReadClipReply={onReadClipReply}
                 onSettingsQuestion={onAskAgent ? (question, scope) => void askAgent(question, scope) : undefined} />
+              </BuilderAssistantSlot.Provider>
               {onAskAgent && researchStep && (
                 <details className="ops-reference ops-agent-context">
                   <summary>Ask AI to research products</summary>
@@ -796,7 +810,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
                     : agentState === "unsaved" ? "Save or reopen your draft before asking the agent." : ""}</span>
                 </details>
               )}
-              {onAskAgent && canAskAgent && (
+              {!builderAssistant && onAskAgent && canAskAgent && (
                 <div className="ops-agent">
                   <button
                     className="ops-button"
@@ -887,15 +901,6 @@ type StepProps = {
   writeField: (key: string, value: string) => void;
   onCreateVideoProject: (episode: StudioDraft) => void;
 };
-function Heading({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="ops-step-head">
-      <h2 tabIndex={-1}>{title}</h2>
-      <p>{detail}</p>
-    </div>
-  );
-}
-
 function Field({
   label,
   placeholder,
@@ -1379,6 +1384,7 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
       <button className="ops-button ops-primary" onClick={hasSeries ? saveBackup : () => exportDraft(draft)}>
         <ArrowDownToLine size={16} /> {hasSeries ? "Download private backup" : "Download draft"}
       </button>
+      {draft.category === "video" && !leaving && <VideoCaptionExport draft={draft} editor={editor} />}
     </>
   );
 }

@@ -8,12 +8,17 @@ export const digitalProductFormats = [
 export const digitalProductPublicTitle = "digitalProductPublicTitle";
 const approvalField = "digitalProductApproval";
 
+export function withoutDigitalProductApproval(fields: Record<string, string>): Record<string, string> {
+  if (!Object.hasOwn(fields, approvalField)) return fields;
+  const next = { ...fields };
+  delete next[approvalField];
+  return next;
+}
+
 export function writeDigitalProductField(editor: DraftEditor, key: string, value: string) {
   const current = editor.snapshot().draft.fields;
   if ((current[key] ?? "") === value) return;
-  const fields = { ...current, [key]: value };
-  delete fields[approvalField];
-  editor.update({ fields });
+  editor.update({ fields: withoutDigitalProductApproval({ ...current, [key]: value }) });
 }
 
 function manuscriptVersion(draft: StudioDraft) {

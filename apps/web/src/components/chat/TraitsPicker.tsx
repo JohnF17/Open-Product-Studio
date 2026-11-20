@@ -518,7 +518,7 @@ export const TraitsPicker = memo(function TraitsPicker({
   if (!traits.hasAnyControls) {
     return null;
   }
-  const { label: triggerLabel } = buildTraitsTriggerDisplay(
+  const { label: selectedTraitsLabel } = buildTraitsTriggerDisplay(
     {
       descriptors: traits.descriptors,
       primarySelectDescriptorId: traits.primarySelectDescriptor?.id ?? null,
@@ -532,6 +532,7 @@ export const TraitsPicker = memo(function TraitsPicker({
     resolve,
   );
   const isCodexStyle = props.provider === "codex";
+  const triggerLabel = selectedTraitsLabel || resolve(msg("Model options"));
 
   return (
     <Menu

@@ -6,11 +6,13 @@ Recommendations run through versioned [harness roles and reply contracts](AGENT-
 
 ## Who chooses the model
 
+The step assistant uses the same Suggest, Explain and Tools and models controls across all seven builders. It offers a built-in starter, a browser model when the device reports it ready, and a reviewed T3 chat draft where the category permits it. The source account, model and supported options are available in the native T3 selector. A saved category preference survives closing Studio. The creator chooses any replacement when a selected connection becomes unavailable. [Builder implementation and qualification](acceptance/WP11/builder-assistance/README.md)
+
 Across project categories, start by asking what the creator wants to make. Guided mode proposes a small set of concrete choices with previews. Advanced mode keeps two actions beside consequential controls. **Suggest for me** uses the current project, inspects supported choices and previews a proposed value or group of values. **Explain** describes what the control changes in the creator’s own project. The person can keep their current choice, accept selected changes together, or undo them. Never turn an explanation into an applied setting, a paid run, or a publication.
 
 For Clipper, “make three vertical tutorials and keep the menu readable” should produce proposed source ranges, framing, subtitle placement and output resolution. Each proposal explains its source evidence and how the setting affects this footage. A saved advanced override survives a later suggestion until the user selects its replacement. Test the same passage in both views and compare the actual exported frames.
 
-The current Studio handoff prepares a draft in T3's composer. Its native defaults and any user-configured usage-limit fallback apply there. A research prompt requests read-only work in words. Enforcing tool permissions and enforcing a pinned model belong to the qualified action runner. The proposed Guided experience starts from that selection and the project's approved connections. It offers a project preset at the first AI step, with the exact account, model, supported effort, host and spending limit visible before acceptance. An offline, manually edited project needs no preset.
+The step assistant prepares a fresh T3 draft using the project preset. The creator chooses supported options, reviews the outgoing text and sends it in chat. Ordinary chat permissions apply there. Import checks the recorded selection and accepts a matching text reply. The qualified action runner still owns effective-model reporting, tool containment and spending limits. Offline manual editing and local starters work without a provider account.
 
 | Creator control | Behavior to qualify |
 | --- | --- |
