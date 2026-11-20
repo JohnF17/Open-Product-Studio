@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { link, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, symlink, unlink, writeFile } from "node:fs/promises";
+import { link, lstat, mkdir, mkdtemp, readFile, readdir, realpath, rename, rm, stat, symlink, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { test, type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { saveApprovedPortrait, type ApprovedPortraitSave, type SaveHooks, type SaveIntent } from "../../scripts/lib/clipper/portraitSave.ts";
@@ -15,7 +15,7 @@ const noSecondPrepare = async () => assert.fail("Recovery must never prepare a s
 const stopped = (reason: string) => ({ status: "stopped", reason, cleanup: "complete" });
 
 async function privateDirectory(t: TestContext, root = tmpdir()) {
-  const path = await mkdtemp(join(resolve(root), "studio-save-check-"));
+  const path = await mkdtemp(join(await realpath(root), "studio-save-check-"));
   t.after(() => rm(path, { recursive: true, force: true }));
   return path;
 }

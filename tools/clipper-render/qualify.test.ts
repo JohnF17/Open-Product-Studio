@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test, type TestContext } from "node:test";
@@ -13,7 +13,7 @@ const binary = process.env.CLIP_RENDER_TEST_FFMPEG;
 const sha256 = process.env.CLIP_RENDER_TEST_FFMPEG_SHA256;
 
 async function paths(t: TestContext) {
-  const base = tmpdir();
+  const base = await realpath(tmpdir());
   const root = await mkdtemp(join(base, "studio-qualify-test-"));
   t.after(() => {
     assert.equal(dirname(root), base);
