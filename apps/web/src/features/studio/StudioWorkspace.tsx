@@ -40,6 +40,8 @@ import { StudioMark } from "../../components/StudioMark";
 import { workingGuide } from "./workingDraftGuides";
 import "./studio.css";
 import { ClipLookPreview, clipLookName } from "./ClipLookPreview";
+import { ClipCaptionExport } from "./ClipCaptionExport";
+import { ClipRecordingPreview } from "./ClipRecordingPreview";
 import { VideoCuePreview, VideoCueSheet } from "./VideoCueSheet";
 import { VideoStyleAudition } from "./VideoStyleAudition";
 import { VideoSeriesBriefPanel } from "./VideoSeriesBriefPanel";
@@ -418,6 +420,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
   const excerptSnapshot = JSON.stringify([draft.id, draft.stage, draft.title, questionNotes]);
   const shareSheetNotes = approvedExcerpts === excerptSnapshot;
   const [sheetKey, setSheetKey] = useState(0);
+  const [clipDuration, setClipDuration] = useState<number>();
   const [motion, setMotion] = useState<{ from: string; key: number; direction: "forward" | "back" } | null>(
     null,
   );
@@ -656,7 +659,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
                 inert
                 aria-hidden="true"
               >
-                <Step stage={motion.from} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} />
+                <Step leaving stage={motion.from} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} clipDuration={clipDuration} />
               </div>
             )}
             <div
@@ -667,7 +670,7 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
               }}
               ref={activePanel}
             >
-              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} />
+              <Step stage={draft.stage} draft={draft} editor={editor} writeField={writeField} saveBackup={saveBackup} onCreateVideoProject={onCreateVideoProject} clipDuration={clipDuration} onClipDuration={setClipDuration} />
               {onAskAgent && researchStep && (
                 <details className="ops-reference ops-agent-context">
                   <summary>Ask AI to research products</summary>
@@ -774,6 +777,9 @@ function Builder({ editor, entryArt, onHome, onDiscard, onAskAgent, onCreateVide
 }
 
 type StepProps = {
+  leaving?: boolean;
+  clipDuration?: number | undefined;
+  onClipDuration?: ((ms: number | undefined) => void) | undefined;
   saveBackup: () => void;
   stage: string;
   draft: StudioDraft;
@@ -829,7 +835,7 @@ function Field({
   );
 }
 
-function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProject }: StepProps) {
+function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProject, leaving, clipDuration, onClipDuration }: StepProps) {
   const hasSeries = draft.category === "video" && (draft.seriesBrief !== undefined ||
     draft.fields.seriesDraftAudience !== undefined || draft.fields.seriesDraftFormat !== undefined);
   if (draft.category === "affiliate-storefront" && draft.affiliate && isAffiliateStage(stage)) {
@@ -873,6 +879,10 @@ function Step({ stage, draft, editor, writeField, saveBackup, onCreateVideoProje
     return (
       <>
         <Heading title={sheet.title} detail={sheet.detail} />
+        {draft.category === "clipper" && stage === "moments" && !leaving && (
+          <ClipRecordingPreview fields={draft.fields} writeField={writeField} onDuration={onClipDuration} />
+        )}
+        {draft.category === "clipper" && stage === "export" && <ClipCaptionExport fields={draft.fields} durationMs={clipDuration} />}
         {draft.category === "clipper" && stage === "edit" && (
           <ClipLookPreview fields={draft.fields} writeField={writeField} />
         )}
