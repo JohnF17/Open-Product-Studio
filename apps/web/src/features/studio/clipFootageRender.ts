@@ -107,8 +107,7 @@ async function seek(video: HTMLVideoElement, seconds: number, signal: AbortSigna
   });
 }
 
-// A cold Chromium encoder can spend the entire first short cut starting up.
-// Wait for actual encoded picture bytes while the source is still at its in-point.
+// Audio capture may need a playing source to start. Prime its canvas track in advance.
 async function warmPicture(track: MediaStreamTrack, draw: () => void, signal: AbortSignal) {
   const format = recorderFormat(false);
   const probe = new MediaRecorder(new MediaStream([track]), format ? { mimeType: format } : undefined);
@@ -188,16 +187,27 @@ function recordRange(
       if (!blob.size || !stopping) reject(new Error("Encoding stopped before the selected range completed."));
       else resolve(blob);
     }, options);
-    video.addEventListener("playing", () => {
+    function startRecorder() {
       try {
         recorder.start(100);
         paint();
       } catch (error) { fail(error); }
-    }, { ...options, once: true });
+    }
+    function play() {
+      void video.play().catch((error: unknown) => { if (!listeners.signal.aborted) fail(error); });
+    }
     try {
       signal.throwIfAborted();
       draw(cut.startMs);
-      void video.play().catch((error: unknown) => { if (!listeners.signal.aborted) fail(error); });
+      if (recorder.stream.getAudioTracks().length) {
+        video.addEventListener("playing", startRecorder, { ...options, once: true });
+        play();
+      } else {
+        // Feed the actual encoder the in-point until it starts. Advancing playback
+        // first can consume a short cut while a cold encoder is still opening.
+        recorder.addEventListener("start", play, { ...options, once: true });
+        startRecorder();
+      }
     } catch (error) { fail(error); }
   });
 }
@@ -258,10 +268,13 @@ export async function renderFootageCut(
     picture = canvas.captureStream(30);
     const canvasTrack = picture.getVideoTracks()[0];
     if (!canvasTrack) throw new Error("The browser could not capture the rendered picture.");
-    await warmPicture(canvasTrack, () => draw(cut.startMs), renderSignal);
-    if (audioFormat && track) picture.addTrack(track);
+    if (audioFormat && track) {
+      await warmPicture(canvasTrack, () => draw(cut.startMs), renderSignal);
+      picture.addTrack(track);
+    }
     const expectedMs = cut.endMs - cut.startMs;
     const attempts = expectedMs < 5000 ? 2 : 1;
+    let measured = "";
     for (let attempt = 0; attempt < attempts; attempt++) {
       if (attempt) await seek(video, cut.startMs / 1000, renderSignal);
       if (audioFormat && track?.readyState !== "live") throw new Error("The source audio ended. Retry this clip.");
@@ -274,11 +287,12 @@ export async function renderFootageCut(
             Math.abs(verified.durationMs - expectedMs) <= Math.min(expectedMs * 0.35, 350)) {
           return { blob, width, height, audio: Boolean(audioFormat), extension };
         }
+        measured = `${verified.durationMs} ms at ${verified.video.videoWidth} × ${verified.video.videoHeight}`;
       } finally { verified.release(); }
       // A short cut can lose its opening frames while the codec initializes.
       // Reuse the live capture track for one bounded retry before reporting failure.
     }
-    throw new Error("The encoder missed the selected timing or dimensions. Retry with the window visible.");
+    throw new Error(`The encoder produced ${measured}. The cut requires ${expectedMs} ms at ${width} × ${height}. Retry with the window visible.`);
   } finally {
     document.removeEventListener("visibilitychange", onVisibility);
     picture?.getTracks().forEach((track) => track.stop());
