@@ -13,13 +13,12 @@ import {
   type ServerProvider,
 } from "@t3tools/contracts";
 import {
-  isProviderInstancePickerReady,
   NO_PROVIDER_MODEL_SELECTION,
   providerInstanceEntriesFor,
   type ProviderInstanceEntry,
 } from "../../providerInstances";
 import { createModelSelection, modelSelectionsEqual } from "@t3tools/shared/model";
-import { getAppModelOptionsForInstance } from "../../modelSelection";
+import { canUsePinnedModel } from "../../modelSelection";
 import { type UnifiedSettings } from "@t3tools/contracts/settings";
 import { getComposerPromptInjectionState, getComposerProviderState } from "./composerProviderState";
 import { resolveComposerProviderSelection } from "../ChatView.logic";
@@ -134,18 +133,4 @@ export function useComposerProviderModel(
     selectedModel: modelState.selectedModel,
     composerProviderState,
   };
-}
-
-function canUsePinnedModel(
-  settings: UnifiedSettings,
-  entry: ProviderInstanceEntry,
-  model: string,
-) {
-  if (!entry.installed || !isProviderInstancePickerReady(entry) ||
-      entry.snapshot.auth.status === "unauthenticated") return false;
-  const subProvider = entry.models.find(({ slug }) => slug === model)?.subProvider;
-  if (subProvider && entry.snapshot.subProviders?.some(
-    (backend) => backend.name === subProvider && backend.unavailableReason !== undefined,
-  )) return false;
-  return getAppModelOptionsForInstance(settings, entry, null).some(({ slug }) => slug === model);
 }

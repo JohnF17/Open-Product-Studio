@@ -2,6 +2,8 @@
 
 > **For agentic workers:** Implement work packages individually using the repository instructions, dependency contracts and independent reviewer assigned to the package. Keep the checkbox evidence in each package current.
 
+The seven-builder assistant currently joins WP05, WP08 and WP11 through the native T3 selector, on-device inference and local starters. WP53 and WP55 retain the provider qualification and reply-contract gates. The implementation record maps each route and its remaining acceptance work. [Builder assistance](acceptance/WP11/builder-assistance/README.md)
+
 **Goal:** Build one downloadable, open-source business studio that researches choices, creates useful digital products and supports their launch, delivery and improvement using explicitly selected AI connections.
 
 **Architecture:** Fork pinned T3 Code; retain its Electron shell, familiar UI, provider model picker, authenticated client runtime and durable execution platform. Add a modular business domain and dashboard with immutable product versions, evidence, relationships, campaigns and distribution. All modules register together; their executable capabilities activate through tested releases.

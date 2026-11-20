@@ -1,14 +1,9 @@
 import { useId, useState } from "react";
+import { escapeVttText, formatVttTimestamp } from "./captionVtt";
 import { downloadStudioFile } from "./guide";
 import { formatClipTime, readClipRange } from "./clipTimes";
 
 type Timeline = "excerpt" | "recording";
-
-function vttTimestamp(ms: number) {
-  const whole = Math.floor(ms / 1000);
-  return [Math.floor(whole / 3600), Math.floor(whole / 60) % 60, whole % 60]
-    .map((n) => String(n).padStart(2, "0")).join(":") + "." + String(ms % 1000).padStart(3, "0");
-}
 
 export function ClipCaptionExport({ fields, durationMs }: { fields: Record<string, string>; durationMs?: number | undefined }) {
   const [timeline, setTimeline] = useState<Timeline>("excerpt");
@@ -20,9 +15,8 @@ export function ClipCaptionExport({ fields, durationMs }: { fields: Record<strin
 
   function download() {
     if (!caption || start === null || end === null) return;
-    const plainText = caption.replaceAll("\u0000", "\uFFFD").replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    const contents = `WEBVTT\n\n${vttTimestamp(start)} --> ${vttTimestamp(end)}\n${plainText}\n`;
+    const plainText = escapeVttText(caption);
+    const contents = `WEBVTT\n\n${formatVttTimestamp(start)} --> ${formatVttTimestamp(end)}\n${plainText}\n`;
     downloadStudioFile(new Blob([contents], { type: "text/vtt;charset=utf-8" }), "Caption - " + timeline, ".vtt");
   }
 

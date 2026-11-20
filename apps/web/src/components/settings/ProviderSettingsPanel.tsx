@@ -8,6 +8,7 @@ import {
 import { useEnvironmentScope, readEnvironmentScope } from "../../state/session";
 import { useAtomValue } from "@effect/atom-react";
 import { connectionErrorText, connectionStatusTitle } from "@t3tools/client-runtime/connection";
+import { availableScratchWorkspaceRoot } from "@t3tools/client-runtime/operations/projects";
 import {
   errorDisplayMessage,
   safeErrorLogAttributes,
@@ -46,6 +47,11 @@ import { msg, T, useGT, useMessages, Var } from "gt-react";
 import { m as resolveNow, type MessageResolver } from "../../i18n/messages";
 
 import { isDesktopLocalConnectionTarget } from "../../connection/desktopLocal";
+import { isElectron } from "../../env";
+import { BuilderToolSettings } from "../../features/studio/BuilderToolSettings";
+import { useBuilderT3Available } from "../../features/studio/builderAssistantRouteCatalog";
+import { useDeviceAssistantAvailable } from "../../features/studio/builderDeviceAssistant";
+import { BUILDER_TOOL_SETTINGS_ID } from "../../features/studio/builderToolRegistry";
 import {
   useEnvironmentSettings,
   usePersistEnvironmentProviderInstanceMutation,
@@ -472,6 +478,18 @@ function ProviderSettingsPanelContent(target: ProviderSettingsTarget) {
         />
       ) : null}
 
+      {isElectron &&
+      primaryEnvironmentId &&
+      selectedEnvironment?.environmentId === primaryEnvironmentId ? (
+        <StudioBuilderToolsSection
+          workspaceId={primaryEnvironmentId}
+          scratchRoot={availableScratchWorkspaceRoot(
+            selectedEnvironment.connection.phase,
+            selectedEnvironment.serverConfig,
+          )}
+        />
+      ) : null}
+
       {selectedEnvironment ? (
         <RemoteSessionGatedProviderSettings
           key={selectedEnvironment.environmentId}
@@ -487,6 +505,27 @@ function ProviderSettingsPanelContent(target: ProviderSettingsTarget) {
         />
       ) : null}
     </>
+  );
+}
+
+function StudioBuilderToolsSection({
+  workspaceId,
+  scratchRoot,
+}: {
+  workspaceId: EnvironmentId;
+  scratchRoot: string | null;
+}) {
+  const gt = useGT();
+  const deviceAvailable = useDeviceAssistantAvailable();
+  const t3Available = useBuilderT3Available(workspaceId, scratchRoot);
+  return (
+    <SettingsSection id={BUILDER_TOOL_SETTINGS_ID} title={gt("Studio builder tools")}>
+      <BuilderToolSettings
+        workspaceId={workspaceId}
+        t3Available={t3Available}
+        deviceAvailable={deviceAvailable}
+      />
+    </SettingsSection>
   );
 }
 

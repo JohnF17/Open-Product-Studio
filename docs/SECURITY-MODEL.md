@@ -4,6 +4,8 @@ This document defines requirements. Each released build needs its own security e
 
 ## Assets and trust boundaries
 
+Builder assistance uses three execution paths. Local starters run repository-owned transforms against the active draft. On-device inference checks for an already available browser model and uses a short-lived text session. T3 drafts open in the user's local agent workspace with its ordinary permissions. Asking for a text reply is an instruction to that provider. Chat can have broader permissions than the step assistant. The assistant accepts a completed matching text result through a stage-specific schema, and the creator must apply the proposed edits. Inspected provider skills are inventory only. Credentials, authorizations, approval flags and side effects are outside the writable schema. [Builder assistance evidence](acceptance/WP11/builder-assistance/README.md)
+
 Protect provider credentials, local files, unpublished products, source permissions, customer/contact data, money, device authority, and the software supply chain. Treat prompts, uploaded documents, fetched pages, generated HTML, CLI output, plugin manifests, PR text, and model suggestions as untrusted input.
 
 The main boundaries are browser↔engine, engine↔CLI process, engine↔filesystem, importer↔remote network, tenant↔tenant, cloud control plane↔worker, worker↔provider, webhook↔ledger, paired device↔local engine, and external contribution↔CI credentials. Each boundary needs schema validation and an explicit authorization decision.

@@ -1,5 +1,6 @@
 import { ArrowDownToLine, CirclePlus } from "lucide-react";
 import { useId } from "react";
+import { BuilderSheetHeading } from "./BuilderSheetHeading";
 
 import { randomUUID } from "../../lib/randomUUID";
 import {
@@ -144,10 +145,7 @@ export function AffiliateStorefrontSheet({
   const pinned = affiliate.candidates.filter((candidate) => candidate.pinned);
   return (
     <>
-      <div className="ops-step-head">
-        <h2 tabIndex={-1}>{heading}</h2>
-        <p>{detail}</p>
-      </div>
+      <BuilderSheetHeading title={heading} detail={detail} />
       <div className="ops-affiliate">
         {stage === "discover" && (
           <>

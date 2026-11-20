@@ -17,12 +17,14 @@ import {
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
 import { afterEach, expect, it, vi } from "vite-plus/test";
+import { page as browser } from "vite-plus/test/browser";
 
 import { act, render } from "../../test/render";
 import { attachmentContextRecord } from "../lib/composerContextRecords";
 import { DraftId, useComposerDraftStore } from "../composerDraftStore";
 import { clipEvidenceInventory } from "../features/studio/clipPicks";
 import { createDraft, DraftEditor } from "../features/studio/drafts";
+import { studioProjectHash } from "../features/studio/projectNavigation";
 import { newDraftId, newThreadId } from "../lib/utils";
 import type StudioWorkspace from "../features/studio/StudioWorkspace";
 import type { ComponentProps } from "react";
@@ -35,11 +37,13 @@ const fixture = vi.hoisted(() => ({
   openScratch: vi.fn(),
   readProjection: vi.fn(),
   mintAttachment: vi.fn(),
+  builderProviders: [] as readonly ServerProvider[],
   workspaceProps: null as ComponentProps<typeof StudioWorkspace> | null,
 }));
 vi.mock("../state/environments", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../state/environments")>()),
   usePrimaryEnvironmentId: () => fixture.workspace,
+  useEnvironmentProviders: () => new Map([[fixture.workspace, fixture.builderProviders]]),
 }));
 vi.mock("../hooks/useScratchProject", () => ({
   useScratchProject: () => ({
@@ -50,7 +54,7 @@ vi.mock("../hooks/useScratchProject", () => ({
 vi.mock("../features/studio/StudioWorkspace", () => ({
   default: (props: ComponentProps<typeof StudioWorkspace>) => {
     fixture.workspaceProps = props;
-    return <h1>Review evidence</h1>;
+    return <><h1>Review evidence</h1>{fixture.builderProviders.length > 0 && props.builderAssistant?.selector}</>;
   },
 }));
 vi.mock("./WorkspacePageHeader", () => ({ WorkspacePageHeader: () => null }));
@@ -60,8 +64,11 @@ vi.mock("../state/session", async (importOriginal) => ({
 }));
 vi.mock("@t3tools/client-runtime/state/runtime", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@t3tools/client-runtime/state/runtime")>()),
-  runAtomCommand: (...args: [unknown, { label: string }, unknown]) =>
-    (args[1].label === "studio:clip-reply:read-thread" ? fixture.readProjection : fixture.mintAttachment)(...args),
+  runAtomCommand: (...args: [unknown, { label: string }, unknown]) => {
+    if (args[1].label.endsWith(":read-thread")) return fixture.readProjection(...args);
+    if (args[1].label === "studio:clip-reply:read-image") return fixture.mintAttachment(...args);
+    return Promise.resolve({ _tag: "Success", value: { providers: fixture.builderProviders } });
+  },
 }));
 
 const scratchRef = scopeProjectRef(
@@ -124,6 +131,7 @@ afterEach(() => {
     stickyOptionsByModelByProvider: {},
   });
   fixture.workspaceProps = null;
+  fixture.builderProviders = [];
   fixture.openScratch.mockReset();
   fixture.readProjection.mockReset();
   fixture.mintAttachment.mockReset();
@@ -205,7 +213,112 @@ async function studio(providers: ReadonlyArray<ServerProvider> = []) {
   return Object.assign(screen, { router, evidence, editor, props: fixture.workspaceProps! });
 }
 
-it("opens another unsent draft with the exact reviewed evidence and selected model options", async () => {
+it("uses the reviewed builder selection in a fresh composer and reads just its completed turn", async () => {
+  const route = { ...sentModel, instanceId: ProviderInstanceId.make("codex") };
+  const skill = { name: "outline", path: "/private/SKILL.md", description: "Private skill detail", enabled: true };
+  fixture.builderProviders = [{
+    ...provider(route, true), skills: [{ ...skill, name: "machine-only" }],
+    workspaceSnapshots: [
+      { cwd: "unrelated", checkedAt: "2026-11-20T00:00:00.000Z", slashCommands: [], skills: [{ ...skill, name: "other-project" }] },
+      { cwd: "scratch-workspace", checkedAt: "2026-11-20T00:00:00.000Z", slashCommands: [], skills: [
+        skill, { ...skill, name: "Outline" }, { ...skill, name: "disabled", enabled: false },
+        { ...skill, name: "agent-only", userInvocable: false },
+      ] },
+    ],
+  }, provider(otherModel, false)];
+  await using page = await studio(fixture.builderProviders);
+  const bridge = () => fixture.workspaceProps!.builderAssistant!;
+  const thisProject = studioProjectHash(fixture.workspace, page.editor.snapshot().draft.id);
+  await act(() => page.router.navigate({ to: "/", hash: thisProject }));
+  expect(bridge()?.routeKey).toBeNull();
+  expect(bridge().hasAvailableProviders).toBe(true);
+  expect(bridge().availableSkills).toBeUndefined();
+  await browser.getByRole("button", { name: /Use .*codex.*gpt-actual/i }).click();
+  expect(bridge().routeKey).not.toBeNull();
+  await browser.getByRole("button", { name: "Choose assistant model" }).click();
+  await browser.getByRole("option", { name: /gpt-actual/ }).click();
+  await browser.getByRole("button", { name: "Model options" }).click();
+  await browser.getByRole("menuitemradio", { name: /Low/ }).click();
+  expect(bridge().availableSkills).toEqual(["outline"]);
+  const reviewedKey = bridge().routeKey;
+  await act(() => page.router.navigate({ to: "/", hash: studioProjectHash(fixture.workspace, "new-project") }));
+  expect(bridge().routeKey).toBeNull();
+  await act(() => page.router.navigate({ to: "/", hash: thisProject }));
+  expect(bridge().routeKey).toBe(reviewedKey);
+  const request = {
+    projectId: page.editor.snapshot().draft.id, stage: "source", requestId: "review-id",
+    prompt: "Review exactly this field.", routeKey: bridge().routeKey!,
+  };
+  await expect(bridge().open({ ...request, routeKey: "stale-route" })).rejects.toThrow();
+  await expect(bridge().open({ ...request, stage: "edit" })).rejects.toThrow();
+  const practice = new DraftEditor({ ...page.editor.snapshot().draft, category: "day-trader", stage: "rules" });
+  fixture.workspaceProps!.activeEditor!.current = practice;
+  await expect(bridge().open({ ...request, stage: "rules" })).rejects.toThrow();
+  fixture.workspaceProps!.activeEditor!.current = page.editor;
+  expect(fixture.openScratch).not.toHaveBeenCalled();
+  store().setStickyModelSelection(otherModel);
+  await act(() => bridge().open(request));
+  const draftId = DraftId.make(page.router.state.location.pathname.split("/").at(-1)!);
+  const session = store().getDraftSession(draftId)!;
+  const composer = store().getComposerDraft(draftId)!;
+  expect(composer.prompt).toBe(request.prompt);
+  expect(composer.modelSelectionByProvider[route.instanceId]).toEqual(route);
+  expect(session.requireAvailableModel).toBe(true);
+  expect(session.promotedTo).toBeNull();
+  await expect.element(page.getByTestId("model-route")).toHaveTextContent(JSON.stringify(route));
+  expect(fixture.readProjection).not.toHaveBeenCalled();
+  const threadId = session.threadId;
+  const sent = { id: "user-1", role: "user", threadId, runId: "run-1", text: request.prompt, attachments: [] };
+  const answer = { id: "assistant-1", role: "assistant", threadId, runId: sent.runId, text: "Reviewed proposal", streaming: false };
+  const item = { type: "assistant_message", messageId: answer.id, threadId, runId: sent.runId, phase: "final_answer", streaming: false, status: "completed" };
+  const run = { id: sent.runId, threadId, userMessageId: sent.id, providerInstanceId: route.instanceId, modelSelection: route, status: "completed" };
+  const attempt = { id: "attempt", runId: run.id, providerTurnId: "turn", providerInstanceId: route.instanceId };
+  const turn = { id: "turn", runAttemptId: attempt.id, model: route.model };
+  const projection = { thread: { id: threadId, projectId: scratchRef.projectId }, messages: [sent, answer], runs: [run],
+    turnItems: [item], nodes: [], subagents: [], runtimeRequests: [], attempts: [attempt], providerTurns: [turn] };
+  await act(() => page.router.navigate({ to: "/", hash: thisProject }));
+  fixture.workspaceProps!.activeEditor!.current = page.editor;
+  expect(bridge().routeKey).toBe(reviewedKey);
+  expect(await bridge().read({ ...request, requestId: "other" })).toBeNull();
+  expect(await bridge().read({ ...request, prompt: "another review" })).toBeNull();
+  expect(fixture.readProjection).not.toHaveBeenCalled();
+  fixture.readProjection.mockResolvedValue({ _tag: "Success", value: projection });
+  expect(await bridge().read(request)).toBe(answer.text);
+  for (const change of [
+    { thread: { id: threadId, projectId: "other" } },
+    { messages: [{ ...sent, text: sent.text + " edited" }, answer] },
+    { messages: [{ ...sent, context: { records: [{ kind: "file" }] } }, answer] },
+    { messages: [sent, { ...sent, id: "steer" }, answer] },
+    { messages: [sent, { ...answer, streaming: true }] },
+    { runs: [{ ...run, status: "failed" }] },
+    { runs: [{ ...run, providerInstanceId: otherModel.instanceId }] },
+    { runs: [{ ...run, modelSelection: { ...route, options: [] } }] },
+    { turnItems: [{ ...item, phase: "commentary" }] },
+    { turnItems: [item, { type: "command_execution", runId: run.id, threadId }] },
+    { turnItems: [item, { type: "approval_request", runId: run.id, threadId }] },
+    { nodes: [{ kind: "tool_call", runId: run.id, threadId }] },
+    { providerTurns: [{ ...turn, model: "unexpected-model" }] },
+    { attempts: [{ ...attempt, providerInstanceId: otherModel.instanceId }] },
+  ]) {
+    fixture.readProjection.mockResolvedValueOnce({ _tag: "Success", value: { ...projection, ...change } });
+    expect(await bridge().read(request)).toBeNull();
+  }
+  fixture.builderProviders = [provider(route, false)];
+  await act(() => page.router.navigate({ to: "/", hash: studioProjectHash(fixture.workspace, "another-project") }));
+  await act(() => page.router.navigate({ to: "/", hash: thisProject }));
+  expect(bridge().hasAvailableProviders).toBe(false);
+  expect(bridge().routeKey).toBeNull();
+  expect(bridge().routeLabel).toMatch(/gpt-actual.*low.*unavailable/i);
+  await expect(bridge().open(request)).rejects.toThrow();
+  await act(() => page.router.navigate({ to: "/", hash: studioProjectHash(fixture.workspace, "copy") }));
+  const key = "open-product-studio:builder-route:1:" + JSON.stringify([fixture.workspace, request.projectId]);
+  localStorage.setItem(key, JSON.stringify({ instanceId: { id: "bad" }, options: ["bad"] }));
+  await act(() => page.router.navigate({ to: "/", hash: thisProject }));
+  expect(bridge().routeLabel).toBeNull();
+  expect(bridge().routeKey).toBeNull();
+});
+
+it("opens an independent unsent evidence draft and requires an explicit model without a project preset", async () => {
   const previous = newDraftId();
   store().setProjectDraftThreadId(scratchRef, previous, { threadId: newThreadId() });
   store().setPrompt(previous, "Keep my unsent draft");
@@ -232,12 +345,41 @@ it("opens another unsent draft with the exact reviewed evidence and selected mod
   expect(seeded.images).toHaveLength(1);
   expect(seeded.images[0]!.file).toBe(page.evidence.contactSheet);
   expect(seeded.files).toEqual([]);
-  expect(seeded.activeProvider).toBe(model.instanceId);
-  expect(seeded.modelSelectionByProvider[model.instanceId]).toEqual(model);
+  expect(seeded.activeProvider).toBeNull();
+  expect(fresh.requireAvailableModel).toBe(true);
   expect(store().getComposerDraft(previous)?.prompt).toBe("Keep my unsent draft");
   expect(fresh.promotedTo).toBeNull();
   expect(fresh.environmentSelection).toBe("manual");
   expect(fresh.pinProviderSelection).toBe(true);
+  expect(fixture.readProjection).not.toHaveBeenCalled();
+});
+
+it.each(["clipper", "affiliate-storefront"] as const)("honors the %s project preset in the specialized composer", async category => {
+  const route = { ...sentModel, instanceId: ProviderInstanceId.make("codex") };
+  fixture.builderProviders = [provider(route, true)];
+  await using page = await studio(fixture.builderProviders);
+  const project = category === "clipper" ? page.editor.snapshot().draft : {
+    ...createDraft(fixture.workspace, category), stage: "discover", revision: 1,
+  };
+  await act(() => page.router.navigate({ to: "/", hash: studioProjectHash(fixture.workspace, project.id) }));
+  const editor = category === "clipper" ? page.editor : new DraftEditor(project);
+  const request = { workspaceId: fixture.workspace, projectId: project.id, stepId: project.stage,
+    signal: new AbortController().signal, prompt: "Research my reviewed question." };
+  const open = () => {
+    const props = fixture.workspaceProps!;
+    props.activeEditor!.current = editor;
+    return category === "clipper" ? Promise.resolve(props.onEvidenceReady!(page.evidence, request.signal)) : props.onAskAgent!(request);
+  };
+  const key = "open-product-studio:builder-route:1:" + JSON.stringify([fixture.workspace, project.id]);
+  localStorage.setItem(key, JSON.stringify({ ...route, model: "missing-model" }));
+  await expect(open()).rejects.toThrow(/unavailable/i);
+  localStorage.setItem(key, JSON.stringify(route));
+  store().setStickyModelSelection(otherModel);
+  await act(open);
+  const id = DraftId.make(page.router.state.location.pathname.split("/").at(-1)!);
+  expect(store().getDraftSession(id)?.requireAvailableModel).toBe(true);
+  expect(store().getComposerDraft(id)?.modelSelectionByProvider[route.instanceId]).toEqual(route);
+  if (category === "affiliate-storefront") expect(store().getComposerDraft(id)?.prompt).toBe(request.prompt);
   expect(fixture.readProjection).not.toHaveBeenCalled();
 });
 
@@ -416,7 +558,7 @@ it.each([true, false])(
     mockSentEvidence(page, sentModel);
     store().setStickyModelSelection(otherModel);
     await act(() => page.router.navigate({ to: "/" }));
-    fixture.workspaceProps!.activeEditor!.current = page.editor;
+    fixture.workspaceProps!.activeEditor!.current = new DraftEditor({ ...page.editor.snapshot().draft, stage: "edit" });
 
     const prompt = "Explain the current crop settings.";
     await act(() => fixture.workspaceProps!.onAskAgent!({
@@ -452,7 +594,7 @@ it("keeps a settings-only reply binding independent from the footage reply", asy
   const footageId = DraftId.make(page.router.state.location.pathname.split("/").at(-1)!);
   const footage = store().getDraftSession(footageId)!;
   await act(() => page.router.navigate({ to: "/" }));
-  fixture.workspaceProps!.activeEditor!.current = page.editor;
+  fixture.workspaceProps!.activeEditor!.current = new DraftEditor({ ...page.editor.snapshot().draft, stage: "edit" });
 
   store().setStickyModelSelection(model);
   const prompt = "Suggest a portrait output setting.";
