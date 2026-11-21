@@ -20,10 +20,14 @@ interface Narrator {
 
 function readNarrators(value: unknown): Narrator[] {
   if (!Array.isArray(value) || value.length > 64) return [];
-  return value.filter((item): item is Narrator =>
-    typeof item?.id === "string" && /^(system|kokoro:[a-z]{2}_[a-z0-9_]{1,30})$/.test(item.id) &&
-    typeof item.label === "string" && item.label.length > 0 && item.label.length <= 120 &&
-    (item.engine === "neural" || item.engine === "system"),
+  return value.filter(
+    (item): item is Narrator =>
+      typeof item?.id === "string" &&
+      /^(system|kokoro:[a-z]{2}_[a-z0-9_]{1,30})$/.test(item.id) &&
+      typeof item.label === "string" &&
+      item.label.length > 0 &&
+      item.label.length <= 120 &&
+      (item.engine === "neural" || item.engine === "system"),
   );
 }
 
@@ -119,7 +123,10 @@ export function TutorialRenderPanel({
     !!approval && ids.every((id) => Object.hasOwn(sources, id) && sources[id] instanceof File);
   const size = ids.reduce(
     (sum, id) => sum + (sources[id]?.size ?? 0) + 512,
-    (voiceover?.size ?? 0) + (soundtrack?.size ?? 0) + new Blob([approval?.manifest ?? ""]).size + 4096,
+    (voiceover?.size ?? 0) +
+      (soundtrack?.size ?? 0) +
+      new Blob([approval?.manifest ?? ""]).size +
+      4096,
   );
   const canRender =
     ready &&
@@ -150,9 +157,12 @@ export function TutorialRenderPanel({
     [],
   );
 
-  useLayoutEffect(() => () => {
-    if (auditionUrl) URL.revokeObjectURL(auditionUrl);
-  }, [auditionUrl]);
+  useLayoutEffect(
+    () => () => {
+      if (auditionUrl) URL.revokeObjectURL(auditionUrl);
+    },
+    [auditionUrl],
+  );
 
   function start(kind: "connect" | "render" | "audition", id: string) {
     const next = { approvalId: id, controller: new AbortController() };
@@ -227,8 +237,13 @@ export function TutorialRenderPanel({
       const form = new FormData();
       form.append("narrator", selectedVoice.id);
       const response = await fetch(connection.origin + "/voice-preview", {
-        method: "POST", body: form, headers: { Authorization: "Bearer " + connection.token },
-        signal: pending.controller.signal, credentials: "omit", redirect: "error", referrerPolicy: "no-referrer",
+        method: "POST",
+        body: form,
+        headers: { Authorization: "Bearer " + connection.token },
+        signal: pending.controller.signal,
+        credentials: "omit",
+        redirect: "error",
+        referrerPolicy: "no-referrer",
       });
       if (!response.ok || response.headers.get("content-type") !== "audio/wav") throw new Error();
       const wav = await response.blob();
@@ -337,11 +352,19 @@ export function TutorialRenderPanel({
             {connection.narrators.length > 0 && (
               <label>
                 <T>Narrator</T>
-                <select value={voiceId} disabled={!!busy || !!voiceover} onChange={(event) => {
-                  setVoiceId(event.currentTarget.value);
-                  setAuditionUrl(undefined);
-                }}>
-                  {connection.narrators.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                <select
+                  value={voiceId}
+                  disabled={!!busy || !!voiceover}
+                  onChange={(event) => {
+                    setVoiceId(event.currentTarget.value);
+                    setAuditionUrl(undefined);
+                  }}
+                >
+                  {connection.narrators.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
                 </select>
               </label>
             )}
@@ -350,7 +373,9 @@ export function TutorialRenderPanel({
                 <button type="button" disabled={!!busy} onClick={() => void audition()}>
                   {busy === "audition" ? gt("Preparing voice preview…") : gt("Preview this voice")}
                 </button>
-                {auditionUrl && <audio controls aria-label={gt("Narrator preview")} src={auditionUrl} />}
+                {auditionUrl && (
+                  <audio controls aria-label={gt("Narrator preview")} src={auditionUrl} />
+                )}
               </>
             )}
             <label>
@@ -369,34 +394,61 @@ export function TutorialRenderPanel({
                 }}
               />
             </label>
-            {voiceover && <button type="button" disabled={!!busy} onClick={() => {
-              if (voiceInput.current) voiceInput.current.value = "";
-              setNarration(undefined);
-            }}>
-              <T>Remove recorded narration</T>
-            </button>}
+            {voiceover && (
+              <button
+                type="button"
+                disabled={!!busy}
+                onClick={() => {
+                  if (voiceInput.current) voiceInput.current.value = "";
+                  setNarration(undefined);
+                }}
+              >
+                <T>Remove recorded narration</T>
+              </button>
+            )}
             {connection.soundtrack && (
               <label>
                 <T>Music or sound effects (optional WAV)</T>
-                <input type="file" ref={bedInput} key={approval.id + "-soundtrack"} accept=".wav,audio/wav" disabled={!!busy}
+                <input
+                  type="file"
+                  ref={bedInput}
+                  key={approval.id + "-soundtrack"}
+                  accept=".wav,audio/wav"
+                  disabled={!!busy}
                   onChange={(event) => {
                     const file = event.currentTarget.files?.[0];
                     setBed(file ? { approvalId: approval.id, file } : undefined);
-                  }} />
+                  }}
+                />
               </label>
             )}
-            {soundtrack && <>
-              <label><T>Soundtrack level</T><select value={bedLevel} disabled={!!busy} onChange={(event) => setBedLevel(event.currentTarget.value)}>
-                <option value="subtle">{gt("Subtle")}</option>
-                <option value="balanced">{gt("Balanced")}</option>
-                <option value="present">{gt("More prominent")}</option>
-              </select></label>
-              <button type="button" disabled={!!busy} onClick={() => {
-                if (bedInput.current) bedInput.current.value = "";
-                setBed(undefined);
-                setBedLevel("balanced");
-              }}><T>Remove soundtrack</T></button>
-            </>}
+            {soundtrack && (
+              <>
+                <label>
+                  <T>Soundtrack level</T>
+                  <select
+                    value={bedLevel}
+                    disabled={!!busy}
+                    onChange={(event) => setBedLevel(event.currentTarget.value)}
+                  >
+                    <option value="subtle">{gt("Subtle")}</option>
+                    <option value="balanced">{gt("Balanced")}</option>
+                    <option value="present">{gt("More prominent")}</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  disabled={!!busy}
+                  onClick={() => {
+                    if (bedInput.current) bedInput.current.value = "";
+                    setBed(undefined);
+                    setBedLevel("balanced");
+                  }}
+                >
+                  <T>Remove soundtrack</T>
+                </button>
+              </>
+            )}
             <p>
               {!ready
                 ? gt("Attach all the source recordings used in these shots.")
