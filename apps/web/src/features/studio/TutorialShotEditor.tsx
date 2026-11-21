@@ -42,6 +42,7 @@ export function TutorialShotEditor({
   index,
   count,
   sourceIds,
+  showOnScreenLabel,
   onChange,
   onRemove,
   onMove,
@@ -50,6 +51,7 @@ export function TutorialShotEditor({
   index: number;
   count: number;
   sourceIds: string[];
+  showOnScreenLabel: boolean;
   onChange: (scene: TutorialScene) => void;
   onRemove: () => void;
   onMove: (offset: -1 | 1) => void;
@@ -143,14 +145,16 @@ export function TutorialShotEditor({
           />
         </label>
         <label className="ops-field">
-          <span>
-            <T>On-screen label</T>
-          </span>
+          <span>{showOnScreenLabel ? gt("On-screen label") : gt("Shot label")}</span>
           <input
             maxLength={80}
             value={scene.caption}
             aria-invalid={issue === "caption" && !!scene.caption}
-            placeholder={gt("Name the action or area on screen")}
+            placeholder={
+              showOnScreenLabel
+                ? gt("Name the action or area on screen")
+                : gt("Name this shot in the timeline")
+            }
             onChange={(event) => onChange({ ...scene, caption: event.currentTarget.value })}
           />
         </label>
@@ -163,7 +167,7 @@ export function TutorialShotEditor({
               ? gt("Leave at least one frame and no more than 180 seconds between start and end.")
               : issue === "narration"
                 ? gt("Enter narration on one line without braces or backslashes.")
-                : gt("Enter an on-screen label without braces or backslashes.")}
+                : gt("Enter a label without braces or backslashes.")}
           </p>
         )}
       <label className="ops-tutorial-check">

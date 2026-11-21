@@ -27,8 +27,17 @@ function numeric(value, min, max, label) {
 }
 
 export function compileProject(project) {
-  object(project, ['schema', 'title', 'scenes'], 'project');
+  object(project, ['schema', 'title', 'scenes', 'presentation'], 'project');
   if (project.schema !== 'studio-tutorial/1') fail('Unsupported project schema');
+  let presentation;
+  if (Object.hasOwn(project, 'presentation')) {
+    const value = project.presentation;
+    object(value, ['aspect', 'style', 'captions'], 'presentation');
+    if (Object.keys(value).length !== 3 || !['9:16', '1:1', '16:9'].includes(value.aspect) ||
+        !['social-reel', 'studio-lesson'].includes(value.style) ||
+        !['center', 'lower', 'off'].includes(value.captions)) fail('Invalid presentation');
+    presentation = { aspect: value.aspect, style: value.style, captions: value.captions };
+  }
   const title = plain(project.title, 120, 'title');
   if (!Array.isArray(project.scenes) || !project.scenes.length || project.scenes.length > 120)
     fail('A tutorial needs 1 to 120 scenes');
@@ -59,7 +68,7 @@ export function compileProject(project) {
     if (offset > FPS * 1200) fail('Tutorial exceeds 20 minutes');
     return result;
   });
-  return { title, scenes, frames: offset };
+  return { title, scenes, frames: offset, ...(presentation && { presentation }) };
 }
 
 // Preserve punctuation and give longer passages a proportionate share of the speaking time.
@@ -89,7 +98,7 @@ export function subtitleCues(scene, speechFrames = scene.frames) {
   });
 }
 
-function time(frame, units) {
+export function formatFrameTime(frame, units) {
   const ticks = Math.round(frame * units / FPS);
   const sec = Math.floor(ticks / units);
   const pair = n => String(n).padStart(2, '0');
@@ -101,7 +110,7 @@ function time(frame, units) {
 export function webVtt(timeline) {
   const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   return 'WEBVTT\n\n' + timeline.map(({ scene, cues }) => cues.map(cue =>
-    time(scene.offset + cue.start, 1000) + ' --> ' + time(scene.offset + cue.end, 1000) +
+    formatFrameTime(scene.offset + cue.start, 1000) + ' --> ' + formatFrameTime(scene.offset + cue.end, 1000) +
     '\n' + escape(cue.text) + '\n\n').join('')).join('');
 }
 
@@ -116,7 +125,7 @@ export function sceneAss(scene, cues) {
     '[Events]', 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
   ];
   const event = (start, end, style, text) =>
-    'Dialogue: 0,' + time(start, 100) + ',' + time(end, 100) + ',' + style + ',,0,0,0,,' + text;
+    'Dialogue: 0,' + formatFrameTime(start, 100) + ',' + formatFrameTime(end, 100) + ',' + style + ',,0,0,0,,' + text;
   return [...header, event(0, scene.frames, 'Label', scene.caption),
     ...cues.map(cue => event(cue.start, cue.end, 'Speech', cue.text))].join('\n') + '\n';
 }

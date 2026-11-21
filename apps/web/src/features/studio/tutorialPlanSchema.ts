@@ -5,6 +5,28 @@ export const tutorialMaxScenes = 120;
 export const tutorialMaxJsonLength = 512 * 1024;
 export const tutorialFps = 30;
 
+const tutorialAspects = ["9:16", "1:1", "16:9"] as const;
+const tutorialStyles = ["social-reel", "studio-lesson"] as const;
+const tutorialCaptions = ["center", "lower", "off"] as const;
+
+export interface TutorialPresentation {
+  aspect: (typeof tutorialAspects)[number];
+  style: (typeof tutorialStyles)[number];
+  captions: (typeof tutorialCaptions)[number];
+}
+
+export const tutorialWalkthrough: Readonly<TutorialPresentation> = {
+  aspect: "16:9",
+  style: "studio-lesson",
+  captions: "lower",
+};
+
+export const tutorialSocialReel: Readonly<TutorialPresentation> = {
+  aspect: "9:16",
+  style: "social-reel",
+  captions: "center",
+};
+
 export interface TutorialFocus {
   x: number;
   y: number;
@@ -26,11 +48,13 @@ export interface TutorialPlan {
   schema: typeof tutorialSchema;
   title: string;
   scenes: TutorialScene[];
+  presentation?: TutorialPresentation;
 }
 
-const schemaKeys = ["schema", "title", "scenes"];
+const schemaKeys = ["schema", "title", "scenes", "presentation"];
 const sceneKeys = ["id", "source", "start", "end", "narration", "caption", "focus", "hold"];
 const focusKeys = ["x", "y", "zoom"];
+const presentationKeys = ["aspect", "style", "captions"];
 const unsafeText = /[\p{Cc}\\{}\u2028\u2029]/u;
 
 export function isTutorialSourceId(value: unknown): value is string {
@@ -68,6 +92,19 @@ function isFocus(value: unknown): value is TutorialFocus {
     inRange(value.x, 0, 1) &&
     inRange(value.y, 0, 1) &&
     inRange(value.zoom, 1, 3)
+  );
+}
+
+function isOneOf<const T extends string>(value: unknown, options: readonly T[]): value is T {
+  return options.some((option) => option === value);
+}
+
+function isPresentation(value: unknown): value is TutorialPresentation {
+  return (
+    hasAllowedKeys(value, presentationKeys) &&
+    isOneOf(value.aspect, tutorialAspects) &&
+    isOneOf(value.style, tutorialStyles) &&
+    isOneOf(value.captions, tutorialCaptions)
   );
 }
 
@@ -128,13 +165,19 @@ export function readTutorialDraft(raw: string | undefined): TutorialPlan | null 
     !hasAllowedKeys(data, schemaKeys) ||
     data.schema !== tutorialSchema ||
     !withinLength(data.title, 120) ||
+    (data.presentation !== undefined && !isPresentation(data.presentation)) ||
     !Array.isArray(data.scenes) ||
     data.scenes.length > tutorialMaxScenes ||
     !data.scenes.every(isDraftScene) ||
     new Set(data.scenes.map((scene) => scene.id)).size !== data.scenes.length
   )
     return null;
-  return { schema: tutorialSchema, title: data.title, scenes: data.scenes };
+  return {
+    schema: tutorialSchema,
+    title: data.title,
+    scenes: data.scenes,
+    ...(data.presentation === undefined ? {} : { presentation: data.presentation }),
+  };
 }
 
 export function readTutorialProposal(raw: string | undefined): TutorialPlan | null {
@@ -142,13 +185,22 @@ export function readTutorialProposal(raw: string | undefined): TutorialPlan | nu
   return plan && !tutorialPlanIssue(plan) ? plan : null;
 }
 
-export function tutorialCrop(focus: TutorialFocus | undefined, frame: number, frameCount: number) {
-  if (!focus) return { x: 0, y: 0, zoom: 1 };
-  const rampFrames = Math.max(1, Math.min(23, Math.round((frameCount - 1) * 0.4)));
+export function tutorialCrop(
+  focus: TutorialFocus | undefined,
+  frame: number,
+  frameCount: number,
+  social = false,
+) {
+  const target = focus ?? { x: 0.5, y: 0.5, zoom: 1 };
+  const rampFrames = Math.max(
+    1,
+    Math.min(social ? 45 : 23, Math.round((frameCount - 1) * (social ? 0.65 : 0.4))),
+  );
   const progress = Math.min(1, Math.max(0, frame) / rampFrames);
-  const zoom = 1 + (focus.zoom - 1) * (3 * progress ** 2 - 2 * progress ** 3);
+  const destination = social && target.zoom === 1 ? 1.08 : target.zoom;
+  const zoom = 1 + (destination - 1) * (3 * progress ** 2 - 2 * progress ** 3);
   const halfCrop = 0.5 / zoom;
   const offset = (center: number) =>
     (0.5 - Math.min(1 - halfCrop, Math.max(halfCrop, center))) * zoom * 100;
-  return { x: offset(focus.x), y: offset(focus.y), zoom };
+  return { x: offset(target.x), y: offset(target.y), zoom };
 }

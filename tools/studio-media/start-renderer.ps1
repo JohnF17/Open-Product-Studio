@@ -2,6 +2,7 @@ param(
     [string]$StudioOrigin = 'open-product-studio://app',
     [string]$EncoderPath,
     [string]$Voice = 'Microsoft Zira Desktop',
+    [string[]]$KokoroVoice,
     [string]$WhisperModel,
     [switch]$Motion,
     [string]$WorkDirectory
@@ -25,6 +26,7 @@ if (-not $EncoderPath) {
 }
 $encoder = (Resolve-Path -LiteralPath $EncoderPath).ProviderPath
 $arguments = @((Join-Path $PSScriptRoot 'bridge.mjs'), '--origin', $StudioOrigin, '--ffmpeg', $encoder, '--voice', $Voice)
+foreach ($id in $KokoroVoice) { $arguments += @('--kokoro-voice', $id) }
 if ($WhisperModel) { $arguments += @('--whisper-model', (Resolve-Path -LiteralPath $WhisperModel).ProviderPath) }
 if ($Motion) { $arguments += '--motion' }
 if ($WorkDirectory) { $arguments += @('--work', $WorkDirectory) }

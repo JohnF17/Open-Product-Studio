@@ -14,6 +14,14 @@ While **Preview** stays open, **Last completed render** remains downloadable aft
 
 With an eligible motion tool installed, **Create a motion insert** renders an original animation and attaches the resulting MP4 as a new source ID. Select that ID in a shot and review its timing like any other recording.
 
+## Social reel, layout and audio
+
+1. In **Video → Preview → Presentation**, choose **Social reel**. Confirm it opens in **9:16 Portrait** with centered subtitles. Play a shot and check that the subject stays in frame and the preview highlights spoken words. Try **1:1 Square** and **16:9 Landscape**, and check **Lower** and **Off in video**. Select **Walkthrough** to see the full picture and the label below.
+2. Review and download the plan. Confirm the exported JSON contains the chosen `presentation` values. Change the aspect ratio and confirm a fresh review is required.
+3. Start the [local renderer with Kokoro configured](../../tools/studio-media/README.md#use-local-kokoro-narration). Pair it, choose an installed Kokoro **Narrator**, then play **Preview this voice**. Attach a local WAV under **Music or sound effects**, choose a **Soundtrack level**, and render. Listen to the result around a spoken phrase and a pause. Download the WebVTT, including after a render with **Off in video**.
+
+Use a renderer and Studio build that include the Social reel feature.
+
 ## Local subtitles in Clipper
 
 Attach a recording on **Source** and expand **Generate subtitles locally**. Its setup command starts the paired renderer with the selected local whisper.cpp model. Enter the pairing code and choose **Create subtitles on this computer**. Read the timed cues before choosing **Use reviewed subtitles**. Starting a manual caption import or switching recordings during transcription cancels the pending request.

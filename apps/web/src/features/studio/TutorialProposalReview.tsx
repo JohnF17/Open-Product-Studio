@@ -11,12 +11,14 @@ export function TutorialProposalReview({
 }: {
   proposal: TutorialPlan;
   currentCount: number;
-  onApply: (scenes: TutorialScene[], replace: boolean) => void;
+  onApply: (scenes: TutorialScene[], replace: boolean, usePresentation: boolean) => void;
   onDismiss: () => void;
 }) {
   const gt = useGT();
   const [selection, setSelection] = useState<ReadonlySet<string>>(new Set());
+  const [usePresentation, setUsePresentation] = useState(currentCount === 0);
   const chosen = proposal.scenes.filter((scene) => selection.has(scene.id));
+  const presentation = proposal.presentation;
   return (
     <section className="ops-tutorial-proposal" aria-label={gt("Review proposed shots")}>
       <h3>
@@ -25,6 +27,29 @@ export function TutorialProposalReview({
       <p>
         <strong>{proposal.title}</strong>
       </p>
+      {presentation && (
+        <label className="ops-tutorial-check">
+          <input
+            type="checkbox"
+            checked={usePresentation}
+            onChange={(event) => setUsePresentation(event.currentTarget.checked)}
+          />
+          <span>
+            <T>Use proposed presentation</T>
+            {" · "}
+            {gt("{style}, {aspect}, {subtitles}", {
+              style: presentation.style === "social-reel" ? gt("Social reel") : gt("Walkthrough"),
+              aspect: presentation.aspect,
+              subtitles:
+                presentation.captions === "center"
+                  ? gt("centered subtitles")
+                  : presentation.captions === "lower"
+                    ? gt("lower subtitles")
+                    : gt("subtitles off in video"),
+            })}
+          </span>
+        </label>
+      )}
       <p>
         <T>
           Select the shots you want to use. Applying them keeps the source IDs and leaves recordings
@@ -89,7 +114,7 @@ export function TutorialProposalReview({
           type="button"
           className="ops-button ops-primary"
           disabled={!chosen.length || chosen.length + currentCount > tutorialMaxScenes}
-          onClick={() => onApply(chosen, false)}
+          onClick={() => onApply(chosen, false, usePresentation)}
         >
           <T>Add selected shots</T>
         </button>
@@ -98,7 +123,7 @@ export function TutorialProposalReview({
             type="button"
             className="ops-button"
             disabled={!chosen.length}
-            onClick={() => onApply(chosen, true)}
+            onClick={() => onApply(chosen, true, usePresentation)}
           >
             <T>Replace shot list with selected shots</T>
           </button>

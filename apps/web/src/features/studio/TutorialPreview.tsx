@@ -8,6 +8,7 @@ import {
   tutorialFps,
   tutorialFrames,
   tutorialSceneFrames,
+  type TutorialPresentation,
   type TutorialScene,
 } from "./tutorialPlanSchema";
 
@@ -17,12 +18,45 @@ export interface TutorialSource {
   type: string;
 }
 
+function reelWordsAtFrame(text: string, frame: number, frameCount: number) {
+  const groups: RegExpExecArray[][] = [];
+  let group: RegExpExecArray[] = [];
+  for (const word of text.matchAll(/\S+/gu)) {
+    if (
+      group.length &&
+      (group.length === 3 ||
+        [...group, word].map((token) => token[0]).join(" ").length > 18 ||
+        /[.!?…。！？]["'”’]?$/u.test(group.at(-1)?.[0] ?? ""))
+    ) {
+      groups.push(group);
+      group = [];
+    }
+    group.push(word);
+  }
+  if (group.length) groups.push(group);
+  if (frameCount < 1 || !groups.length) return null;
+
+  // Preview estimates speech timing from the shot. The renderer uses the generated voice when available.
+  const weight = (word: RegExpExecArray) => Array.from(word[0]).length;
+  const total = groups.flat().reduce((sum, word) => sum + weight(word), 0);
+  let cutoff = (Math.max(0, Math.min(frame, frameCount - 1)) * total) / frameCount;
+  for (const words of groups) {
+    for (const [index, word] of words.entries()) {
+      cutoff -= weight(word);
+      if (cutoff < 0) return { words, index };
+    }
+  }
+  return null;
+}
+
 export function TutorialPreview({
   scene,
   source,
+  presentation,
 }: {
   scene: TutorialScene | undefined;
   source: TutorialSource | undefined;
+  presentation: TutorialPresentation;
 }) {
   const gt = useGT();
   const video = useRef<HTMLVideoElement>(null);
@@ -36,7 +70,10 @@ export function TutorialPreview({
   const until = tutorialFrames(scene?.end ?? 0);
   const count = scene ? tutorialSceneFrames(scene) : 0;
   const playable = source && until > from && until <= tutorialFrames(source.durationMs / 1000);
-  const crop = tutorialCrop(scene?.focus, frame ?? count - 1, count);
+  const social = presentation.style === "social-reel";
+  const historicalLayout =
+    !social && presentation.aspect === "16:9" && presentation.captions === "lower";
+  const crop = tutorialCrop(scene?.focus, frame ?? count - 1, count, social);
   const transcript = scene?.narration.match(/\S(?:.{0,50}\S)?(?=\s|$)|\S{1,52}/gu) ?? [];
   const currentLine =
     transcript[
@@ -45,6 +82,11 @@ export function TutorialPreview({
         Math.floor(((frame ?? 0) / Math.max(1, count)) * transcript.length),
       )
     ];
+  const reelText =
+    social && presentation.captions !== "off"
+      ? reelWordsAtFrame(scene?.narration ?? "", frame ?? 0, count)
+      : null;
+  const overlay = source && scene && !error;
 
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- Bind the native media element to a scoped object URL and release playback resources when it changes.
   useEffect(() => {
@@ -116,7 +158,13 @@ export function TutorialPreview({
 
   return (
     <section className="ops-tutorial-monitor" aria-label={gt("Shot preview")}>
-      <div className="ops-tutorial-screen">
+      <div
+        className="ops-tutorial-screen"
+        data-aspect={presentation.aspect}
+        data-style={presentation.style}
+        data-captions={presentation.captions}
+        data-historical={historicalLayout || undefined}
+      >
         {source && (
           <div className="ops-tutorial-matte">
             <div
@@ -130,6 +178,17 @@ export function TutorialPreview({
                 preload="auto"
                 disableRemotePlayback
                 aria-label={gt("Selected source footage")}
+                style={
+                  social
+                    ? {
+                        objectPosition:
+                          (scene?.focus?.x ?? 0.5) * 100 +
+                          "% " +
+                          (scene?.focus?.y ?? 0.5) * 100 +
+                          "%",
+                      }
+                    : undefined
+                }
                 onLoadedMetadata={(event) => {
                   const element = event.currentTarget;
                   if (Number.isFinite(element.duration))
@@ -157,10 +216,26 @@ export function TutorialPreview({
             </span>
           </div>
         )}
-        {source && scene && !error && (
-          <div className="ops-tutorial-screen-text" aria-hidden="true">
+        {overlay && !social && (
+          <div className="ops-tutorial-screen-text ops-tutorial-label" aria-hidden="true">
             <strong>{scene.caption}</strong>
-            <span>{currentLine}</span>
+            {historicalLayout && <span>{currentLine}</span>}
+          </div>
+        )}
+        {overlay && !historicalLayout && presentation.captions !== "off" && (
+          <div className="ops-tutorial-screen-text ops-tutorial-spoken" aria-hidden="true">
+            {reelText ? (
+              <span>
+                {reelText.words.map((word, index) => (
+                  <span key={word.index} data-highlight={index === reelText.index || undefined}>
+                    {index > 0 && " "}
+                    {word[0]}
+                  </span>
+                ))}
+              </span>
+            ) : !social ? (
+              <span>{currentLine}</span>
+            ) : null}
           </div>
         )}
       </div>

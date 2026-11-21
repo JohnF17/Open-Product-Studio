@@ -48,6 +48,7 @@ LINK = re.compile(r'!?\[[^\]\n]*\]\(([^\n)]+)\)')
 STUDIO_WINDOW_RECORDINGS = {
     'docs/acceptance/WP24/assisted-intake/assisted-builder.webm': 'dc3827f8c439b23b57c9fc6ee34d3dcad56367ec',
     'docs/acceptance/WP24/tutorial-production/director-window.webm': 'c1bf597776c1dab4da9b2ff749f27d14a66b7763',
+    'docs/acceptance/WP24/social-reel/showcase.mp4': '6bbfe31cf7f0bed0e5d8f074d2689b92763d0367',
     'docs/acceptance/WP24/tutorial-production/tutorial.mp4': '82e339d6802212750c0a767d5691ead35657b71f',
     # Two original, synthetic source-derived files reviewed alongside the viewport recording.
     'docs/acceptance/WP24/assisted-intake/daybreak.webm': '4537278dce87745e3c537b6f08f9b961fa0058a0',

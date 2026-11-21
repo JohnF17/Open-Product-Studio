@@ -4,7 +4,8 @@ import { renderTutorial, validateTutorial } from './engine.mjs';
 const help = [
   'node tools/studio-media/cli.mjs validate --project plan.json --assets local-assets.json',
   'node tools/studio-media/cli.mjs render --project plan.json --assets local-assets.json --output new.mp4',
-  '  (--audio full-timeline.wav | --voice "Microsoft Zira Desktop") [--ffmpeg local-executable] [--preview new.jpg]',
+  '  (--audio full-timeline.wav | --voice "kokoro:af_heart" | --voice "Microsoft Zira Desktop")',
+  '  [--soundtrack background.wav --soundtrack-level balanced] [--ffmpeg local-executable] [--preview new.jpg]',
 ].join('\n');
 
 async function main() {
@@ -12,7 +13,7 @@ async function main() {
   if (command === '--help' || command === '-h') { console.log(help); return; }
   const rendering = command === 'render';
   if (!rendering && command !== 'validate') throw new Error(help);
-  const keys = rendering ? ['project', 'assets', 'output', 'audio', 'voice', 'ffmpeg', 'preview'] : ['project', 'assets'];
+  const keys = rendering ? ['project', 'assets', 'output', 'audio', 'voice', 'soundtrack', 'soundtrack-level', 'ffmpeg', 'preview'] : ['project', 'assets'];
   const options = {};
   for (let i = 0; i < args.length; i += 2) {
     const key = args[i].slice(2);
@@ -31,7 +32,9 @@ async function main() {
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
   try {
-    const result = await renderTutorial({ ...options, signal: controller.signal, onProgress: msg => console.error(msg) });
+    if (options['soundtrack-level'] && (!options.soundtrack || !['subtle','balanced','present'].includes(options['soundtrack-level'])))
+      throw new Error('Choose --soundtrack PATH and a subtle, balanced or present soundtrack level.');
+    const result = await renderTutorial({ ...options, soundtrackLevel: options['soundtrack-level'], signal: controller.signal, onProgress: msg => console.error(msg) });
     console.log(JSON.stringify(result));
   } finally {
     process.off('SIGINT', stop);

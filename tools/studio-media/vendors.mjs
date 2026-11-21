@@ -7,6 +7,7 @@ import * as NodeUtil from 'node:util';
 import { blenderBinaries, renderBlender } from './adapters/blender.mjs';
 import { browserComposition, compositionRuntime } from './adapters/browser-compositions.mjs';
 import { readClips } from './adapters/clips-kitty.mjs';
+import { renderEarshotCue } from './adapters/earshot.mjs';
 import { speak } from './adapters/elevenlabs.mjs';
 import { searchOpenverse } from './adapters/openverse.mjs';
 import { inputFile, runTool } from './adapters/shared.mjs';
@@ -19,6 +20,7 @@ const usage = `Usage: node tools/studio-media/vendors.mjs <command> [options]
   whisper-cpp --input MEDIA --model PATH.bin --output PATH.srt [--language auto|en]
   yt-dlp --url PUBLIC_YOUTUBE_VIDEO --output PATH.mp4 [--approve-download]
   blender --output PATH.mp4
+  earshot --id whoosh_fast/crisp --output PATH.wav
   hyperframes --design PATH.html | --output PATH.mp4
   remotion --design PATH.tsx | --output PATH.mp4
   clips-kitty --video-id ID [--approve-read]
@@ -90,6 +92,7 @@ const commands = {
   'whisper-cpp': { options: { input: string, model: string, output: string, language: string }, run: transcribe },
   'yt-dlp': { options: { url: string, output: string, 'approve-download': boolean }, run: download },
   blender: { options: { output: string }, run: renderBlender },
+  earshot: { options: { id: string, output: string }, run: renderEarshotCue },
   hyperframes: { options: { design: string, output: string }, run: options => browserComposition('hyperframes', options) },
   remotion: { options: { design: string, output: string }, run: options => browserComposition('remotion', options) },
   'clips-kitty': { options: { 'video-id': string, 'approve-read': boolean }, run: readClips },

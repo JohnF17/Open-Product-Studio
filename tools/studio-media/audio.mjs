@@ -17,13 +17,18 @@ async function decodeWave(wav, raw, maxSeconds, ff) {
 }
 
 async function speak(plan, work, voice, signal) {
-  if (!isWindowsHost) throw new Error('Offline SAPI requires Windows. Supply a narration WAV on this platform.');
   if (typeof voice !== 'string' || !voice.trim() || voice.length > 160 || /[\x00-\x1f]/.test(voice))
-    throw new Error('Choose an installed offline voice by its exact name');
+    throw new Error('Choose an installed voice by its exact name');
   const jobs = plan.scenes.map((scene, i) => ({
     phrases: subtitleCues(scene).map(cue => cue.text),
     wav: NodePath.join(work, 'speech-' + i + '.wav'), timings: NodePath.join(work, 'timings-' + i + '.json'),
   }));
+  if (voice.startsWith('kokoro:')) {
+    const { synthesizeKokoro } = await import('./kokoro.mjs');
+    await synthesizeKokoro({ jobs, work, voice: voice.slice('kokoro:'.length), signal });
+    return jobs;
+  }
+  if (!isWindowsHost) throw new Error('Choose an installed Kokoro voice or attach a recorded narration WAV on this platform.');
   const request = NodePath.join(work, 'speech.json');
   await NodeFSP.writeFile(request, JSON.stringify({ voice, scenes: jobs }));
   const powershell = NodePath.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
@@ -34,7 +39,7 @@ async function speak(plan, work, voice, signal) {
 }
 
 export async function prepareNarration({ plan, audio, voice, work, ff, signal }) {
-  if (Boolean(audio) === Boolean(voice)) throw new Error('Choose exactly one narration WAV or exact installed Windows voice');
+  if (Boolean(audio) === Boolean(voice)) throw new Error('Choose exactly one narration WAV or installed voice');
   const file = NodePath.join(work, 'narration.pcm');
   if (audio) {
     const wav = await checkedFile(audio);
