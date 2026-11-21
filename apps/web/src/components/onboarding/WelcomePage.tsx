@@ -150,7 +150,9 @@ export function WelcomePage({
     canShare: canReadRelay && canWriteRelay,
     policy: useManagedPolicy(environmentId),
   });
-  const scans = useProjectScans([environmentId]);
+  const [historyEnvironment, setHistoryEnvironment] = useState<EnvironmentId | null>(null);
+  const searchHistory = historyEnvironment === environmentId;
+  const scans = useProjectScans(searchHistory ? [environmentId] : []);
   const [storedSelection, storeSelection] = useLocalStorage(
     welcomeImportSelectionKey(environmentId),
     null,
@@ -298,11 +300,26 @@ export function WelcomePage({
                 isPrimary={isPrimary}
                 onImportSourceEnabled={() => scans[0]?.refresh()}
               />
-              <ProjectsSection
-                scan={scans[0]}
-                projectImport={projectImport}
-                isImporting={isImporting}
-              />
+              {searchHistory ? (
+                <ProjectsSection
+                  scan={scans[0]}
+                  projectImport={projectImport}
+                  isImporting={isImporting}
+                />
+              ) : (
+                <WelcomeSection title={gt("Projects")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setHistoryEnvironment(environmentId)}
+                  >
+                    <T>Look for existing projects</T>
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    <T>Search your local agent history for projects you can import.</T>
+                  </p>
+                </WelcomeSection>
+              )}
               {showPhone ? <PhoneSection environmentId={environmentId} /> : null}
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">

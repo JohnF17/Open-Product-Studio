@@ -316,12 +316,14 @@ async function click(label: string) {
   await act(async () => target.click());
 }
 
-async function mountWelcome() {
-  return render(
+async function mountWelcome(scanHistory = true) {
+  const screen = await render(
     <RegistryContext.Provider value={appAtomRegistry}>
       <WelcomePage environmentId={primaryId} onDone={state.onDone} />
     </RegistryContext.Provider>,
   );
+  if (scanHistory) await click("Look for existing projects");
+  return screen;
 }
 
 // The mocked modules read `state`, so every test starts by replacing all of it.
@@ -370,6 +372,19 @@ function setup() {
   localStorage.removeItem(welcomeImportSelectionKey(primaryId));
   return now;
 }
+
+it("starts with a ready provider without scanning or importing CLI history", async () => {
+  using _now = setup();
+  await using _screen = await mountWelcome(false);
+
+  expect(button("Look for existing projects").disabled).toBe(false);
+  expect(state.scan).not.toHaveBeenCalled();
+  await click("Start");
+  await vi.waitFor(() => expect(state.onDone).toHaveBeenCalledOnce());
+  expect(state.scan).not.toHaveBeenCalled();
+  expect(state.createProject).not.toHaveBeenCalled();
+  expect(state.importThreads).not.toHaveBeenCalled();
+});
 
 it("rechecks after project creation and can retry its history without recreating the project", async () => {
   using _now = setup();
