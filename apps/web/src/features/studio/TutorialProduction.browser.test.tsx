@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vite-plus/test";
-import { userEvent } from "vite-plus/test/browser";
+import { page, userEvent } from "vite-plus/test/browser";
 import { render } from "../../../test/render";
 import { randomUUID } from "../../lib/randomUUID";
 import { recording } from "./clipRecordingFixture";
@@ -240,4 +240,153 @@ it("keeps the completed render when a WAV retry fails or a shot edit supersedes 
   } finally {
     mockFetch.mockRestore();
   }
+});
+
+it("edits a legacy tutorial’s presentation, invalidates approval and exports the new settings", async () => {
+  const workspaceId = randomUUID();
+  const draft = createDraft(workspaceId, "video");
+  const before = JSON.stringify(original);
+  await saveDraft({ ...draft, stage: "render", fields: { tutorialProduction: before } }, 0);
+
+  {
+    const container = document.createElement("div");
+    container.style.width = "1040px";
+    await using ui = await render(
+      <StudioWorkspace workspaceId={workspaceId} routeProjectId={draft.id} />,
+      { router: false, container },
+    );
+    const aspect = ui.getByRole("combobox", { name: "Aspect ratio" });
+    const captions = ui.getByRole("combobox", { name: "Subtitle position" });
+    const review = ui.getByRole("checkbox", { name: "I reviewed this production plan" });
+    const screen = () => container.querySelector<HTMLElement>(".ops-tutorial-screen")!;
+    await expect.element(aspect).toHaveValue("16:9");
+    await expect.element(captions).toHaveValue("lower");
+    expect((await readDraft(workspaceId, draft.id))?.fields.tutorialProduction).toBe(before);
+    expect(getComputedStyle(screen()).aspectRatio).toBe("16 / 9");
+
+    await review.click();
+    await ui.getByRole("button", { name: "Social reel" }).click();
+    await expect.element(aspect).toHaveValue("9:16");
+    await expect.element(captions).toHaveValue("center");
+    await expect.element(review).not.toBeChecked();
+    expect(getComputedStyle(screen()).aspectRatio).toBe("9 / 16");
+    await aspect.selectOptions("1:1");
+    await captions.selectOptions("off");
+    expect(getComputedStyle(screen()).aspectRatio).toBe("1 / 1");
+
+    const expected = { aspect: "1:1", style: "social-reel", captions: "off" };
+    await expect
+      .poll(
+        async () =>
+          JSON.parse((await readDraft(workspaceId, draft.id))?.fields.tutorialProduction ?? "null")
+            ?.presentation,
+      )
+      .toEqual(expected);
+    await review.click();
+    const urls = vi.spyOn(URL, "createObjectURL");
+    const anchor = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    try {
+      await ui.getByRole("button", { name: "Download production plan" }).click();
+      const exported = urls.mock.calls.at(-1)?.[0];
+      expect(exported).toBeInstanceOf(Blob);
+      expect(JSON.parse(await (exported as Blob).text())).toEqual({
+        ...original,
+        presentation: expected,
+      });
+    } finally {
+      urls.mockRestore();
+      anchor.mockRestore();
+    }
+  }
+
+  await using reopened = await render(
+    <StudioWorkspace workspaceId={workspaceId} routeProjectId={draft.id} />,
+    { router: false },
+  );
+  await expect.element(reopened.getByRole("combobox", { name: "Aspect ratio" })).toHaveValue("1:1");
+  await expect
+    .element(reopened.getByRole("combobox", { name: "Subtitle position" }))
+    .toHaveValue("off");
+  await reopened.getByRole("button", { name: "Walkthrough" }).click();
+  await expect
+    .element(reopened.getByRole("combobox", { name: "Aspect ratio" }))
+    .toHaveValue("16:9");
+  await expect
+    .element(reopened.getByRole("combobox", { name: "Subtitle position" }))
+    .toHaveValue("lower");
+});
+
+it("reviews imported formatting on a 390px Video Preview and crops the attached source to a portrait reel", async () => {
+  const viewport = { width: window.innerWidth, height: window.innerHeight };
+  await page.viewport(390, 844);
+  await using _restoreViewport = {
+    [Symbol.asyncDispose]: () => page.viewport(viewport.width, viewport.height),
+  };
+  const workspaceId = randomUUID();
+  const draft = createDraft(workspaceId, "video");
+  await saveDraft(
+    { ...draft, stage: "render", fields: { tutorialProduction: JSON.stringify(original) } },
+    0,
+  );
+  const container = document.createElement("div");
+  container.style.width = "100%";
+  await using ui = await render(
+    <StudioWorkspace workspaceId={workspaceId} routeProjectId={draft.id} />,
+    { router: false, container },
+  );
+  const proposal = {
+    ...original,
+    scenes: [{ ...original.scenes[0], narration: "Open the dashboard to continue.", id: "second" }],
+    presentation: { aspect: "9:16", style: "social-reel", captions: "center" },
+  };
+  const importPlan = (plan: typeof proposal) =>
+    userEvent.upload(
+      ui.getByLabelText("Import production plan"),
+      new File([JSON.stringify(plan)], "proposal.json", { type: "application/json" }),
+    );
+  await importPlan({ ...proposal, presentation: { ...proposal.presentation, aspect: "3:2" } });
+  await expect.element(ui.getByRole("alert")).toBeVisible();
+  await importPlan(proposal);
+  const usePresentation = ui.getByRole("checkbox", { name: /Use proposed presentation/ });
+  const aspect = ui.getByRole("combobox", { name: "Aspect ratio" });
+  await expect.element(usePresentation).not.toBeChecked();
+  await expect.element(aspect).toHaveValue("16:9");
+  await usePresentation.click();
+  await ui.getByRole("checkbox", { name: "Include shot 1" }).click();
+  await ui.getByRole("button", { name: "Add selected shots" }).click();
+  await expect.element(aspect).toHaveValue("9:16");
+  await expect.element(ui.getByRole("textbox", { name: "Shot label" })).toBeVisible();
+  await userEvent.upload(
+    ui.getByLabelText("Choose recording for dashboard"),
+    recording("portrait-source.webm"),
+  );
+  await expect.element(ui.getByRole("button", { name: "Play preview" })).toBeEnabled();
+  const base = container.querySelector<HTMLElement>(".ops-workspace")!;
+  const screen = container.querySelector<HTMLElement>(".ops-tutorial-screen")!;
+  expect(base.scrollWidth).toBeLessThanOrEqual(base.clientWidth);
+  expect(base.clientWidth).toBeLessThanOrEqual(390);
+  expect(screen.getBoundingClientRect().height).toBeGreaterThan(
+    screen.getBoundingClientRect().width,
+  );
+  expect(getComputedStyle(screen.querySelector("video")!).objectFit).toBe("cover");
+  expect(screen.querySelector(".ops-tutorial-screen-text")?.textContent).toContain("Open the");
+  expect(screen.querySelector("[data-highlight]")?.textContent).toBe("Open");
+  expect(screen.querySelector(".ops-tutorial-screen-text strong")).toBeNull();
+  const captionVerticalAnchor = () => {
+    const { top, height } = screen.getBoundingClientRect();
+    const text = screen.querySelector(".ops-tutorial-spoken")!.getBoundingClientRect();
+    return (text.top + text.height / 2 - top) / height;
+  };
+  const captions = ui.getByRole("combobox", { name: "Subtitle position" });
+  expect(captionVerticalAnchor()).toBeCloseTo(0.5, 2);
+  await captions.selectOptions("lower");
+  expect(captionVerticalAnchor()).toBeCloseTo(0.76, 2);
+  await captions.selectOptions("off");
+  expect(screen.querySelector(".ops-tutorial-screen-text")).toBeNull();
+  await ui.getByRole("button", { name: "Walkthrough" }).click();
+  await aspect.selectOptions("9:16");
+  await captions.selectOptions("off");
+  expect(getComputedStyle(screen.querySelector("video")!).objectFit).toBe("contain");
+  expect(screen.querySelector(".ops-tutorial-label strong")?.textContent).toBe("Dashboard");
+  expect(screen.querySelector(".ops-tutorial-spoken")).toBeNull();
 });

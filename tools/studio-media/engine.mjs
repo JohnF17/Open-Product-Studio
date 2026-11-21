@@ -3,6 +3,7 @@ import * as NodePath from 'node:path';
 import { compileProject, FPS, SAMPLE_RATE, sceneAss, webVtt } from './project.mjs';
 import { localPath, readAssets, readJson, run } from './local.mjs';
 import { pcmInput, prepareNarration } from './audio.mjs';
+import { presentationAss, presentationCamera, presentationLayout } from './presentation.mjs';
 
 async function load(project, assets) {
   const plan = compileProject(await readJson(project));
@@ -32,9 +33,10 @@ function camera(scene) {
   ];
 }
 
-async function shot(ff, source, scene, cues, i, work) {
+async function shot(ff, source, scene, cues, i, work, layout) {
   const script = 'titles-' + i + '.ass';
-  await NodeFSP.writeFile(NodePath.join(work, script), sceneAss(scene, cues), 'utf8');
+  const subtitles = layout ? presentationAss(scene, cues, layout) : sceneAss(scene, cues);
+  await NodeFSP.writeFile(NodePath.join(work, script), subtitles, 'utf8');
   const preroll = Math.min(60, scene.startFrame);
   const filters = [
     'fps=fps=30:start_time=0:eof_action=pass',
@@ -42,7 +44,7 @@ async function shot(ff, source, scene, cues, i, work) {
     'setpts=PTS-STARTPTS',
     'showinfo=checksum=0',
     'tpad=stop_mode=clone:stop=' + scene.holdFrames,
-    ...camera(scene), 'ass=' + script, 'format=yuv420p',
+    ...(layout ? presentationCamera(scene, layout) : camera(scene)), 'ass=' + script, 'format=yuv420p',
   ];
   // Count the decoded source frames before tpad so an invalid source range cannot turn into a frozen shot.
   let pending = '', decoded = 0;
@@ -104,7 +106,7 @@ async function publish(files, signal) {
   }
 }
 
-export async function renderTutorial({ project, assets, output, audio, voice, ffmpeg, preview, signal, onProgress }) {
+export async function renderTutorial({ project, assets, output, audio, voice, soundtrack, soundtrackLevel, ffmpeg, preview, signal, onProgress }) {
   const { plan, sources } = await load(project, assets);
   const video = await destination(output, '.mp4');
   const base = video.slice(0, -4);
@@ -119,10 +121,16 @@ export async function renderTutorial({ project, assets, output, audio, voice, ff
       { cwd: work, signal, ...options });
     onProgress?.('Preparing narration');
     const { file, timeline } = await prepareNarration({ plan, audio, voice, work, ff, signal });
+    let mix = file;
+    if (soundtrack) {
+      const { mixSoundtrack } = await import('./soundtrack.mjs');
+      mix = await mixSoundtrack({ soundtrack, level: soundtrackLevel, narration: file, work, frames: plan.frames, ff });
+    }
     const list = ['ffconcat version 1.0'];
+    const layout = presentationLayout(plan.presentation);
     for (const [i, { scene, cues }] of timeline.entries()) {
       onProgress?.('Rendering scene ' + (i + 1) + '/' + timeline.length + ' (' + scene.id + ')');
-      const name = await shot(ff, sources.get(scene.source), scene, cues, i, work);
+      const name = await shot(ff, sources.get(scene.source), scene, cues, i, work, layout);
       list.push('file ' + name, 'duration ' + (scene.frames / FPS).toFixed(8));
     }
     await NodeFSP.writeFile(NodePath.join(work, 'shots.ffconcat'), list.join('\n') + '\n');
@@ -130,7 +138,7 @@ export async function renderTutorial({ project, assets, output, audio, voice, ff
     onProgress?.('Mixing final narration and extracting preview');
     const samples = plan.frames * SAMPLE_RATE / FPS;
     await ff(['-v', 'error', '-f', 'concat', '-safe', '1', '-protocol_whitelist', 'file', '-i', 'shots.ffconcat',
-      ...pcmInput, '-i', file, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy',
+      ...pcmInput, '-i', mix, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy',
       '-af', 'loudnorm=I=-16:TP=-1.5:LRA=7,aresample=48000,apad=whole_len=' + samples + ',atrim=end_sample=' + samples,
       '-ar', '48000', '-ac', '1', '-c:a', 'aac', '-b:a', '160k', '-map_metadata', '-1',
       '-metadata', 'title=' + plan.title, '-movflags', '+faststart', '-video_track_timescale', '90000', 'final.mp4']);

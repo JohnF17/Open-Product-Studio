@@ -5,6 +5,7 @@ import { useId, useRef, useState, type Dispatch, type SetStateAction } from "rea
 import { randomUUID } from "../../lib/randomUUID";
 import { type DraftEditor, type StudioDraft, projectName } from "./drafts";
 import { downloadStudioFile } from "./guide";
+import { TutorialPresentationSettings } from "./TutorialPresentationSettings";
 import { TutorialPreview, type TutorialSource } from "./TutorialPreview";
 import { TutorialProposalReview } from "./TutorialProposalReview";
 import { TutorialRenderPanel } from "./TutorialRenderPanel";
@@ -21,6 +22,7 @@ import {
   tutorialPlanIssue,
   tutorialProposalField,
   tutorialSchema,
+  tutorialWalkthrough,
   type TutorialPlan,
   type TutorialScene,
 } from "./tutorialPlanSchema";
@@ -267,7 +269,7 @@ export function TutorialProduction({
     }
   }
 
-  function applyProposal(chosen: TutorialScene[], replace: boolean) {
+  function applyProposal(chosen: TutorialScene[], replace: boolean, usePresentation: boolean) {
     if (!proposal || !chosen.length) return;
     const current = editor.snapshot().draft;
     if (!proposalInput && current.fields[tutorialProposalField] !== assistantProposal) return;
@@ -286,6 +288,9 @@ export function TutorialProduction({
         ...livePlan,
         title: prior.length ? livePlan.title : proposal.title,
         scenes: [...prior, ...applied],
+        ...(usePresentation && proposal.presentation
+          ? { presentation: proposal.presentation }
+          : {}),
       },
       !proposalInput,
     );
@@ -338,6 +343,10 @@ export function TutorialProduction({
           onDismiss={dismissProposal}
         />
       )}
+      <TutorialPresentationSettings
+        presentation={plan.presentation ?? tutorialWalkthrough}
+        onChange={(presentation) => save({ ...getPlan(editor.snapshot().draft), presentation })}
+      />
       <div className="ops-tutorial-edit">
         <div className="ops-tutorial-view">
           <TutorialPreview
@@ -352,6 +361,7 @@ export function TutorialProduction({
             ])}
             scene={active}
             source={source}
+            presentation={plan.presentation ?? tutorialWalkthrough}
           />
           <TutorialSources
             ids={ids}
@@ -422,6 +432,7 @@ export function TutorialProduction({
               index={activeIndex}
               count={plan.scenes.length}
               sourceIds={ids}
+              showOnScreenLabel={plan.presentation?.style !== "social-reel"}
               onChange={changeShot}
               onMove={moveShot}
               onRemove={removeShot}
@@ -447,7 +458,7 @@ export function TutorialProduction({
                 ? gt("Enter a tutorial title on one line without braces or backslashes.")
                 : issue === "duration"
                   ? gt("Keep the tutorial within 20 minutes.")
-                  : gt("Complete each shot’s timing, narration and on-screen label to export.")}
+                  : gt("Complete each shot’s timing, narration and label to export.")}
           </p>
         )}
         <label className="ops-tutorial-check">

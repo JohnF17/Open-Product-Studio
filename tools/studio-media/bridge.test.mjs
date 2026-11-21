@@ -10,7 +10,7 @@ NodeTest.test("a reviewed upload renders using only its declared files and clean
   const work=await NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(),"studio-bridge-test-"));
   const origin="http://127.0.0.1:3787";
   let calls=0;
-  const bridge=await startMediaBridge({origin,ffmpeg:process.execPath,voice:"fixture",work,renderer:async options=>{
+  const bridge=await startMediaBridge({origin,ffmpeg:process.execPath,voice:"fixture",systemVoiceAvailable:true,work,renderer:async options=>{
     calls++;
     NodeAssert.equal(options.voice,"fixture");
     const captions=NodePath.join(NodePath.dirname(options.output),"tutorial.vtt"),preview=NodePath.join(NodePath.dirname(options.output),"tutorial.jpg");
@@ -32,6 +32,15 @@ NodeTest.test("a reviewed upload renders using only its declared files and clean
     data.append("extra","ignored?");
     NodeAssert.equal((await fetch(bridge.endpoint+"/render",{method:"POST",headers,body:data})).status,400);
     data.delete("extra");
+    data.append("narrator","kokoro:unconfigured");
+    NodeAssert.equal((await fetch(bridge.endpoint+"/render",{method:"POST",headers,body:data})).status,400);
+    data.set("narrator","system");
+    data.append("soundtrack-level","present");
+    NodeAssert.equal((await fetch(bridge.endpoint+"/render",{method:"POST",headers,body:data})).status,400);
+    data.delete("soundtrack-level");
+    data.append("narration-wav",new Blob([bytes]),"voice.wav");
+    NodeAssert.equal((await fetch(bridge.endpoint+"/render",{method:"POST",headers,body:data})).status,400);
+    data.delete("narration-wav");
     const out=await fetch(bridge.endpoint+"/render",{method:"POST",headers,body:data});
     NodeAssert.equal(out.status,200);
     const result=await out.formData();

@@ -8,6 +8,23 @@ interface Connection {
   token: string;
   voice: string;
   nativeVoice: boolean;
+  narrators: Narrator[];
+  soundtrack: boolean;
+}
+
+interface Narrator {
+  id: string;
+  label: string;
+  engine: "neural" | "system";
+}
+
+function readNarrators(value: unknown): Narrator[] {
+  if (!Array.isArray(value) || value.length > 64) return [];
+  return value.filter((item): item is Narrator =>
+    typeof item?.id === "string" && /^(system|kokoro:[a-z]{2}_[a-z0-9_]{1,30})$/.test(item.id) &&
+    typeof item.label === "string" && item.label.length > 0 && item.label.length <= 120 &&
+    (item.engine === "neural" || item.engine === "system"),
+  );
 }
 
 interface Approval {
@@ -75,13 +92,21 @@ export function TutorialRenderPanel({
   const [code, setCode] = useState("");
   const [connection, setConnection] = useState<Connection | null>(null);
   const [narration, setNarration] = useState<{ approvalId: string; file: File }>();
-  const [busy, setBusy] = useState<"connect" | "render" | null>(null);
+  const [bed, setBed] = useState<{ approvalId: string; file: File }>();
+  const [bedLevel, setBedLevel] = useState("balanced");
+  const [voiceId, setVoiceId] = useState("");
+  const [auditionUrl, setAuditionUrl] = useState<string>();
+  const [busy, setBusy] = useState<"connect" | "render" | "audition" | null>(null);
   const [message, setMessage] = useState<{ approvalId: string; text: string } | null>(null);
   const [result, setResult] = useState<Delivery | null>(null);
   const request = useRef<Request | null>(null);
+  const voiceInput = useRef<HTMLInputElement>(null);
+  const bedInput = useRef<HTMLInputElement>(null);
   const delivered = useRef<Delivery | null>(null);
   const approvalId = approval?.id;
   const voiceover = narration?.approvalId === approvalId ? narration?.file : undefined;
+  const soundtrack = bed?.approvalId === approvalId ? bed?.file : undefined;
+  const selectedVoice = connection?.narrators.find((item) => item.id === voiceId);
   const origin =
     window.location.origin === "null"
       ? window.location.protocol + "//" + window.location.host
@@ -94,7 +119,7 @@ export function TutorialRenderPanel({
     !!approval && ids.every((id) => Object.hasOwn(sources, id) && sources[id] instanceof File);
   const size = ids.reduce(
     (sum, id) => sum + (sources[id]?.size ?? 0) + 512,
-    (voiceover?.size ?? 0) + new Blob([approval?.manifest ?? ""]).size + 4096,
+    (voiceover?.size ?? 0) + (soundtrack?.size ?? 0) + new Blob([approval?.manifest ?? ""]).size + 4096,
   );
   const canRender =
     ready &&
@@ -125,7 +150,11 @@ export function TutorialRenderPanel({
     [],
   );
 
-  function start(kind: "connect" | "render", id: string) {
+  useLayoutEffect(() => () => {
+    if (auditionUrl) URL.revokeObjectURL(auditionUrl);
+  }, [auditionUrl]);
+
+  function start(kind: "connect" | "render" | "audition", id: string) {
     const next = { approvalId: id, controller: new AbortController() };
     request.current = next;
     setBusy(kind);
@@ -171,10 +200,14 @@ export function TutorialRenderPanel({
       )
         throw new Error();
       signal.throwIfAborted();
+      const narrators = readNarrators("narrators" in info ? info.narrators : undefined);
+      setVoiceId(narrators[0]?.id ?? "");
       setConnection({
         ...chosen,
         voice: info.voice,
         nativeVoice: "nativeVoiceAvailable" in info && info.nativeVoiceAvailable === true,
+        narrators,
+        soundtrack: "soundtrack" in info && info.soundtrack === true,
       });
       setCode("");
     } catch {
@@ -182,6 +215,28 @@ export function TutorialRenderPanel({
         pending,
         gt("Could not connect. Check the pairing code and the Studio origin shown below."),
       );
+    } finally {
+      finish(pending);
+    }
+  }
+
+  async function audition() {
+    if (!approval || !connection || selectedVoice?.engine !== "neural" || request.current) return;
+    const pending = start("audition", approval.id);
+    try {
+      const form = new FormData();
+      form.append("narrator", selectedVoice.id);
+      const response = await fetch(connection.origin + "/voice-preview", {
+        method: "POST", body: form, headers: { Authorization: "Bearer " + connection.token },
+        signal: pending.controller.signal, credentials: "omit", redirect: "error", referrerPolicy: "no-referrer",
+      });
+      if (!response.ok || response.headers.get("content-type") !== "audio/wav") throw new Error();
+      const wav = await response.blob();
+      if (wav.size < 44 || wav.size > 2 * 1024 * 1024) throw new Error();
+      pending.controller.signal.throwIfAborted();
+      setAuditionUrl(URL.createObjectURL(wav));
+    } catch {
+      report(pending, gt("Could not preview this voice. Check the local renderer and try again."));
     } finally {
       finish(pending);
     }
@@ -196,6 +251,11 @@ export function TutorialRenderPanel({
       form.append("plan", approval.manifest);
       for (const id of ids) form.append("source-" + id, sources[id]!, id + ".media");
       if (voiceover) form.append("narration-wav", voiceover, "narration.wav");
+      else if (selectedVoice) form.append("narrator", selectedVoice.id);
+      if (soundtrack) {
+        form.append("soundtrack-wav", soundtrack, "soundtrack.wav");
+        form.append("soundtrack-level", bedLevel);
+      }
       const response = await fetch(connection.origin + "/render", {
         method: "POST",
         body: form,
@@ -265,18 +325,41 @@ export function TutorialRenderPanel({
                 onClick={() => {
                   setConnection(null);
                   setNarration(undefined);
+                  setBed(undefined);
+                  setBedLevel("balanced");
+                  setAuditionUrl(undefined);
                   setMessage(null);
                 }}
               >
                 <T>Disconnect</T>
               </button>
             </p>
+            {connection.narrators.length > 0 && (
+              <label>
+                <T>Narrator</T>
+                <select value={voiceId} disabled={!!busy || !!voiceover} onChange={(event) => {
+                  setVoiceId(event.currentTarget.value);
+                  setAuditionUrl(undefined);
+                }}>
+                  {connection.narrators.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                </select>
+              </label>
+            )}
+            {selectedVoice?.engine === "neural" && !voiceover && (
+              <>
+                <button type="button" disabled={!!busy} onClick={() => void audition()}>
+                  {busy === "audition" ? gt("Preparing voice preview…") : gt("Preview this voice")}
+                </button>
+                {auditionUrl && <audio controls aria-label={gt("Narrator preview")} src={auditionUrl} />}
+              </>
+            )}
             <label>
               {connection.nativeVoice
                 ? gt("Recorded narration (optional WAV)")
                 : gt("Narration WAV for the full timeline")}
               <input
-                key="narration-wav"
+                key={approval.id + "-narration"}
+                ref={voiceInput}
                 type="file"
                 accept=".wav,audio/wav"
                 disabled={!!busy}
@@ -286,6 +369,34 @@ export function TutorialRenderPanel({
                 }}
               />
             </label>
+            {voiceover && <button type="button" disabled={!!busy} onClick={() => {
+              if (voiceInput.current) voiceInput.current.value = "";
+              setNarration(undefined);
+            }}>
+              <T>Remove recorded narration</T>
+            </button>}
+            {connection.soundtrack && (
+              <label>
+                <T>Music or sound effects (optional WAV)</T>
+                <input type="file" ref={bedInput} key={approval.id + "-soundtrack"} accept=".wav,audio/wav" disabled={!!busy}
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    setBed(file ? { approvalId: approval.id, file } : undefined);
+                  }} />
+              </label>
+            )}
+            {soundtrack && <>
+              <label><T>Soundtrack level</T><select value={bedLevel} disabled={!!busy} onChange={(event) => setBedLevel(event.currentTarget.value)}>
+                <option value="subtle">{gt("Subtle")}</option>
+                <option value="balanced">{gt("Balanced")}</option>
+                <option value="present">{gt("More prominent")}</option>
+              </select></label>
+              <button type="button" disabled={!!busy} onClick={() => {
+                if (bedInput.current) bedInput.current.value = "";
+                setBed(undefined);
+                setBedLevel("balanced");
+              }}><T>Remove soundtrack</T></button>
+            </>}
             <p>
               {!ready
                 ? gt("Attach all the source recordings used in these shots.")
@@ -319,8 +430,8 @@ export function TutorialRenderPanel({
               </code>
               <p>
                 <T>
-                  Windows can narrate with an installed system voice. On other systems, attach a
-                  recorded WAV covering the whole timeline.
+                  Choose a configured local Kokoro narrator, use an installed Windows voice, or
+                  attach a recorded WAV covering the whole timeline.
                 </T>
               </p>
             </details>
